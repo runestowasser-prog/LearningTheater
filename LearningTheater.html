@@ -1,0 +1,3392 @@
+<!DOCTYPE html>
+<html style="height:100%;" >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta id="viewport" name="viewport" content="minimum-scale=1.0,maximum-scale=1.0,initial-scale=1.0,user-scalable=no,minimal-ui">
+
+<script src="js/SCORM_API_wrapper.js"></script>
+<script src="js/eventdefinitions.js"></script>
+
+
+
+<script>
+
+
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+var StopUpdates="function cancelAllAnimationFrames(){var id =window.requestAnimationFrame(function({});while(id--{window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();"
+
+var htmlNode="<input type='number'>"
+
+var PlayOrPause="Timeline.play();";
+var TimeLength=0;
+var SceneTimePosition=0;
+var ScrollPosition=0;
+var SettingsGenerated='';
+var TestElements=undefined;
+var AllSceneTweens=null;
+var AllActors=new Array;
+var AllScenes=new Array;
+var BuildString="";
+
+var AllGeneratedTweens=new Array;
+var AllTweens=new Array(" ");
+var CurrentlyEditingTween=0;
+var EditorGrid=1;
+var StoryLinePlayer="";
+var FollowSL=false;
+var GeneratedTriggers=[];
+
+
+const editorOverlay = document.getElementById("propertyEditor");
+const editorForm = document.getElementById("propertyForm");
+const closeEditorBtn = document.getElementById("closeEditor");
+
+const editableProps = [
+  "ID", "Type", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY", "ShowOrigin", "Controls",
+  "Width", "Height", "X", "Y", "Scale", "Opacity", "Angle", "SkewX", "SkewY",
+  "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY", "TranslateZ",
+  "Text", "FontSize", "MouseDown", "MouseUp", "Draggable", "Style", "Class"
+];
+
+
+function setCheckboxValue(checkbox,value) {
+    if (checkbox.checked!=value)
+        checkbox.click();
+}
+
+var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length; i++){"+
+"Actor(\"TimelineTween\"+i,\"div\");thisActor.Parent=\"TimelineBox\";"+
+"thisActor.Color='#f7f7f7';"+
+"thisActor.Resizing=false;"+
+"thisActor.Style='filter:drop-shadow(0.5em 0.5em 0.5em); cursor:grab;';"+
+"thisActor.Draggable=true;"+
+"thisActor.MouseUp=\" parent.elementId('startTime').value=\"+thisActor.ID+\".X/100; parent.elementId('startTime').dispatchEvent(new Event('input'));startX=\"+thisActor.ID+\".X;\";"+
+"thisActor.MouseDown=\"parent.TweenOptions.Opacity=100; parent.CurrentlyEditingTween=parent.AllSceneTweens[\"+i+\"].vars.id;"+
+"parent.SceneId.value=parent.elementId(\'PreviewWindow\').contentWindow.GetScene().ID; "+
+"parent.ActorTween.value=parent.AllSceneTweens[\"+i+\"]._targets[0].ID;"+
+"parent.startTime.value=parent.AllSceneTweens[\"+i+\"]._start;"+
+"parent.duration.value=parent.AllSceneTweens[\"+i+\"].vars.duration;"+
+"parent.RepeatInput.value=parent.AllSceneTweens[\"+i+\"]._repeat;"+
+"parent.YoyoInput.checked=parent.AllSceneTweens[\"+i+\"]._yoyo;"+
+//"if(parent.AllSceneTweens[\"+i+\"]._to==true){parent.direction.value=\'to\';}"+
+//"if(parent.AllSceneTweens[\"+i+\"]._from==true){parent.direction.value=\'from\';}"+
+//"if(parent.AllSceneTweens[\"+i+\"]._set==true){parent.direction.value=\'set\';}"+
+"parent.direction.value=parent.AllSceneTweens[\"+i+\"].vars.data;"+
+"parent.easing.value=parent.AllSceneTweens[\"+i+\"].vars.ease;"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Width!=undefined){parent.WidthInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Width+10;  parent.WidthInput2.disabled=false;parent.WidthOnT.checked=true;}else{parent.WidthInput2.disabled=true;parent.WidthOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Height!=undefined){parent.HeightInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Height;  parent.HeightInput2.disabled=false;parent.HeightOnT.checked=true;}else{parent.HeightInput2.disabled=true;parent.HeightOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.X!=undefined){parent.XInput2.value=parent.AllSceneTweens[\"+i+\"].vars.X;  parent.XInput2.disabled=false; parent.XOnT.checked=true;}else{parent.XInput2.disabled=true;parent.XOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Y!=undefined){parent.YInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Y;  parent.YInput2.disabled=false;parent.YOnT.checked=true;}else{parent.YInput2.disabled=true;parent.YOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Scale!=undefined){parent.ScaleInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Scale;  parent.ScaleInput2.disabled=false;parent.ScaleOnT.checked=true;}else{parent.ScaleInput2.disabled=true;parent.ScaleOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Opacity!=undefined){parent.OpacityInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Opacity;  parent.OpacityInput2.disabled=false;parent.OpacityOnT.checked=true;}else{parent.OpacityInput2.disabled=true;parent.OpacityOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Angle!=undefined){parent.AngleInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Angle;  parent.AngleInput2.disabled=false;parent.AngleOnT.checked=true;}else{parent.AngleInput2.disabled=true;parent.AngleOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.SkewX!=undefined){parent.SkewXInput2.value=parent.AllSceneTweens[\"+i+\"].vars.SkewX;  parent.SkewXInput2.disabled=false;parent.SkewXOnT.checked=true;}else{parent.SkewXInput2.disabled=true;parent.SkewXOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.SkewY!=undefined){parent.SkewYInput2.value=parent.AllSceneTweens[\"+i+\"].vars.SkewY;  parent.SkewYInput2.disabled=false;parent.SkewYOnT.checked=true;}else{parent.SkewYInput2.disabled=true;parent.SkewYOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.RotateX!=undefined){parent.RotateXInput2.value=parent.AllSceneTweens[\"+i+\"].vars.RotateX;  parent.RotateXInput2.disabled=false;parent.RotateXOnT.checked=true;}else{parent.RotateXInput2.disabled=true;parent.RotateXOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.RotateY!=undefined){parent.RotateYInput2.value=parent.AllSceneTweens[\"+i+\"].vars.RotateY;  parent.RotateYInput2.disabled=false;parent.RotateYOnT.checked=true;}else{parent.RotateYInput2.disabled=true;parent.RotateYOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.RotateZ!=undefined){parent.RotateZInput2.value=parent.AllSceneTweens[\"+i+\"].vars.RotateZ;  parent.RotateZInput2.disabled=false;parent.RotateZOnT.checked=true;}else{parent.RotateZInput2.disabled=true;parent.RotateZOnT.checked=false;} "+
+"if(parent.AllSceneTweens[\"+i+\"].vars.TranslateX!=undefined){parent.TranslateXInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TranslateX;  parent.TranslateXInput2.disabled=false;parent.TranslateXOnT.checked=true;}else{parent.TranslateXInput2.disabled=true;parent.TranslateXOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.TranslateY!=undefined){parent.TranslateYInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TranslateY;  parent.TranslateYInput2.disabled=false;parent.TranslateYOnT.checked=true;}else{parent.TranslateYInput2.disabled=true;parent.TranslateYOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.TranslateZ!=undefined){parent.TranslateZInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TranslateZ;  parent.TranslateZInput2.disabled=false;parent.TranslateZOnT.checked=true;}else{parent.TranslateZInput2.disabled=true;parent.TranslateZOnT.checked=false;} \";"+
+"thisActor.Y=30;thisActor.Height=15;thisActor.Width=(AllTweens[i].duration()*100)+0;thisActor.X=AllTweens[i].startTime()*100;thisActor.FontSize=10;"+
+"if(parent.AllSceneTweens[i].vars.data==\"from\" || parent.AllSceneTweens[i].vars.data==\"to\"){"+
+"thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; \"+thisActor.ID+\".Width=(MouseX+20)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft;}});' onmouseup='clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
+"if(parent.AllSceneTweens[i].vars.data==\"set\"){thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"\"}"+
+"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){thisActor.Y=AllTweensY[i-1]+15;} AllTweensY.push(thisActor.Y);}}";
+
+
+	
+
+function showTimelines(){
+	//AllSceneTweens=frame.contentwindow.GetScene().value.Timeline.getChildren();
+	//console.log("Which scene: "+currentSelect);
+	
+	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
+
+	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens;var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\n Scene(\"Scene1\");\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"lightgrey\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\nthisActor.Overflow=\"scroll\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=true;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\n}\nfunction SceneStart(){\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
+	
+	frame=elementId("TimelineVisual").contentWindow.document;
+	frame.open();
+	frame.innerHTML="";
+  
+	frame.write(HTMLTweenCode+jsTweenCode);
+	frame.close();
+}
+
+
+function updateActorList() {
+  const actors = AllActors;
+
+  // 1. Kombinér arrays
+  const markedActors = actors.map(a => ({ ...a, __type: "Actor" }));
+  const markedScenes = AllScenes.map(s => ({ ...s, __type: "Scene" }));
+
+  const allItems = [...markedScenes, ...markedActors];
+
+  // Fjern dubletter ud fra ID og __type
+  const uniqueItems = [];
+  const seen = new Set();
+
+  allItems.forEach(item => {
+    const key = item.__type + ":" + item.ID;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueItems.push(item);
+    }
+  });
+
+  // 2. Gruppér efter Parent
+  const grouped = {};
+  uniqueItems.forEach(item => {
+    const parent = item.Parent || "stage";
+    if (!grouped[parent]) {
+      grouped[parent] = [];
+    }
+    grouped[parent].push(item);
+  });
+
+  // 3. Sortér "stage" så Actors kommer før Scenes
+  if (grouped["stage"]) {
+    grouped["stage"].sort((a, b) => {
+      if (a.__type === "Actor" && b.__type === "Scene") return -1;
+      if (a.__type === "Scene" && b.__type === "Actor") return 1;
+      return 0;
+    });
+  }
+
+  // 4. Opbyg træet
+  const container = document.getElementById("BuildSpecial");
+
+  function createList(groupedItems, parentId = "stage", level = 0) {
+    const ul = document.createElement("ul");
+    ul.style.marginLeft = `${level * 10}px`;
+
+    const items = groupedItems[parentId] || [];
+
+    items.forEach(item => {
+      const li = document.createElement("li");
+      li.dataset.id = item.ID;
+
+      const label = document.createElement("span");
+      label.textContent = `${item.ID} (${item.__type})`;
+      li.appendChild(label);
+
+      // ✏️ Rediger-knap
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "✏️";
+	editBtn.className = "icon-btn";
+      editBtn.style.marginLeft = "5px";
+      editBtn.addEventListener("click", () => {
+        openPropertyEditor(item);
+        
+      });
+      li.appendChild(editBtn);
+/*	// 🧬 Kopiér-knap
+if (item.__type === "Actor") {
+  const copyBtn = document.createElement("button");
+  copyBtn.textContent = "🧬";
+  copyBtn.style.marginLeft = "5px";
+	copyBtn.className = "icon-btn";
+
+  copyBtn.title = "Kopiér Actor";
+
+  copyBtn.addEventListener("click", () => {
+    const newID = prompt("ID for kopi af " + item.ID + ":");
+    if (!newID) return;
+
+    if (AllActors.some(a => a.ID === newID)) {
+      alert("ID'et findes allerede!");
+      return;
+    }
+
+    // Lav en dyb kopi, men fjern ID og __type
+    const clone = cloneActor(item);
+	clone.ID = newID;
+    //delete clone.__type;
+
+    AllActors.push(clone);
+    updateActorList();
+    BuildCode.setValue(exportToCode());
+    showPreview();
+    openPropertyEditor(clone); // ✏️ Åbn editor på kopien
+  });
+
+  li.appendChild(copyBtn);
+}*/
+
+// 🧬 Kopiér-knap
+if (item.__type === "Actor") {
+  const copyBtn = document.createElement("button");
+  copyBtn.textContent = "🧬";
+  copyBtn.style.marginLeft = "5px";
+  copyBtn.className = "icon-btn";
+  copyBtn.title = "Kopiér Actor";
+
+  copyBtn.addEventListener("click", () => {
+    const newID = prompt("ID for kopi af " + item.ID + ":");
+    if (!newID) return;
+
+    if (AllActors.some(a => a.ID === newID)) {
+      alert("ID'et findes allerede!");
+      return;
+    }
+
+    // Lav kopien med alle børn
+    const original = AllActors.find(a => a.ID === item.ID);
+    if (!original) {
+      alert("Kunne ikke finde actor med ID " + item.ID);
+      return;
+    }
+
+    // Sørg for, at duplicateCount findes globalt
+    if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
+    window.duplicateCount++;
+
+    // Rekursiv kopi med samme suffix
+    const suffix = window.duplicateCount.toString();
+    const clone = duplicateActorTree(original, newID, suffix);
+
+    AllActors.push(...clone.allCopies);
+    updateActorList();
+    BuildCode.setValue(exportToCode());
+    showPreview();
+    openPropertyEditor(clone.root); // ✏️ Åbn editor på roden
+  });
+
+  li.appendChild(copyBtn);
+}
+
+function duplicateActorTree(original, newRootID, suffix) {
+  const allCopies = [];
+
+  // Lokal rekursiv kopi-funktion
+  function cloneRecursive(actor, newParentID) {
+    const copy = cloneActor(actor);
+
+    // Generér nyt ID
+    if (actor.ID === original.ID) {
+      // root actor får det brugeren angav
+      copy.ID = newRootID;
+    } else {
+      copy.ID = actor.ID + suffix;
+    }
+
+    // Opdater Parent hvis nødvendigt
+    copy.Parent = newParentID || actor.Parent;
+
+    allCopies.push(copy);
+
+    // Find børn
+    const children = AllActors.filter(a => a.Parent === actor.ID);
+    for (const child of children) {
+      const childCopy = cloneRecursive(child, copy.ID);
+    }
+
+    return copy;
+  }
+
+  const rootCopy = cloneRecursive(original, original.Parent);
+  return { root: rootCopy, allCopies };
+}
+
+
+
+
+
+
+
+      // ❌ Slet-knap
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "❌";
+	      deleteBtn.style.marginLeft = "5px";
+      deleteBtn.addEventListener("click", () => {
+        const confirmDelete = confirm("Slet " + item.ID + "?");
+        if (confirmDelete) {
+          removeFromOriginalArray(item);
+          updateActorList();
+        }
+      });
+      li.appendChild(deleteBtn);
+	deleteBtn.className = "icon-btn";
+
+
+      // Rekursiv opbygning
+      if (groupedItems[item.ID]) {
+        const childList = createList(groupedItems, item.ID, level + 1);
+        li.appendChild(childList);
+      }
+	// 🔼 Flyt op
+const upBtn = document.createElement("button");
+upBtn.textContent = "⬆️";
+upBtn.className = "icon-btn";
+upBtn.style.marginLeft = "5px";
+upBtn.addEventListener("click", () => moveItem(item, -1));
+li.appendChild(upBtn);
+
+// 🔽 Flyt ned
+const downBtn = document.createElement("button");
+downBtn.textContent = "⬇️";
+downBtn.className = "icon-btn";
+downBtn.style.marginLeft = "2px";
+downBtn.addEventListener("click", () => moveItem(item, 1));
+li.appendChild(downBtn);
+
+      ul.appendChild(li);
+    });
+
+    // ✅ Aktiver Sortable EFTER hele listen er lavet
+    makeSortable(ul, parentId);
+
+    return ul;
+  }
+
+  // 4. Indsæt i DOM'en
+const fullList = createList(grouped);
+container.innerHTML = "";
+container.appendChild(fullList);
+
+// 5. Tilføj "Ny Scene" og "Ny Actor" knapper under listen
+const controlDiv = document.createElement("div");
+controlDiv.style.marginTop = "15px";
+
+const addSceneBtn = document.createElement("button");
+addSceneBtn.textContent = "➕ New Scene";
+addSceneBtn.addEventListener("click", () => {
+  const id = prompt("ID for new Scene:");
+  if (!id) return;
+
+  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
+    alert("ID'et findes allerede!");
+    return;
+  }
+
+  const newScene = { ID: id };
+  AllScenes.push(newScene);
+  updateActorList();
+  BuildCode.setValue(exportToCode());
+  showPreview();
+});
+
+const addActorBtn = document.createElement("button");
+addActorBtn.textContent = "➕ New Actor";
+addActorBtn.style.marginLeft = "10px";
+addActorBtn.addEventListener("click", () => {
+  const id = prompt("ID for new Actor:");
+  if (!id) return;
+
+  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
+    alert("ID'et findes allerede!");
+    return;
+  }
+
+  const newActor = {
+    ID: id,
+    Type: "div",
+    Parent: "stage",
+    Width: 200,
+    Height: 200,
+    X: 0,
+    Y: 0
+  };
+
+  AllActors.push(newActor);
+  updateActorList();
+  BuildCode.setValue(exportToCode());
+  showPreview();
+
+  // 🚀 Åbn editor for den nye Actor
+  openPropertyEditor(newActor);
+});
+
+controlDiv.appendChild(addSceneBtn);
+controlDiv.appendChild(addActorBtn);
+container.appendChild(controlDiv);
+
+}
+
+function cloneActor(actor) {
+  const clone = {};
+
+  for (const key in actor) {
+    if (key === "ID") continue;
+
+    const val = actor[key];
+
+    // Konverter funktioner til string, ellers kopiér direkte
+    if (typeof val === "function") {
+      clone[key] = val.toString();
+    } else {
+      clone[key] = val;
+    }
+  }
+
+  return clone;
+}
+
+
+function updateOriginalArray(item, updates) {
+  const arr = item.__type === "Scene" ? AllScenes : AllActors;
+  const index = arr.findIndex(el => el.ID === item.ID);
+  if (index !== -1) {
+    arr[index] = { ...arr[index], ...updates };
+  }
+	BuildCode.setValue(exportToCode());
+	showPreview()
+}
+
+function removeFromOriginalArray(item) {
+  const arr = item.__type === "Scene" ? AllScenes : AllActors;
+  const index = arr.findIndex(el => el.ID === item.ID);
+  if (index !== -1) {
+    arr.splice(index, 1);
+  }
+	BuildCode.setValue(exportToCode());
+	showPreview()
+}
+
+function moveItem(item, direction) {
+  const arr = item.__type === "Scene" ? AllScenes : AllActors;
+
+  // Find kun dem med samme Parent
+  const sameParentItems = arr.filter(i => (i.Parent || "stage") === (item.Parent || "stage"));
+
+  const index = sameParentItems.findIndex(i => i.ID === item.ID);
+  if (index === -1) return;
+
+  const newIndex = index + direction;
+  if (newIndex < 0 || newIndex >= sameParentItems.length) return;
+
+  // Find indeks i den fulde array
+  const realIndex1 = arr.findIndex(i => i.ID === sameParentItems[index].ID);
+  const realIndex2 = arr.findIndex(i => i.ID === sameParentItems[newIndex].ID);
+
+  // Byt pladser
+  [arr[realIndex1], arr[realIndex2]] = [arr[realIndex2], arr[realIndex1]];
+
+  updateActorList(); // Opdater listen
+  BuildCode.setValue(exportToCode()); // Opdater kode
+  showPreview(); // Opdater preview
+}
+
+
+
+
+
+function openPropertyEditor(item) {
+if (!item._original) item._original = { ...item };
+//showPreview()
+  const editor = document.getElementById("propertyEditor");
+
+  const original = item._original || {};
+
+  editor.innerHTML = "<h3>Redigér: " + item.ID + "</h3>";
+	// Input til EditorGrid (step size for number inputs)
+const gridWrapper = document.createElement("div");
+gridWrapper.className = "editor-row";
+
+const gridLabel = document.createElement("label");
+gridLabel.textContent = "Grid (trinforskel)";
+gridWrapper.appendChild(gridLabel);
+
+const gridInput = document.createElement("input");
+gridInput.type = "number";
+gridInput.step = "1";
+gridInput.value = EditorGrid ?? 1;
+
+gridInput.addEventListener("input", () => {
+  EditorGrid = parseFloat(gridInput.value) || 1;
+
+  // Opdater step på alle number inputs i editoren
+  const numberInputs = editor.querySelectorAll('input[type="number"]');
+  numberInputs.forEach(input => {
+    input.step = EditorGrid;
+  });
+});
+gridWrapper.appendChild(gridInput);
+editor.appendChild(gridWrapper);
+
+
+  const properties = [
+    "ID", "Type", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
+    "ShowOrigin", "Controls", "Width", "Height", "X", "Y", "Scale", "Opacity",
+    "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateX",
+    "TranslateY", "TranslateZ", "Text", "FontSize", "MouseDown", "MouseUp",
+    "Draggable", "Style", "Class"
+  ];
+
+  const parentOptions = [...AllScenes, ...AllActors].map(obj => obj.ID);
+  const htmlTags = ["div", "img", "video", "audio", "iframe", "canvas", "button", "object","input","select","option","textarea"];
+  const shapeOptions = ["Square", "Circle", "Triangle", "Star", "LeftArrow", "RightArrow", "Heart", "Lightning", "Home", "Play", "Pause", "Diamond", "Keyhole", "SpeechBubble"];
+
+  properties.forEach(prop => {
+    //const value = item[prop] ?? "";
+	const value = original[prop] ?? "";	
+
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-row";
+
+    const label = document.createElement("label");
+    label.textContent = prop;
+    wrapper.appendChild(label);
+
+    let input;
+
+    // Dropdown for Parent
+    if (prop === "Parent") {
+      input = document.createElement("select");
+      const noneOption = document.createElement("option");
+      noneOption.value = "";
+      noneOption.textContent = "(none)";
+      input.appendChild(noneOption);
+
+      parentOptions.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt;
+        option.textContent = opt;
+        if (opt === value) option.selected = true;
+        input.appendChild(option);
+      });
+
+    // Dropdown for Type
+    } else if (prop === "Type") {
+      input = document.createElement("select");
+      htmlTags.forEach(tag => {
+        const option = document.createElement("option");
+        option.value = tag;
+        option.textContent = tag;
+        if (tag === value) option.selected = true;
+        input.appendChild(option);
+      });
+
+     // Dropdown for Shape
+    } else if (prop === "Shape") {
+      input = document.createElement("select");
+      const noneOption = document.createElement("option");
+      noneOption.value = "";
+      noneOption.textContent = "(none)";
+      input.appendChild(noneOption);
+
+      shapeOptions.forEach(Shape => {
+        const option = document.createElement("option");
+        option.value = Shape;
+        option.textContent = Shape;
+        if (Shape === value) option.selected = true;
+        input.appendChild(option);
+      });
+
+
+    // Boolean toggles
+    } else if (["ShowOrigin", "Controls", "Draggable"].includes(prop)) {
+      input = document.createElement("input");
+      input.type = "checkbox";
+      input.checked = !!value;
+
+    // Color picker
+    } else if (prop === "Color") {
+  input = document.createElement("input");
+  input.type = "color";
+  input.value = value || "#000000"; // fallback til sort hvis tom
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = !!value;
+  checkbox.style.marginLeft = "10px";
+
+  const toggleLabel = document.createElement("label");
+  toggleLabel.textContent = "Brug farve";
+  toggleLabel.style.marginLeft = "5px";
+
+  // Når man slår farve til/fra
+  checkbox.addEventListener("change", () => {
+    if (checkbox.checked) {
+      input.disabled = false;
+      original[prop] = input.value;
+      item[prop] = input.value;
+    } else {
+      input.disabled = true;
+      item[prop] = "";
+    }
+    updateOriginalArray(item, { [prop]: item[prop] });
+  });
+
+  /*input.addEventListener("input", () => {
+    if (checkbox.checked) {
+      original[prop] = input.value;
+      item[prop] = input.value;
+      updateOriginalArray(item, { [prop]: item[prop] });
+    }*/
+    input.addEventListener("input", () => {
+  	let val;
+  	if (input.type === "checkbox") {
+    	val = input.checked;
+  	} else if (input.type === "number") {
+   	 val = parseFloat(input.value);
+  	} else {
+  	  val = input.value;
+     }
+
+  original[prop] = val;
+  item[prop] = val;
+  updateOriginalArray(item, { [prop]: val });
+  });
+  
+
+  input.disabled = !checkbox.checked;
+
+  wrapper.appendChild(input);
+  wrapper.appendChild(checkbox);
+  wrapper.appendChild(toggleLabel);
+
+  editor.appendChild(wrapper);
+  return; // <-- vigtigt! spring resten over for denne property
+
+
+
+
+	
+
+    // Multiline for Text, MouseDown, MouseUp, Style
+    } else if (["Text", "MouseDown", "MouseUp", "Style"].includes(prop)) {
+      input = document.createElement("textarea");
+      input.rows = 4;
+      input.value = value;
+
+    // Numbers
+    } else if (
+      ["Width", "Height", "X", "Y", "Scale", "Opacity", "Angle", "SkewX", "SkewY",
+       "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY", "TranslateZ",
+       "FontSize", "TransformOriginX", "TransformOriginY"].includes(prop)
+    ) {
+      input = document.createElement("input");
+      input.type = "number";
+	input.step = EditorGrid;
+      input.value = value;
+
+
+
+    // Fallback text input
+    } else {
+      input = document.createElement("input");
+      input.type = "text";
+      input.value = value;
+    }
+
+    input.addEventListener("input", () => {
+      if (input.type === "checkbox") {
+        original[prop] = input.checked;
+        item[prop] = input.checked;
+      } else if (input.type === "number") {
+        original[prop] = parseFloat(input.value);
+
+        item[prop] = parseFloat(input.value);
+      } else {
+        original[prop] = input.value;
+        item[prop] = input.value;
+
+      }
+
+      updateOriginalArray(item, { [prop]: item[prop] });
+    });
+
+    wrapper.appendChild(input);
+    editor.appendChild(wrapper);
+  });
+
+// Sørg for at initialisere CustomProps som array, hvis det mangler
+if (!item.CustomProps) item.CustomProps = [];
+
+// Vi viser de eksisterende CustomProps først
+for (let i = 0; i < 10; i++) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "editor-row";
+
+  const nameInput = document.createElement("input");
+  nameInput.placeholder = "Property name";
+  nameInput.value = item.CustomProps?.[i]?.name || "";
+  wrapper.appendChild(nameInput);
+
+  const valueInput = document.createElement("input");
+  valueInput.placeholder = "Value";
+  
+valueInput.value = typeof item.CustomProps?.[i]?.value === "object"
+  ? JSON.stringify(item.CustomProps[i].value)
+  : item.CustomProps?.[i]?.value || "";
+
+  wrapper.appendChild(valueInput);
+
+  const typeSelect = document.createElement("select");
+  ["string", "number", "boolean"].forEach(type => {
+    const option = document.createElement("option");
+    option.value = type;
+    option.textContent = type;
+    if ((item.CustomProps?.[i]?.type || "string") === type) option.selected = true;
+    typeSelect.appendChild(option);
+  });
+  wrapper.appendChild(typeSelect);
+
+  // Gem ændringer direkte på actor objektet:
+  const ensureCustomPropExists = () => {
+    if (!item.CustomProps) item.CustomProps = [];
+    item.CustomProps[i] = item.CustomProps[i] || { name: "", value: "", type: "string" };
+	updateOriginalArray(item, { CustomProps: item.CustomProps });
+
+  };
+
+  nameInput.oninput = () => {
+    ensureCustomPropExists();
+    item.CustomProps[i].name = nameInput.value;
+	updateOriginalArray(item, { CustomProps: item.CustomProps });
+
+  };
+
+  
+
+valueInput.addEventListener("input", () => {
+  ensureCustomPropExists();
+  item.CustomProps[i].value = valueInput.value;
+  updateOriginalArray(item, { CustomProps: item.CustomProps });
+});
+
+
+  typeSelect.onchange = () => {
+    ensureCustomPropExists();
+    item.CustomProps[i].type = typeSelect.value;
+	updateOriginalArray(item, { CustomProps: item.CustomProps });
+
+  };
+
+  editor.appendChild(wrapper);
+}
+
+
+
+
+
+//updateOriginalArray(item, { CustomProps: item.CustomProps });
+
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "Luk";
+  closeBtn.onclick = () => editor.style.display="none";
+  editor.appendChild(closeBtn);
+
+  editor.classList.remove("hidden");
+	editor.style.display="block";
+}
+
+
+
+
+
+
+
+
+
+
+
+function exportToCode() {
+  let output = "";
+
+  const exported = new Set();
+
+  // Hjælpefunktion der eksportere en actor og dens børn
+  function exportActorAndChildren(actor) {
+    if (exported.has(actor.ID)) return; // Undgå duplikat
+    output += generateActorCode(actor);
+    exported.add(actor.ID);
+
+    // Find børn af denne actor
+    const children = AllActors.filter(a => a.Parent === actor.ID);
+    children.forEach(child => exportActorAndChildren(child));
+  }
+
+  // 1. Start med stage-actors
+  const rootActors = AllActors.filter(actor => actor.Parent === "stage");
+  rootActors.forEach(actor => exportActorAndChildren(actor));
+
+  // 2. Så scener og deres actors
+  AllScenes.forEach(scene => {
+    output += `Scene("${scene.ID}");\n\n`;
+
+    const sceneRootActors = AllActors.filter(actor => actor.Parent === scene.ID);
+    sceneRootActors.forEach(actor => exportActorAndChildren(actor));
+  });
+
+  return output;
+}
+
+
+
+function generateActorCode(actor) {
+  let code = `Actor('${actor.ID}','${actor.Type || 'div'}');\n`;
+  code += `ActorProps(thisActor, {\n`;
+
+  const keysToInclude = [
+    "Parent", "Width", "Height", "X", "Y", "Z", "Angle", "RotateX", "RotateY", "RotateZ",
+    "ShowOrigin", "TransformOriginX", "TransformOriginY", "Draggable", "MouseDown", "MouseUp", "Click", "Style", "Color", 
+    "Text", "TextColor", "FontSize", "Opacity", "TranslateX", "TranslateY", 
+    "TranslateZ", "Scale", "SkewX", "SkewY", "Overflow", "BackgroundImage", "Source", "Shape", "Controls",
+    "Class"
+  ];
+
+  keysToInclude.forEach(key => {
+    if (actor[key] !== undefined && actor[key] !== null) {
+      let val = actor[key];
+      if (typeof val === "string") {
+        if (val.includes("\n") || val.includes(";") || val.includes('"') || val.includes("'")) {
+          val = val.replace(/`/g, "\\`");
+          val = `\`${val}\``;
+        } else {
+          val = `"${val}"`;
+        }
+      }
+      code += `  ${key}: ${val},\n`;
+    }
+  });
+
+  // 💡 Her tilføjer vi CustomProps:
+  if (actor.CustomProps && actor.CustomProps.length > 0) {
+    code += `  CustomProps: [\n`;
+    actor.CustomProps.forEach(cp => {
+      if (cp.name.trim() !== "") {
+        code += `    { name: "${cp.name}", value: "${cp.value}", type:"${cp.type}" },\n`;
+      }
+    });
+    code += `  ],\n`;
+  }
+// Custom Props eksport
+if (actor.CustomProps && Array.isArray(actor.CustomProps)) {
+  actor.CustomProps.forEach(prop => {
+    if (prop && prop.name && prop.name.trim() !== "") {
+      let val = prop.value;
+
+      // Formatering af værdi som string
+      if (prop.type === "string") {
+        if (val.includes("\n") || val.includes(";") || val.includes('"') || val.includes("'")) {
+          val = val.replace(/`/g, "\\`");
+          val = `\`${val}\``;
+        } else {
+          val = `"${val}"`;
+        }
+      }
+	
+
+      code += `  ${prop.name}: ${val},\n`;
+    }
+  });
+}
+
+  code += `});\n\n`;
+
+  return code;
+}
+
+
+function makeSortable(ulElement, parentId) {
+  new Sortable(ulElement, {
+    animation: 150,
+    group: null, // forhindrer cross-parent drag
+    onEnd: function (evt) {
+      const newOrder = [...ulElement.children].map(li => li.dataset.id);
+
+      const actorsToUpdate = AllActors.filter(actor => actor.Parent === parentId);
+
+      // Fjern og genindsæt i korrekt rækkefølge
+      newOrder.forEach((id, index) => {
+        const actor = actorsToUpdate.find(a => a.ID === id);
+        if (actor) {
+          const currentIndex = AllActors.indexOf(actor);
+          if (currentIndex !== -1) {
+            AllActors.splice(currentIndex, 1);
+          }
+          // Indsæt efter sidste med samme Parent
+          const insertIndex = findInsertIndex(AllActors, parentId, index);
+          AllActors.splice(insertIndex, 0, actor);
+        }
+      });
+
+      updateActorList(); // Opdater visningen
+    }
+  });
+}
+
+function findInsertIndex(array, parentId, targetIndex) {
+  let count = 0;
+  for (let i = 0; i < array.length; i++) {
+    if (array[i].Parent === parentId) {
+      if (count === targetIndex) return i;
+      count++;
+    }
+  }
+  return array.length;
+}
+
+// ny hjælpefunktion
+function createNewTrigger(eventType = "Update") {
+  const eventsWithTarget = ["MouseDown", "MouseUp"];  // Udvid evt. senere
+  const hasTarget = eventsWithTarget.includes(eventType);
+
+  return {
+    event: eventType,
+    conditions: ["true"],
+    actions: [],
+    target: hasTarget ? (AllActors[0]?.ID || null) : null  // Hvis der er Actors, vælg første, ellers null
+  };
+}
+
+
+//hjælpefunktion til select med properties
+function getAllProperties() {
+  const propSet = new Set();
+  
+  AllActors.forEach(actor => {
+    Object.keys(actor).forEach(key => {
+      propSet.add(key);
+    });
+  });
+
+  return Array.from(propSet).sort();  // Sorteret liste for pænhed
+}
+
+
+// 🔧 Hjælpefunktion til at bygge argument inputs
+function renderArgsInputs(argsDef, argsValues, onChange) {
+  const container = document.createElement("div");
+
+	
+
+  argsDef.forEach((arg, index) => {
+    const label = document.createElement("label");
+    label.textContent = arg.label + ": ";
+    container.appendChild(label);
+
+    let input;
+
+    switch (arg.type) {
+      case "actor":
+        input = document.createElement("select");
+        AllActors.forEach(actor => {
+          const option = document.createElement("option");
+          option.value = actor.ID;
+          option.textContent = actor.ID;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "";
+        break;
+
+      case "scene":
+        input = document.createElement("select");
+        AllScenes.forEach(scene => { // Hvis du har AllScenes
+          const option = document.createElement("option");
+          option.value = scene.ID;
+          option.textContent = scene.ID;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "";
+        break;
+
+   
+         
+      case "compare":
+        input = document.createElement("select");
+        ["<", "<=", "==", "!=", ">=", ">"].forEach(mode => {
+          const option = document.createElement("option");
+          option.value = mode;
+          option.textContent = mode;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "==";
+        break;
+
+      case "adjust":
+        input = document.createElement("select");
+        ["-=", "+=", "=",].forEach(mode => {
+          const option = document.createElement("option");
+          option.value = mode;
+          option.textContent = mode;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "=";
+        break;
+
+	
+       case "animationproperties":
+        input = document.createElement("select");
+        ["X", "Y", "Width", "Height", "Scale", "Opacity", "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY", "TranslateZ"].forEach(mode => {
+          const option = document.createElement("option");
+          option.value = mode;
+          option.textContent = mode;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "==";
+        break;
+
+
+      case "easing":
+  input = document.createElement("select");
+  [
+    "none",
+    "power0.in", "power0.out", "power0.inOut",
+    "power1.in", "power1.out", "power1.inOut",
+    "power2.in", "power2.out", "power2.inOut",
+    "power3.in", "power3.out", "power3.inOut",
+    "power4.in", "power4.out", "power4.inOut",
+    "back.in", "back.out", "back.inOut",
+    "elastic.in", "elastic.out", "elastic.inOut",
+    "bounce.in", "bounce.out", "bounce.inOut",
+    "rough", "slow", "steps"
+  ].forEach(ease => {
+    const option = document.createElement("option");
+    option.value = ease;
+    option.textContent = ease;
+    input.appendChild(option);
+  });
+  input.value = argsValues[index] || "power1.out";
+  break;
+
+
+      case "xory":
+        input = document.createElement("select");
+        ["X", "Y",].forEach(mode => {
+          const option = document.createElement("option");
+          option.value = mode;
+          option.textContent = mode;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "X";
+        break;
+
+
+
+
+      case "boolean":
+        input = document.createElement("input");
+        input.type = "checkbox";
+        input.checked = argsValues[index] === true || argsValues[index] === "true";
+        break;
+
+      case "color":
+        input = document.createElement("input");
+        input.type = "color";
+        input.value = argsValues[index] || "#ffffff";
+        break;
+
+      case "number":
+        input = document.createElement("input");
+        input.type = "number";
+        input.value = argsValues[index] || 0;
+        break;
+
+      case "string":
+      default:
+        input = document.createElement("input");
+        input.type = "text";
+        input.value = argsValues[index] || "";
+        break;
+
+
+
+
+
+      case "propertyName":
+  	input = document.createElement("input");
+  	input.placeholder = "Property name";
+  	input.value = argsValues[index] || "";
+  	input.addEventListener("input", () => {
+    		argsValues[index] = input.value;
+		onChange(); 
+  	});
+  	break;
+
+      case "propertyValue":
+  	input = document.createElement("input");
+  	input.placeholder = "Value";
+  	input.value = argsValues[index] || "";
+  	input.addEventListener("input", () => {
+    		argsValues[index] = input.value;
+		onChange(); 
+  	});
+  	break;
+
+       case "raw":
+  	input = document.createElement("input");
+  	input.value = argsValues[index] || "";
+  	input.addEventListener("input", () => {
+    	onChange(argsValues[index], input.value);
+  	});
+  	break;
+	
+       case "property":
+        input = document.createElement("select");
+		var AllProps=getAllProperties();
+        allProps.forEach(prop => {
+          const option = document.createElement("option");
+          option.value = prop;
+          input.appendChild(option);
+        });
+        input.value = argsValues[index] || "";
+        break;
+        
+	case "linebreak":
+        lineBreak = document.createElement("br");
+		
+        break;
+
+
+    }
+
+    input.onchange = () => {
+      if (arg.type === "boolean") {
+        argsValues[index] = input.checked;
+      } else {
+        argsValues[index] = input.value;
+      }
+      onChange([...argsValues]);
+    };
+
+    container.appendChild(input);
+  });
+
+  return container;
+}
+
+let triggerFoldState = {};
+
+// 🔥 Selve editoren
+function renderTriggerEditor(containerId) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+
+  const eventTypes = ["Update", "SceneStart", "Resize", "MouseDown", "MouseUp"];
+  const eventsWithTarget = ["MouseDown", "MouseUp"];
+
+  GeneratedTriggers.forEach((trigger, index) => {
+    // 💡 NYT: Lav et details-tag til collapsing
+    const details = document.createElement("details");
+    details.open = triggerFoldState[index] ?? true; // behold tidligere fold state
+    details.style.marginBottom = "10px";
+
+    // 💡 NYT: Generér summary tekst
+    const summary = document.createElement("summary");
+    summary.textContent = generateTriggerSummary(trigger);
+    details.appendChild(summary);
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "trigger-row";
+
+    // 1️⃣ Event dropdown
+    const eventSelect = document.createElement("select");
+    eventTypes.forEach(type => {
+      const option = document.createElement("option");
+      option.value = type;
+      option.textContent = type;
+      if (type === trigger.event) option.selected = true;
+      eventSelect.appendChild(option);
+    });
+    wrapper.appendChild(eventSelect);
+
+    // 2️⃣ Target dropdown (kun til MouseDown/MouseUp)
+    const targetSelect = document.createElement("select");
+    const emptyTargetOption = document.createElement("option");
+    emptyTargetOption.value = "";
+    emptyTargetOption.textContent = "(Vælg target)";
+    targetSelect.appendChild(emptyTargetOption);
+
+    AllActors.forEach(actor => {
+      const option = document.createElement("option");
+      option.value = actor.ID;
+      option.textContent = actor.ID;
+      if (actor.ID === trigger.target) option.selected = true;
+      targetSelect.appendChild(option);
+    });
+
+    targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
+    wrapper.appendChild(targetSelect);
+
+    eventSelect.onchange = () => {
+      trigger.event = eventSelect.value;
+      targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
+      if (!eventsWithTarget.includes(trigger.event)) {
+        trigger.target = undefined;
+      }
+    };
+
+    targetSelect.onchange = () => {
+      trigger.target = targetSelect.value;
+    };
+
+// 🚀 MULTI-CONDITION DEL
+
+const conditionList = document.createElement("div");
+wrapper.appendChild(conditionList);
+
+// Render en enkelt condition editor
+function renderConditionRow(conditionValue, conditionIndex) {
+  let conditionObj = typeof conditionValue === "object"
+  ? conditionValue
+  : { fn: "", args: [], code: conditionValue };
+
+  const conditionWrapper = document.createElement("div");
+  conditionWrapper.className = "condition-row";
+
+// 👇 Konverter til objekt hvis det er en gammel string-condition
+if (typeof conditionValue === "string") {
+  conditionValue = {
+    fn: "",
+    args: [],
+    code: conditionValue
+  };
+
+}
+
+
+// Condition dropdown
+const conditionFnSelect = document.createElement("select");
+conditionFnSelect.appendChild(new Option("(Custom)", ""));
+
+// 1️⃣ Grupering af conditions efter kategori
+const grouped = {};
+Object.entries(ConditionFunctions).forEach(([key, def]) => {
+  const category = def.category || "Other";
+  if (!grouped[category]) grouped[category] = [];
+  grouped[category].push({ key, label: def.label });
+});
+
+// 2️⃣ Sortér kategorier alfabetisk (kan droppes hvis du vil)
+const sortedGrouped = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+
+// 3️⃣ Byg dropdown med optgroups
+sortedGrouped.forEach(([category, conditions]) => {
+  const optgroup = document.createElement("optgroup");
+  optgroup.label = category;
+
+  conditions.forEach(({ key, label }) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = label;
+    conditionFnSelect.appendChild(option);
+    optgroup.appendChild(option);
+  });
+
+  conditionFnSelect.appendChild(optgroup);
+});
+
+conditionWrapper.appendChild(conditionFnSelect);
+
+const conditionArgsContainer = document.createElement("div");
+conditionWrapper.appendChild(conditionArgsContainer);
+
+
+
+
+  let currentConditionArgs = [];
+
+ // Initialiser onchange separat:
+conditionFnSelect.onchange = () => {
+  const fn = conditionFnSelect.value;
+  if (!fn) {
+    trigger.conditions[conditionIndex] = {
+      fn: "",
+      args: [],
+      code: conditionInput.value
+    };
+    conditionArgsContainer.innerHTML = "";
+    return;
+  }
+
+  const fnDef = ConditionFunctions[fn];
+  const initialArgs = fn === conditionObj.fn ? conditionObj.args : fnDef.args.map(arg => arg.defaultValue ?? "");
+
+  const inputs = renderArgsInputs(fnDef.args, initialArgs, (updatedArgs) => {
+    trigger.conditions[conditionIndex] = {
+      fn,
+      args: updatedArgs,
+      code: fnDef.build(updatedArgs)
+    };
+    conditionInput.value = trigger.conditions[conditionIndex].code;
+  });
+
+  conditionArgsContainer.innerHTML = "";
+  conditionArgsContainer.appendChild(inputs);
+
+  const code = fnDef.build(initialArgs);
+  conditionInput.value = code;
+  trigger.conditions[conditionIndex] = {
+    fn,
+    args: initialArgs,
+    code
+  };
+//};
+
+
+/*  // Hvis der ikke er nogen inputs, generér koden med det samme
+  if (fnDef.args.length === 0) {
+    trigger.conditions[conditionIndex] = {
+      fn: conditionFnSelect.value,
+      args: [],
+      code: fnDef.build([])
+    };
+    conditionInput.value = trigger.conditions[conditionIndex].code;
+  }*/
+};
+
+ const conditionInput = document.createElement("input");
+conditionInput.type = "text";
+conditionInput.placeholder = "Condition (fx Ball.X > 100)";
+conditionWrapper.appendChild(conditionInput);
+
+conditionInput.oninput = () => {
+  trigger.conditions[conditionIndex] = {
+    fn: "",
+    args: [],
+    code: conditionInput.value
+  };
+};
+// 👉 Forudfyld values:
+if (conditionObj.fn && ConditionFunctions[conditionObj.fn]) {
+  conditionFnSelect.value = conditionObj.fn;
+  conditionFnSelect.dispatchEvent(new Event("change")); // ← kalder onchange uden brugerinput
+} else {
+  // fallback til custom
+  conditionInput.value = conditionObj.code || "";
+}
+
+
+  // Delete condition knap
+  const deleteConditionBtn = document.createElement("button");
+  deleteConditionBtn.textContent = "❌";
+  deleteConditionBtn.className = "icon-btn";
+  deleteConditionBtn.onclick = () => {
+    trigger.conditions.splice(conditionIndex, 1);
+    renderTriggerEditor(containerId);
+  };
+  conditionWrapper.appendChild(deleteConditionBtn);
+
+  conditionList.appendChild(conditionWrapper);
+}
+
+// Render alle eksisterende conditions:
+if (!trigger.conditions) trigger.conditions = []; // fallback
+trigger.conditions.forEach((conditionValue, i) => {
+  renderConditionRow(conditionValue, i);
+});
+
+// ➕ Tilføj ny condition knap
+const addConditionBtn = document.createElement("button");
+addConditionBtn.textContent = "➕ Add Condition";
+addConditionBtn.className = "icon-btn";
+addConditionBtn.onclick = () => {
+  trigger.conditions.push(""); // tilføj tom
+  renderTriggerEditor(containerId);
+};
+wrapper.appendChild(addConditionBtn);
+
+
+    // 5️⃣ Action dropdown
+// 5️⃣ Actions container (flere actions)
+const actionsContainer = document.createElement("div");
+wrapper.appendChild(actionsContainer);
+
+// 🚩 SIKRING AF ARRAY
+if (!Array.isArray(trigger.actions)) {
+  trigger.actions = [];
+}
+
+// 🔧 NY hjælper: laver en pæn opsummering af hver trigger
+/*function generateTriggerSummary(trigger) {
+  let txt = `${trigger.event}`;
+  if (trigger.target) txt += ` → ${trigger.target}`;
+
+  if (trigger.conditions && trigger.conditions.length > 0) {
+    const conditionsSummary = trigger.conditions.map(c => c.code || c).join(" AND ");
+    txt += ` → IF ${conditionsSummary}`;
+  }
+
+  if (trigger.actions && trigger.actions.length > 0) {
+    const actionsSummary = trigger.actions.map(a => a.code || a).join(", ");
+    txt += ` → DO ${actionsSummary}`;
+  }
+
+  return txt;
+}*/
+function generateTriggerSummary(trigger, conditionDefs, actionDefs) {
+   let txt = `${trigger.event}`;
+  if (trigger.target) txt += ` → ${trigger.target}`;
+
+  // 🧠 CONDITIONS
+  if (trigger.conditions && trigger.conditions.length > 0) {
+    const conditionTexts = trigger.conditions.map(cond => {
+      const def = ConditionFunctions[cond.fn];
+      if (!def) return cond.fn; // fallback hvis definition mangler
+
+      const argValues = (cond.args || []).map(a => (a === "" ? "?" : a)).join(", ");
+      return `${def.label}${argValues ? ` (${argValues})` : ""}`;
+    });
+    txt += ` if ${conditionTexts.join(" and ")}`;
+  }
+
+  // ⚡ ACTIONS
+  if (trigger.actions && trigger.actions.length > 0) {
+    const actionTexts = trigger.actions.map(act => {
+      const def = ActionFunctions[act.fn];
+      if (!def) return act.fn; // fallback hvis definition mangler
+
+      // Håndter tekstargumenter elegant (ingen ekstra citationstegn)
+      const argValues = (act.args || []).map(a => (a === "" ? "?" : a)).join(", ");
+      return `${def.label}${argValues ? ` (${argValues})` : ""}`;
+    });
+    txt += ` → ${actionTexts.join(", ")}`;
+  }
+
+  return txt;
+}
+
+
+
+
+
+
+
+
+
+
+function renderActions() {
+  actionsContainer.innerHTML = "";
+
+  trigger.actions.forEach((actionObj, actionIndex) => {
+    const actionWrapper = document.createElement("div");
+    actionWrapper.className = "action-row";
+
+    // Dropdown til action-funktioner
+/*
+    const actionFnSelect = document.createElement("select");
+    actionFnSelect.appendChild(new Option("(Custom)", ""));
+    Object.keys(ActionFunctions).forEach(key => {
+      const option = document.createElement("option");
+      option.value = key;
+      option.textContent = ActionFunctions[key].label;
+      if (actionObj.fn === key) option.selected = true;
+      actionFnSelect.appendChild(option);
+    });
+    actionWrapper.appendChild(actionFnSelect);
+*/
+
+
+// Dropdown til action-funktioner
+
+const actionFnSelect = document.createElement("select");
+actionFnSelect.appendChild(new Option("(Custom)", ""));
+
+// 1️⃣ Grupering af actions efter kategori
+const grouped = {};
+Object.entries(ActionFunctions).forEach(([key, def]) => {
+  const category = def.category || "Other";
+  if (!grouped[category]) grouped[category] = [];
+  grouped[category].push({ key, label: def.label });
+});
+
+// 2️⃣ Sortér kategorier alfabetisk (kan droppes hvis du vil)
+const sortedGrouped = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+
+// 3️⃣ Byg dropdown med optgroups
+sortedGrouped.forEach(([category, actions]) => {
+  const optgroup = document.createElement("optgroup");
+  optgroup.label = category;
+
+  actions.forEach(({ key, label }) => {
+    const option = document.createElement("option");
+    option.value = key;
+    option.textContent = label;
+    actionFnSelect.appendChild(option);
+    optgroup.appendChild(option);
+  });
+
+  actionFnSelect.appendChild(optgroup);
+});
+
+actionWrapper.appendChild(actionFnSelect);
+
+
+
+
+
+    // Argument inputs container
+    const actionArgsContainer = document.createElement("div");
+    actionWrapper.appendChild(actionArgsContainer);
+
+ function updateActionCode() { 
+  if (actionObj.fn) {
+    const def = ActionFunctions[actionObj.fn];
+    
+    // Initialize args hvis nødvendigt
+    if (!actionObj.args) actionObj.args = [];
+    def.args.forEach((arg, i) => {
+      if (actionObj.args[i] === undefined) {
+        if (arg.type === "propertyMatch") {
+          actionObj.args[i] = ["", ""];
+        } else {
+          actionObj.args[i] = "";
+        }
+      }
+    });
+
+    const code = def.build(actionObj.args);
+    actionObj.code = code;
+    actionInput.value = code;
+  }
+}
+
+
+    actionFnSelect.onchange = () => {
+      const selectedFn = actionFnSelect.value;
+      if (!selectedFn) {
+        actionObj.fn = "";
+        actionObj.args = [];
+        actionArgsContainer.innerHTML = "";
+        actionInput.value = "";
+        actionObj.code = actionInput.value;
+        return;
+      }
+
+      actionObj.fn = selectedFn;
+      const def = ActionFunctions[selectedFn];
+       if (!actionObj.args || actionObj.args.length !== def.args.length) {
+    actionObj.args = def.args.map(arg => {
+      if (arg.type === "propertyMatch") return ["", ""];
+      return arg.defaultValue ?? "";
+    });
+  }
+
+  actionArgsContainer.innerHTML = "";
+
+      const inputs = renderArgsInputs(def.args, actionObj.args, updatedArgs => {
+        actionObj.args = updatedArgs;
+        updateActionCode();
+      });
+      actionArgsContainer.appendChild(inputs);
+
+      updateActionCode();
+    };
+
+    // Custom code input
+    const actionInput = document.createElement("input");
+    actionInput.type = "text";
+    actionInput.placeholder = "Action kode";
+    actionInput.value = actionObj.code || "";
+    actionInput.oninput = () => {
+      	actionObj.code = actionInput.value;
+ 	actionObj.fn = "";
+  	actionObj.args = [];
+    };
+    actionWrapper.appendChild(actionInput);
+
+    // Fjern-knap for action
+    const deleteActionBtn = document.createElement("button");
+    deleteActionBtn.textContent = "❌";
+  deleteActionBtn.className = "icon-btn";
+    deleteActionBtn.onclick = () => {
+      trigger.actions.splice(actionIndex, 1);
+      renderActions();
+    };
+    actionWrapper.appendChild(deleteActionBtn);
+	
+    actionsContainer.appendChild(actionWrapper);
+
+    if (actionObj.fn) {
+  actionFnSelect.value = actionObj.fn;
+  actionFnSelect.dispatchEvent(new Event("change"));
+} else {
+  actionInput.value = actionObj.code || "";
+}
+	  
+
+	  
+  
+	 
+  });
+}
+	 
+
+
+
+// Start med at tegne actions
+renderActions();
+
+// ➕ Tilføj action-knap
+const addActionBtn = document.createElement("button");
+addActionBtn.textContent = "➕ Add Action";
+addActionBtn.className = "icon-btn";
+addActionBtn.onclick = () => {
+  trigger.actions.push({
+    fn: "",
+    args: [],
+    code: ""
+  });
+  renderActions();
+};
+wrapper.appendChild(addActionBtn);
+
+
+    // 🔼🔽 Sorteringsknapper
+    const upBtn = document.createElement("button");
+    upBtn.textContent = "⬆️";
+    upBtn.className = "icon-btn";
+    upBtn.style.marginLeft = "5px";
+    upBtn.onclick = () => moveTriggerUp(index);
+    summary.appendChild(upBtn);
+
+    const downBtn = document.createElement("button");
+    downBtn.textContent = "⬇️";
+    downBtn.className = "icon-btn";
+    downBtn.style.marginLeft = "2px";
+    downBtn.onclick = () => moveTriggerDown(index);
+    summary.appendChild(downBtn);
+
+	
+	// 📄 Duplicate button
+	const duplicateBtn = document.createElement("button");
+	duplicateBtn.textContent = "📄";
+	duplicateBtn.title = "Duplicate event";
+	duplicateBtn.className = "icon-btn";
+
+	duplicateBtn.onclick = () => {
+	// Lav en dyb kopi af hele triggeren
+	const copy = JSON.parse(JSON.stringify(GeneratedTriggers[index]));
+
+	// Indsæt kopien lige efter originalen
+	GeneratedTriggers.splice(index + 1, 0, copy);
+
+	// Genopfrisk editoren
+	renderTriggerEditor(containerId);
+	};
+
+	// Tilføj knappen ved siden af delete-knappen
+	summary.appendChild(duplicateBtn);
+
+	
+	
+	
+    // 🗑️ Delete button
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.className = "icon-btn";
+    deleteBtn.onclick = () => {
+      GeneratedTriggers.splice(index, 1);
+      renderTriggerEditor(containerId);
+    };
+    summary.appendChild(deleteBtn);
+
+    container.appendChild(wrapper);
+	details.appendChild(wrapper);
+
+
+	details.addEventListener("toggle", () => {
+  	triggerFoldState[index] = details.open;
+	});
+  container.appendChild(details);
+  });
+
+  // ➕ Add new trigger button
+  const addBtn = document.createElement("button");
+  addBtn.textContent = "➕ Add event";
+  addBtn.onclick = () => {
+  GeneratedTriggers.push(createNewTrigger());
+  renderTriggerEditor(containerId);
+};
+
+  container.appendChild(addBtn);
+}
+
+
+
+function moveTrigger(fromIndex, toIndex) {
+  if (toIndex < 0 || toIndex >= GeneratedTriggers.length) return;
+
+  // Flyt selve triggeren
+  const [movedTrigger] = GeneratedTriggers.splice(fromIndex, 1);
+  GeneratedTriggers.splice(toIndex, 0, movedTrigger);
+
+  // Flyt foldstate
+  const newFoldState = {};
+  GeneratedTriggers.forEach((_, idx) => {
+    // Beregn hvor den gamle state lå
+    let oldIdx;
+    if (idx === toIndex) {
+      oldIdx = fromIndex;
+    } else if (fromIndex < toIndex && idx > fromIndex && idx <= toIndex) {
+      oldIdx = idx - 1;
+    } else if (fromIndex > toIndex && idx < fromIndex && idx >= toIndex) {
+      oldIdx = idx + 1;
+    } else {
+      oldIdx = idx;
+    }
+    newFoldState[idx] = triggerFoldState[oldIdx];
+  });
+  triggerFoldState = newFoldState;
+}
+
+
+
+function moveTriggerUp(index) {
+ /* if (i > 0) {
+    [GeneratedTriggers[i - 1], GeneratedTriggers[i]] = [GeneratedTriggers[i], GeneratedTriggers[i - 1]];
+    renderTriggerEditor("triggerEditor"); // eller hvad din visningsfunktion hedder
+  } */
+	  moveTrigger(index, index - 1);
+  	  renderTriggerEditor("triggerEditor");  // eller hvad dit container-id er	
+}
+
+function moveTriggerDown(index) {
+/*  if (i < GeneratedTriggers.length - 1) {
+    [GeneratedTriggers[i], GeneratedTriggers[i + 1]] = [GeneratedTriggers[i + 1], GeneratedTriggers[i]];
+    renderTriggerEditor("triggerEditor");
+  }*/
+	   moveTrigger(index, index + 1);
+  	   renderTriggerEditor("triggerEditor");
+}
+
+function exportTriggersToCode() {
+  return GeneratedTriggers.map(trigger => {
+    return `Triggers.push({ 
+      event: "${trigger.event}", 
+      target: ${trigger.target ? `"${trigger.target}"` : null}, 
+      conditions: ${JSON.stringify(trigger.conditions || [])}, 
+      actions: ${JSON.stringify(trigger.actions || [])} 
+    });`;
+  }).join("\n");
+}
+
+
+
+
+
+
+
+
+	
+function showPreview(){
+	
+  var frame = elementId("PreviewWindow").contentWindow.document;
+
+  var currentSelect=document.getElementById("Scenes").value;
+  var currentActorSelect=document.getElementById("ActorTween").value;
+  var currentSceneTweenSelect=document.getElementById("SceneId").value;
+  document.getElementById("Scenes").innerHTML="";
+  document.getElementById("ActorTween").innerHTML="";
+  document.getElementById("SceneId").innerHTML="";
+  
+  var select=document.getElementById("Scenes");
+		option = document.createElement( 'option' );
+        option.text = "Play";
+		option.value = "Scenes[CurrentScene]";
+		option.setAttribute("selected","selected");
+		select.add(option);
+  
+  var build=BuildCode.getValue();
+  var GetSceneName = build.split('Scene("');
+	var AllSceneNames=new Array;
+  
+ for (let i = 1; i < GetSceneName.length; i++) {
+	AllSceneNames[i]=GetSceneName[i].slice(0,GetSceneName[i].indexOf(")")-1);
+ // console.log(AllSceneNames[i])
+  var select=document.getElementById("Scenes");
+		option = document.createElement( 'option' );
+    option.value = option.text = AllSceneNames[i];
+		select.add(option);
+		
+	  var select=document.getElementById("SceneId");
+		option = document.createElement( 'option' );
+    option.value = option.text = AllSceneNames[i];
+		select.add(option);
+		select.value=currentSceneTweenSelect;
+  }
+    build=BuildCode.getValue();
+	var GetActorName = build.split('Actor(');
+	var AllActorNames=new Array;
+  
+ for (let i = 1; i < GetActorName.length; i++) {
+	AllActorNames[i]=GetActorName[i].slice(1,GetActorName[i].indexOf(",")-1);
+  //console.log(AllActorNames[i]+", "+frame.Elements[i])
+  var selectActor=elementId("ActorTween");
+		option = document.createElement( 'option' );
+    option.value = option.text = AllActorNames[i];
+		selectActor.add(option);
+		selectActor.value=""+currentActorSelect;
+  }
+  
+  
+  HTMLCode='<!DOCTYPE html>\n<html style="height:100%;" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;}</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+  
+  document.getElementById("Scenes").value=currentSelect;
+	
+  
+	
+  
+    var jsCode = "<scri"+"pt>\n var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+  
+  SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
+  
+  frame.open();
+  frame.innerHTML="";
+  
+  frame.write(HTMLCode+jsCode);
+  frame.close();
+	updateActorList();
+	//allProps=getAllProperties();
+
+}
+
+function PlayerOnOff(){
+	if(elementId(PlayerOn).checked==true){
+		EditorBar="Actor(\"SeekBar\",\"DIV\");SeekBar.Parent=elementId(\"body\");SeekBar.Opacity=50;SeekBar.Y=StageHeight-50;SeekBar.X=100;SeekBar.Width=StageWidth-200;SeekBar.Text=\'<input type=\"range\" min=\"0\" max=\"'+GetScene().Timeline.totalDuration()*100+'\" value=\"0\" class=\"slider\" id=\"myRange\" style=\"width:100%\">';Actor(\"Duration\",\"p\");Duration.Parent=\"SeekBar\";Duration.Y=0;Duration.X=SeekBar.Width;Duration.Text=\"0\";Duration.FontSize=25;Actor(\"pauseBtn\",\"button\");pauseBtn.Text=\"⏸\";pauseBtn.FontSize=30;pauseBtn.X=-100;pauseBtn.Height=50;pauseBtn.Width=100;pauseBtn.MouseUp=\"GetScene().Timeline.pause(); pauseBtn.Opacity=0; playBtn.Opacity=100\";pauseBtn.Parent=\"SeekBar\";Actor(\"playBtn\",\"button\");playBtn.Text=\"⏵︎\";playBtn.FontSize=30;playBtn.X=-100;playBtn.Height=50;playBtn.Width=100;playBtn.Opacity=0;playBtn.MouseUp=\"GetScene().Timeline.play(); pauseBtn.Opacity=100; playBtn.Opacity=0\";playBtn.Parent=\"SeekBar\"; parent.TimeLength=12"
+  
+		EditorBarUpdate="elementId(\"myRange\").value=GetScene().Timeline.totalTime()*100;SetText(Duration,\"\"+Math.round(GetScene().Timeline.totalTime()*10)/10);"
+  
+		EditorBarStart="elementId(\"myRange\").max=(GetScene().Timeline.totalDuration()*100);elementId(\"myRange\").oninput = function(){GetScene().Timeline.totalTime(elementId(\"myRange\").value/100); }"
+
+	}else{
+		EditorBar=null
+		EditorBarUpdate=null
+		EditorBarStart=null
+	}
+}
+
+var ScriptMenuVisible=false;
+function ShowScriptMenu(){
+ if(ScriptMenuVisible==false){
+   ScriptMenu.Opacity=100
+   ScriptMenuVisible=true
+ }
+ else{
+   ScriptMenu.Opacity=0
+   ScriptMenuVisible=false
+ }
+}
+
+function ShowSelectedScript(Selected,Head,Current){
+  generalCode.Opacity=0
+  buildCode.Opacity=0
+  updateCode.Opacity=0
+  scenestartCode.Opacity=0
+  resizeCode.Opacity=0
+  HEAD.Opacity=0  
+  BuildSpecial.Opacity=0
+  EventEditor.Opacity=0
+  Selected.Opacity=100
+  ScriptMenu.Opacity=0
+  ScriptMenuVisible=false
+  SetText(SelectScript,Head)
+  whatScript=Selected;
+  CurrentScript=Current;
+}
+
+var file_handle='documents';
+var file_name='show.html';
+if(file_handle.name==undefined){
+	file_handle.name="Show.html"
+}
+
+function saveTextAsFile(){
+//	var AllTweensShort = AllTweens.filter(function(f) { return f !== " " });
+	
+/*	for  (let i = 1; i < AllTweens.length; i++) {
+		var splitId=AllTweens[i].split("id:");
+		AllTweens[i]=splitId[0]+i+splitId[1];
+	}*/
+	
+	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+  
+	var blob = new Blob([HTMLCode+JsCode], {type: "text/plain;charset=utf-8"});
+    //saveAs(blob, "show.html");
+	async function handleSaveImg(event){
+  const image = blob;
+  if( window.showSaveFilePicker ) {
+    const handle = await showSaveFilePicker({
+		startIn: file_handle,
+		id:'startId',
+		//startIn: "documents",
+		suggestedName: file_handle.name,
+		types: [{
+		description: 'Html',
+		accept: {
+		'text/html': ['.html'],
+			},
+		}],
+		
+	});
+    const writable = await handle.createWritable();
+    await writable.write( image );
+    writable.close();
+//	file_handle=handle.name;
+	//console.log(handle);
+  }
+  else {
+    const saveImg = document.createElement( "a" );
+    saveImg.href = URL.createObjectURL( image );
+    saveImg.download= file_handle.name;
+    saveImg.click();
+    setTimeout(() => URL.revokeObjectURL( saveImg.href ), 60000 );
+  }
+}
+
+	//saveAs(blob, window.showSaveFilePicker(opts));
+    //const writable = handle.createWritable();
+    //writable.write( blob );
+	//saveAs(blob, "show.html");
+    //writable.close();
+	handleSaveImg(event);
+  
+}
+
+window.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 's') {
+    // Prevent the Save dialog to open
+    e.preventDefault();
+    // Place your code here
+    saveTextAsFile();
+  }
+});
+
+function loadFileAsText()
+{
+	var content=null;
+	
+	
+//    var fileToLoad = document.getElementById("fileToLoad").files[0];
+ 
+//    var fileReader = new FileReader();
+//    fileReader.onload = function(fileLoadedEvent) 
+//    {
+	async function handleLoadImg(event){
+	let fileHandle;
+ 
+	if( window.showOpenFilePicker ) {
+	[fileHandle] = await window.showOpenFilePicker({
+		startIn: file_handle,
+		id:'startId',
+		//startIn: file-handle,
+		types: [{
+		description: 'Html',
+		accept: {
+		'text/html': ['.html'],
+			},
+		}],
+
+	});
+ 
+	const file = await fileHandle.getFile();
+	content = await file.text();
+	file_handle=fileHandle;
+	}
+
+    
+    document.getElementById("generalCode").style.display="flex";
+    document.getElementById("buildCode").style.display="flex";
+    document.getElementById("updateCode").style.display="flex";
+    document.getElementById("scenestartCode").style.display="flex";
+    document.getElementById("resizeCode").style.display="flex";
+      
+    var textFromFileLoaded = content;
+		var splitCode = textFromFileLoaded.split("//✂✂✂");
+		var splitHTML = textFromFileLoaded.split("<!--- ✂✂✂ ---"+">");
+		var generalCode = splitCode[1]
+		var buildCode = splitCode[3]
+		var tweenCode = splitCode[4]
+		var updateCode = splitCode[6]
+		var scenestartCode = splitCode[8]
+ 		var resizeCode = splitCode[10]
+		var headCode = splitHTML[1]
+ 
+		GeneralCode.setValue(generalCode);
+		BuildCode.setValue(buildCode);
+		AllTweens=tweenCode.split("//Tween");
+		UpdateCode.setValue(updateCode);
+		ScenestartCode.setValue(scenestartCode);
+		ResizeCode.setValue(resizeCode);
+		HEADCode.setValue(headCode);
+		
+		SettingsGenerated = splitCode[2].substr(0,splitCode[2].length-18)+'parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'
+		//console.log(SettingsGenerated)
+        //document.getElementById("jsCode").value = textFromFileLoaded;
+    document.getElementById("generalCode").style.display="none";
+    document.getElementById("buildCode").style.display="none";
+    document.getElementById("updateCode").style.display="none";
+		document.getElementById("scenestartCode").style.display="none";
+		document.getElementById("resizeCode").style.display="none";
+		document.getElementById("HEAD").style.display="none";
+		
+    ShowSelectedScript(GeneralCode,'Select Script',generalCode)
+//    };
+//    fileReader.readAsText(fileToLoad, "UTF-8");
+	
+	var select=document.getElementById("Scenes");
+		option = document.createElement( 'option' );
+        option.text = "Play";
+		option.value = "Scenes[CurrentScene]";
+		option.setAttribute("selected","selected");
+		select.add(option);
+		
+		
+	setTimeout(function(){ showPreview(); }, 1000);
+	showPreview();
+	showPreview();
+	/*SettingsGenerated='parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'*/
+	GeneralCode.execCommand('foldAll');
+	BuildCode.execCommand('foldAll');
+	ScenestartCode.execCommand('foldAll');
+	UpdateCode.execCommand('foldAll');
+	ResizeCode.execCommand('foldAll');
+		}
+	handleLoadImg(event);
+	BuildString=BuildCode.getValue();
+	
+}
+ 
+var NewActors=new Array
+var ActorCount=0;
+var CurrentSelectedActor=0
+
+var GeneratingActor='';
+var GeneratingTween='';
+
+function updateGeneratedActor(){
+	var a="Actor('"+Id.value+"','"+Type.value+"');\n";
+	
+	if(Type.value=="video" || Type.value=="audio"){
+		elementId("ControlsInput").style="display:inline";
+		elementId("ControlsLabel").style="display:inline";
+	}
+	else{
+		elementId("ControlsInput").style="display:none";
+		elementId("ControlsLabel").style="display:none";
+	}
+
+	if(elementId("ParentInput").disabled==false){
+		p="	Parent:\""+ParentInput.value+"\",\n";
+	}
+	if(elementId("ParentInput").disabled==true){
+		if(elementId("Scenes").value!='Scenes[CurrentScene]'){
+		p="	Parent:\""+elementId("Scenes").value+"\",\n";
+		}
+		if(elementId("Scenes").value=='Scenes[CurrentScene]'){
+		p="";
+		}
+	}
+	
+	if(elementId("SourceInput").disabled==false){
+		s="	Source:\""+SourceInput.value+"\",\n";
+	}
+	if(elementId("SourceInput").disabled==true){
+		s="";
+	}
+	
+	if(elementId("ColorInput").disabled==false){
+		c="	Color:\""+ColorInput.value+"\",\n";
+	}
+	if(elementId("ColorInput").disabled==true){
+		c="";
+	}
+	if(elementId("ShapeInput").disabled==false){
+		sh="	Shape:\""+ShapeInput.value+"\",\n";
+	}
+	if(elementId("ShapeInput").disabled==true){
+		sh="";
+	}
+	
+	if(elementId("WidthInput").disabled==false){
+		w="	Width:"+WidthInput.value+",\n";
+	}
+	if(elementId("WidthInput").disabled==true){
+		w="";
+	}
+	
+	if(elementId("HeightInput").disabled==false){
+		h="	Height:"+HeightInput.value+",\n";
+	}
+	if(elementId("HeightInput").disabled==true){
+		h="";
+	}
+	
+	if(elementId("XInput").disabled==false){
+		x="	X:"+XInput.value+",\n";
+	}
+	if(elementId("XInput").disabled==true){
+		x="";
+	}
+	
+	if(elementId("YInput").disabled==false){
+		y="	Y:"+YInput.value+",\n";
+	}
+	if(elementId("YInput").disabled==true){
+		y="";
+	}
+	
+	if(elementId("ScaleInput").disabled==false){
+		scale="	Scale:"+ScaleInput.value+",\n";
+	}
+	if(elementId("ScaleInput").disabled==true){
+		scale="";
+	}
+	
+	if(elementId("OpacityInput").disabled==false){
+		o="	Opacity:"+OpacityInput.value+",\n";
+	}
+	if(elementId("OpacityInput").disabled==true){
+		o="";
+	}
+
+	if(elementId("AngleInput").disabled==false){
+		ang="	Angle:"+AngleInput.value+",\n";
+	}
+	if(elementId("AngleInput").disabled==true){
+		ang="";
+	}
+	
+	if(elementId("SkewXInput").disabled==false){
+		sx="	SkewX:"+SkewXInput.value+",\n";
+	}
+	if(elementId("SkewXInput").disabled==true){
+		sx="";
+	}
+	
+	if(elementId("SkewYInput").disabled==false){
+		sy="	SkewY:"+SkewYInput.value+",\n";
+	}
+	if(elementId("SkewYInput").disabled==true){
+		sy="";
+	}
+	
+	if(elementId("RotateXInput").disabled==false){
+		rx="	RotateX:"+RotateXInput.value+",\n";
+	}
+	if(elementId("RotateXInput").disabled==true){
+		rx="";
+	}
+	
+	if(elementId("RotateYInput").disabled==false){
+		ry="	RotateY:"+RotateYInput.value+",\n";
+	}
+	if(elementId("RotateYInput").disabled==true){
+		ry="";
+	}
+	
+	if(elementId("RotateZInput").disabled==false){
+		rz="	RotateZ:"+RotateZInput.value+",\n";
+	}
+	if(elementId("RotateZInput").disabled==true){
+		rz="";
+	}
+	
+	if(elementId("TranslateXInput").disabled==false){
+		tx="	TranslateX:"+TranslateXInput.value+",\n";
+	}
+	if(elementId("TranslateXInput").disabled==true){
+		tx="";
+	}
+	
+	if(elementId("TranslateYInput").disabled==false){
+		ty="	TranslateY:"+TranslateYInput.value+",\n";
+	}
+	if(elementId("TranslateYInput").disabled==true){
+		ty="";
+	}
+	
+	if(elementId("TranslateZInput").disabled==false){
+		tz="	TranslateZ:"+TranslateZInput.value+",\n";
+	}
+	if(elementId("TranslateZInput").disabled==true){
+		tz="";
+	}
+	
+	if(elementId("TextInput").disabled==false){
+		txt='	Text:`'+TextInput.value+'';
+		txt=''+txt.replace(/\n/g,"<br>\n")+'\n';
+		txt+='`,\n';
+	}
+/*		if(elementId("TextInput").disabled==false){
+		txt='thisActor.Text=`'+TextInput.value.replace(/"/g,"\\\"")+'`;';
+		txt=''+txt.replace(/\n/g,"<br>")+'';
+	}*/
+	if(elementId("TextInput").disabled==true){
+		txt="";
+	}
+	if(elementId("FontsizeInput").disabled==false){
+		fs="	FontSize:"+FontsizeInput.value+",\n";
+	}
+	if(elementId("FontsizeInput").disabled==true){
+		fs="";
+	}
+	
+	if(elementId("MouseDownInput").disabled==false){
+		md='	MouseDown:`'+MouseDownInput.value+'`,\n';
+	}
+	if(elementId("MouseDownInput").disabled==true){
+		md="";
+	}
+	
+	if(elementId("MouseUpInput").disabled==false){
+		mu='	MouseUp:`'+MouseUpInput.value+'`,\n';
+	}
+	if(elementId("MouseUpInput").disabled==true){
+		mu="";
+	}
+	
+	if(elementId("DraggableInput").checked==true){
+		dr="	Draggable:true,\n";
+	}
+	if(elementId("DraggableInput").checked==false){
+		dr="";
+	}
+	if(elementId("StyleInput").disabled==false){
+		style='	Style:`'+StyleInput.value+'`,\n';
+	}
+	if(elementId("StyleInput").disabled==true){
+		style="";
+	}
+	if(elementId("ClassInput").disabled==false){
+		cls='	Class:`'+ClassInput.value+'`,\n';
+	}
+	if(elementId("ClassInput").disabled==true){
+		cls="";
+	}
+	if(elementId("ControlsInput").checked==true){
+		cont="	Controls:true,\n";
+	}
+	if(elementId("ControlsInput").checked==false){
+		cont="";
+	}
+	if(elementId("OriginInputX").disabled==false){
+		orig="	TransformOriginX:"+OriginInputX.value+",\n	TransformOriginY:"+OriginInputY.value+",\n";
+	}
+	if(elementId("OriginInputX").disabled==true){
+		orig="";
+	}
+	if(elementId("ShowOriginInput").checked==true){
+		ShowOrig="	ShowOrigin:true,\n";
+	}
+	if(elementId("ShowOriginInput").checked==false){
+		ShowOrig="	ShowOrigin:false,\n";
+	}
+	
+	GeneratingActor=a+"ActorProps(thisActor,{\n"+p+s+c+sh+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+txt+fs+md+mu+dr+style+cont+cls+orig+ShowOrig+"})";
+	elementId("PreviewWindow").contentWindow.GeneratingActor
+	GenerateElement(Id.value);
+	showPreview();
+}
+
+function updateGeneratedTween(){
+
+	var Current=CurrentlyEditingTween;
+	
+	//console.log("currentTween: "+CurrentlyEditingTween+" Other Current: "+Current);
+	var id="id: "+CurrentlyEditingTween+",";
+	var s=elementId("SceneId").value;
+	var a=elementId("ActorTween").value;
+	var st=elementId("startTime").value;
+	var d=elementId("duration").value;
+	var di=elementId("direction").value;
+	var e=elementId("easing").value;
+	var repeat=elementId("RepeatInput").value;
+	var yoyo=elementId("YoyoInput").checked;
+
+	
+	if(elementId("WidthInput2").disabled==false){
+		w="Width:"+WidthInput2.value+",";
+	}
+	if(elementId("WidthInput2").disabled==true){
+		w="";
+	}
+	
+	if(elementId("HeightInput2").disabled==false){
+		h="Height:"+HeightInput2.value+",";
+	}
+	if(elementId("HeightInput2").disabled==true){
+		h="";
+	}
+	
+	if(elementId("XInput2").disabled==false){
+		x="X:"+XInput2.value+",";
+	}
+	if(elementId("XInput2").disabled==true){
+		x="";
+	}
+	
+	if(elementId("YInput2").disabled==false){
+		y="Y:"+YInput2.value+",";
+	}
+	if(elementId("YInput2").disabled==true){
+		y="";
+	}
+	
+	if(elementId("ScaleInput2").disabled==false){
+		scale="Scale:"+ScaleInput2.value+",";
+	}
+	if(elementId("ScaleInput2").disabled==true){
+		scale="";
+	}
+	
+	if(elementId("OpacityInput2").disabled==false){
+		o="Opacity:"+OpacityInput2.value+",";
+	}
+	if(elementId("OpacityInput2").disabled==true){
+		o="";
+	}
+
+	if(elementId("AngleInput2").disabled==false){
+		ang="Angle:"+AngleInput2.value+",";
+	}
+	if(elementId("AngleInput2").disabled==true){
+		ang="";
+	}
+	
+	if(elementId("SkewXInput2").disabled==false){
+		sx="SkewX:"+SkewXInput2.value+",";
+	}
+	if(elementId("SkewXInput2").disabled==true){
+		sx="";
+	}
+	
+	if(elementId("SkewYInput2").disabled==false){
+		sy="SkewY:"+SkewYInput2.value+",";
+	}
+	if(elementId("SkewYInput2").disabled==true){
+		sy="";
+	}
+	
+	if(elementId("RotateXInput2").disabled==false){
+		rx="RotateX:"+RotateXInput2.value+",";
+	}
+	if(elementId("RotateXInput2").disabled==true){
+		rx="";
+	}
+	
+	if(elementId("RotateYInput2").disabled==false){
+		ry="RotateY:"+RotateYInput2.value+",";
+	}
+	if(elementId("RotateYInput2").disabled==true){
+		ry="";
+	}
+	
+	if(elementId("RotateZInput2").disabled==false){
+		rz="RotateZ:"+RotateZInput2.value+",";
+	}
+	if(elementId("RotateZInput2").disabled==true){
+		rz="";
+	}
+	
+	if(elementId("TranslateXInput2").disabled==false){
+		tx="TranslateX:"+TranslateXInput2.value+",";
+	}
+	if(elementId("TranslateXInput2").disabled==true){
+		tx="";
+	}
+	
+	if(elementId("TranslateYInput2").disabled==false){
+		ty="TranslateY:"+TranslateYInput2.value+",";
+	}
+	if(elementId("TranslateYInput2").disabled==true){
+		ty="";
+	}
+	
+	if(elementId("TranslateZInput2").disabled==false){
+		tz="TranslateZ:"+TranslateZInput2.value+",";
+	}
+	if(elementId("TranslateZInput2").disabled==true){
+		tz="";
+	}
+	//arraymove(AllTweens, CurrentlyEditingTween, Current);
+	GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", duration:"+d+", repeat:"+repeat+",yoyo:"+yoyo+", data:\""+di+"\"},"+st+");";
+	AllTweens[CurrentlyEditingTween]=GeneratingTween;
+	//console.log(Current+AllTweens[Current]);
+	//elementId("PreviewWindow").contentWindow.GeneratingTween
+
+	showPreview();
+}
+
+function insertString(editor,str){
+
+        var selection = editor.getSelection();
+
+        if(selection.length>0){
+            editor.replaceSelection(str);
+        }
+        else{
+
+            var doc = editor.getDoc();
+            var cursor = doc.getCursor();
+
+            var pos = {
+               line: cursor.line,
+               ch: cursor.ch
+            }
+
+            doc.replaceRange(str, pos);
+
+        }
+
+    }
+	
+	
+function insertWidget(editor,widget){
+
+        var selection = editor.getSelection();
+
+            var doc = editor.getDoc();
+            var cursor = editor.getCursor();
+
+            var pos = {
+               line: cursor.line,
+               ch: cursor.ch
+			}
+            editor.addWidget(pos, widget);
+
+        
+
+    }
+	
+function InsertCodeBtn(Label,Value){
+	return "<p>"+Label+"<button onclick=\"insertString(CurrentScript,"+Value+");ContextMenu.Opacity=0;\">"+"insert"+"</button></p>";	
+}
+
+function enableField(input){
+	var checked=false;
+	if(elementId(input).disabled==false){
+		elementId(input).disabled=true;
+		checked=true;
+		
+	}
+	if(elementId(input).disabled==true && checked==false){
+		elementId(input).disabled=false;
+	}
+}
+
+function Seek(){
+	elementId("PreviewWindow").contentWindow.GetScene().Timeline.seek(+elementId("myRange").value/100);
+	SetCurrentTime(RefSound, elementId("myRange").value/100);
+}
+
+function SeekTween(){
+	parent.elementId("PreviewWindow").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);
+}
+
+function arraymove(arr, fromIndex, toIndex) {
+    var element = arr[fromIndex];
+    arr.splice(fromIndex, 1);
+    arr.splice(toIndex, 0, element);
+}
+
+function ShowContextMenu(CodeWindow){
+var Window=getElementsByClassName("cm-s-default")[0];
+	Window.addEventListener('contextmenu', function(ev) {
+		ev.preventDefault();
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+		return false;
+	}, false);
+}
+
+
+function Build(){SCORMTracking=false;
+StageWidth=window.innerWidth, StageHeight=window.innerHeight;
+Scaling="Fit";
+Overflow="visible"; 
+
+
+Actor("KeyframeOptions","DIV");
+KeyframeOptions.Width=400;
+
+Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=200;thisActor.Y=30;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="Fit" oninput="showPreview()"><option>Fit</option><option>None</option><option>Width</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
+thisActor.Opacity=0;
+thisActor.Z=1;
+
+Actor("PreviewWindow","IFRAME")
+PreviewWindow.Y=30
+PreviewWindow.X=400
+
+Actor("PreviewOverlay","DIV")
+PreviewOverlay.Color="grey"
+PreviewOverlay.Width=2000
+PreviewOverlay.Height=2000
+PreviewOverlay.Opacity=0
+
+Actor("generalCode","DIV");
+generalCode.Y=30
+generalCode.Height=StageHeight
+generalCode.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("buildCode","DIV");
+buildCode.Y=30
+buildCode.Height=StageHeight
+buildCode.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("updateCode","DIV");
+updateCode.Y=30
+updateCode.Height=StageHeight
+updateCode.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("scenestartCode","DIV");
+scenestartCode.Y=30
+scenestartCode.Height=StageHeight
+scenestartCode.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("resizeCode","DIV");
+resizeCode.Y=30
+resizeCode.Height=StageHeight
+resizeCode.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("HEAD","DIV");
+HEAD.Y=30
+HEAD.Height=StageHeight
+HEAD.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+
+Actor("BuildSpecial","DIV");
+thisActor.Y=30
+thisActor.Height=StageHeight
+thisActor.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.FontSize=12;
+thisActor.Text=`<div id="addControls">
+  <button id="addSceneBtn">➕ New Scene</button>
+  <button id="addActorBtn">➕ New Actor</button>
+</div>`;
+
+Actor("EventEditor","DIV");
+thisActor.Y=30
+thisActor.Height=StageHeight
+thisActor.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.FontSize=12;
+thisActor.Text=`<div id="triggerEditor"></div>`;
+
+
+
+Actor("SelectScript","button")
+SelectScript.Height=30
+SelectScript.Parent="KeyframeOptions"
+SelectScript.MouseUp="ShowScriptMenu()";
+
+Actor("ScriptMenu","DIV")
+ScriptMenu.Y=30
+ScriptMenu.Opacity=0
+
+Actor("ScriptOption1","button");
+ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General',GeneralCode)"
+ScriptOption1.Height=30
+ScriptOption1.Y=0
+ScriptOption1.Parent="ScriptMenu"
+ScriptOption1.Text="General"
+Actor("ScriptOption2","button"); 
+ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build',BuildCode)"
+ScriptOption2.Height=30
+ScriptOption2.Y=30
+ScriptOption2.Parent="ScriptMenu"
+ScriptOption2.Text="Build"
+Actor("ScriptOption3","button"); 
+ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update',UpdateCode)"
+ScriptOption3.Height=30
+ScriptOption3.Y=60
+ScriptOption3.Parent="ScriptMenu"
+ScriptOption3.Text="Update"
+Actor("ScriptOption4","button");
+ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start',ScenestartCode)"
+ScriptOption4.Height=30
+ScriptOption4.Y=90
+ScriptOption4.Parent="ScriptMenu"
+ScriptOption4.Text="Scene Start"
+Actor("ScriptOption5","button"); 
+ScriptOption5.MouseUp="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
+ScriptOption5.Height=30
+ScriptOption5.Y=120
+ScriptOption5.Parent="ScriptMenu"
+ScriptOption5.Text="Resize"
+Actor("ScriptOption6","button"); 
+ScriptOption6.MouseUp="ShowSelectedScript(HEAD,'HEAD',HEAD)"
+ScriptOption6.Height=30
+ScriptOption6.Y=150
+ScriptOption6.Parent="ScriptMenu"
+ScriptOption6.Text="HEAD"
+Actor("ScriptOption7","button"); 
+ScriptOption7.MouseUp="ShowSelectedScript(BuildSpecial,'BUILD GUI',BuildSpecial)"
+ScriptOption7.Height=30
+ScriptOption7.Y=180
+ScriptOption7.Parent="ScriptMenu"
+ScriptOption7.Text="BUILD GUI"
+Actor("ScriptOption8","button"); 
+ScriptOption8.MouseUp="ShowSelectedScript(EventEditor,'EVENT EDITOR',EventEditor)"
+ScriptOption8.Height=30
+ScriptOption8.Y=210
+ScriptOption8.Parent="ScriptMenu"
+ScriptOption8.Text="EVENT EDITOR"
+
+
+
+Actor("resizer","BUTTON");
+resizer.Parent="KeyframeOptions"
+resizer.Y=30
+resizer.Width=10
+resizer.Height=StageHeight-30
+resizer.X=KeyframeOptions.Width
+resizer.Active=false
+resizer.MouseDown="resizer.Active=true"
+resizer.MouseUp="resizer.Active=false"
+
+Actor("FileMenu","button");
+thisActor.Text="File";
+thisActor.Width=120;
+thisActor.Height=30;
+thisActor.X=StageWidth-120;
+thisActor.Opacity=0;
+
+Actor("SaveHTML","button")
+SaveHTML.Text="Save HTML"
+SaveHTML.X=StageWidth-120
+SaveHTML.Height=30
+SaveHTML.Width=120
+SaveHTML.MouseUp="saveTextAsFile()"
+
+Actor("SaveJS","button");
+thisActor.Text="Save JS"
+thisActor.X=StageWidth-240;
+thisActor.Height=30;
+thisActor.Width=120;
+thisActor.MouseUp="saveTextAsFile()"
+thisActor.Opacity=0;
+
+Actor("LoadHTML","button")
+thisActor.MouseUp="loadFileAsText()";
+thisActor.Width=120;
+LoadHTML.Text='Load HTML'
+LoadHTML.X=StageWidth-240
+LoadHTML.Height=30
+
+Actor("RefSound","audio");
+Actor("LoadSound","div"); 
+thisActor.Text="Reference audio <input id=\"selSound\"  oninput=\"SetSource(RefSound,elementId(\'selSound\').value)\"></input>";
+thisActor.Height=50;
+thisActor.Width=300;
+thisActor.X=StageWidth-720;
+
+Actor("Scenes","select")
+Scenes.Height=30
+Scenes.X=200
+thisActor.MouseUp=""
+
+Actor("UpdateBtn","button")
+UpdateBtn.Text="&#8635;"
+UpdateBtn.MouseUp="showPreview();"
+UpdateBtn.Width=30
+UpdateBtn.Height=30
+UpdateBtn.X=400
+
+Actor('settingsBtn','button')
+thisActor.Text="Settings ⚙"
+thisActor.Width=142
+thisActor.Height=30
+thisActor.MouseUp="SettingsWindow.Opacity=100"
+thisActor.X=430
+
+
+Actor("ActorWindow","div")
+ActorWindow.Opacity=0;
+ActorWindow.Color="lightgrey"
+ActorWindow.Height=400
+ActorWindow.Y=StageHeight-ActorWindow.Height
+
+
+Actor("NewActorBtn2","button");
+NewActorBtn2.Parent="buildCode"
+NewActorBtn2.Text="Create Actor"
+NewActorBtn2.Y=StageHeight-90
+NewActorBtn2.Height=30
+NewActorBtn2.X=0
+NewActorBtn2.MouseUp="ActorOptions.Opacity=100"
+thisActor.Opacity=0;
+
+Actor("NewTweenBtn","button");
+//thisActor.Parent="buildCode"
+thisActor.Text="Create Movement";
+thisActor.Y=StageHeight-90
+thisActor.Height=30
+thisActor.X=200
+thisActor.MouseUp="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
+
+Actor("ActorOptions","DIV");
+ActorOptions.Opacity=0;
+//ActorOptions.FontSize=10
+ActorOptions.Y=30;
+ActorOptions.Color="lightgrey"
+ActorOptions.Height=StageHeight-60
+ActorOptions.Width=400
+ActorOptions.Overflow="auto" 
+ActorOptions.Generated=""
+
+ActorOptions.Text="Grid: <input id=\"grid\" type=\"number\" value=\"1\" onchange=\"EditorGrid=elementId('grid').value; elementId('WidthInput').step=EditorGrid;elementId('HeightInput').step=EditorGrid;elementId('XInput').step=EditorGrid; elementId('YInput').step=EditorGrid;elementId('OpacityInput').step=EditorGrid; elementId('AngleInput').step=EditorGrid; elementId('SkewXInput').step=EditorGrid; elementId('SkewYInput').step=EditorGrid; elementId('RotateXInput').step=EditorGrid;elementId('RotateYInput').step=EditorGrid; elementId('RotateZInput').step=EditorGrid; elementId('TranslateXInput').step=EditorGrid; elementId('TranslateYInput').step=EditorGrid; elementId('TranslateZInput').step=EditorGrid; updateGeneratedActor();\"><br><fieldset><legend>Actor</legend><p>Name <input id=\"Id\" value=\"UniqueID\" onchange=\"updateGeneratedActor()\"> Type <select id=\"Type\" value=\"div\" onchange=\"updateGeneratedActor()\"><option>div</option><option>img</option><option>video</option><option>audio</option><option>iframe</option><option>canvas</option><option>button</option><option>object</option/><option>input</option><option>select</option><option>option</option><option>textarea</option></select></p>"+
+"<input type=\"checkbox\" id=\"ParentOn\" onclick=\"enableField('ParentInput'); updateGeneratedActor();\">Parent	</button>"+
+"<input id=\"ParentInput\" value=\"\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"SourceOn\" onclick=\"enableField('SourceInput'); updateGeneratedActor();\">Source	</button>"+
+"<input id=\"SourceInput\" value=\"\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"ColorOn\" onclick=\"enableField('ColorInput'); updateGeneratedActor();\">Color	</button>"+
+"<input id=\"ColorInput\" type=\"color\" value=\"\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"ShapeOn\" onclick=\"enableField('ShapeInput'); updateGeneratedActor();\">Shape	</button>"+
+"<select id=\"ShapeInput\" value=\"\" oninput=\"updateGeneratedActor()\" disabled><option>Square</option><option>Circle</option><option>Triangle</option><option>Star</option><option>LeftArrow</option><option>RightArrow</option><option>Heart</option/><option>Lightning</option><option>Home</option><option>Play</option><option>Pause</option><option>Diamond</option><option>Keyhole</option><option>SpeechBubble</option></select></p>"+
+"<input type=\"checkbox\" id=\"OriginOn\" onclick=\"enableField('OriginInputX'); enableField('OriginInputY'); updateGeneratedActor();\">Origin	</button>"+
+"X:<input id=\"OriginInputX\" type=\"number\" value=\"50\" oninput=\"updateGeneratedActor()\" style=\"width:50px\" disabled>"+
+" Y:<input id=\"OriginInputY\" type=\"number\" value=\"50\" oninput=\"updateGeneratedActor()\" style=\"width:50px\" disabled>"+
+"Show Origin: <input type=\"checkbox\" id=\"ShowOriginInput\"oninput=\"updateGeneratedActor()\">"+
+"<input type=\"checkbox\" id=\"ControlsInput\" style=\"display:none\" oninput=\"updateGeneratedActor()\"><p id=\"ControlsLabel\" style=\"display:none\">Show controls</p></fieldset>"+
+"<fieldset><legend>Size & position</legend><input type=\"checkbox\" id=\"WidthOn\" onclick=\"enableField('WidthInput'); updateGeneratedActor();\">Width	</button>"+
+"<input id=\"WidthInput\" type=\"number\" value=\"200\" step=\"+elementId('grid').value+\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"HeightOn\" onclick=\"enableField('HeightInput'); updateGeneratedActor();\">Height	</button>"+
+"<input id=\"HeightInput\" type=\"number\" value=\"200\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"XOn\" onclick=\"enableField('XInput'); updateGeneratedActor();\">X	</button>"+
+"<input id=\"XInput\" type=\"number\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"YOn\" onclick=\"enableField('YInput'); updateGeneratedActor();\">Y 	</button>"+
+"<input id=\"YInput\" type=\"number\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"ScaleOn\" onclick=\"enableField('ScaleInput'); updateGeneratedActor();\">Scale 	</button>"+
+"<input id=\"ScaleInput\" type=\"number\" value=\"1\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"OpacityOn\" onclick=\"enableField('OpacityInput'); updateGeneratedActor();\">Opacity 	</button>"+
+"<input id=\"OpacityInput\" type=\"number\" min=\"0\" max=\"100\" value=\"100\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"AngleOn\" onclick=\"enableField('AngleInput'); updateGeneratedActor();\">Angle 	</button>"+
+"<input id=\"AngleInput\" type=\"number\" min=\"-360\" max=\"360\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br>"+
+"<input type=\"checkbox\" id=\"SkewXOn\" onclick=\"enableField('SkewXInput'); updateGeneratedActor();\">Skew X 	</button>"+
+"<input id=\"SkewXInput\" type=\"number\" min=\"-100\" max=\"100\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"SkewYOn\" onclick=\"enableField('SkewYInput'); updateGeneratedActor();\">Skew Y 	</button>"+
+"<input id=\"SkewYInput\" type=\"number\" min=\"-100\" max=\"100\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled></fieldset>"+
+
+"<fieldset><legend>3d transforms</legend><input type=\"checkbox\" id=\"RotateXOn\" onclick=\"enableField('RotateXInput'); updateGeneratedActor();\">Rotate X 	</button>"+
+"<input id=\"RotateXInput\" type=\"number\" min=\"-360\" max=\"360\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"RotateYOn\" onclick=\"enableField('RotateYInput'); updateGeneratedActor();\">Rotate Y	</button>"+
+"<input id=\"RotateYInput\" type=\"number\" min=\"-360\" max=\"360\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"RotateZOn\" onclick=\"enableField('RotateZInput'); updateGeneratedActor();\">Rotate Z 	</button>"+
+"<input id=\"RotateZInput\" type=\"number\" min=\"-360\" max=\"360\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"TranslateXOn\" onclick=\"enableField('TranslateXInput'); updateGeneratedActor();\">Translate X 	</button>"+
+"<input id=\"TranslateXInput\" type=\"number\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"TranslateYOn\" onclick=\"enableField('TranslateYInput'); updateGeneratedActor();\">Translate Y </button>"+
+"<input id=\"TranslateYInput\" type=\"number\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"TranslateZOn\" onclick=\"enableField('TranslateZInput'); updateGeneratedActor();\">Translate Z </button>"+
+"<input id=\"TranslateZInput\" type=\"number\" value=\"0\" oninput=\"updateGeneratedActor()\" disabled></fieldset>"+
+"<fieldset><legend>Text & interaction</legend><br><input type=\"checkbox\" id=\"TextOn\" onclick=\"enableField('TextInput'); enableField('FontsizeInput'); updateGeneratedActor();\">Text 	</button>"+
+"<textarea id=\"TextInput\" oninput=\"updateGeneratedActor()\" style=\"width:345px; height:85px;\" disabled></textarea> <br>Size:<input id=\"FontsizeInput\" type=\"number\" value=\"12\" oninput=\"updateGeneratedActor()\" disabled>"+
+"<br><input type=\"checkbox\" id=\"MouseDownOn\" onclick=\"enableField('MouseDownInput'); updateGeneratedActor();\">Mouse Down 	</button>"+
+"<textarea id=\"MouseDownInput\" oninput=\"updateGeneratedActor()\" style=\"width:345px; height:85px;\" disabled></textarea>"+
+"<br><input type=\"checkbox\" id=\"MouseUpOn\" onclick=\"enableField('MouseUpInput'); updateGeneratedActor();\">Mouse Up 	</button>"+
+"<textarea id=\"MouseUpInput\" oninput=\"updateGeneratedActor()\" style=\"width:345px; height:85px;\" disabled></textarea>"+
+"<br><input type=\"checkbox\" id=\"DraggableInput\" oninput=\"updateGeneratedActor()\">Draggable </fieldset>"+
+"<fieldset><legend>Other</legend><input type=\"checkbox\" id=\"StyleOn\" onclick=\"enableField('StyleInput'); updateGeneratedActor();\">Custom CSS</button>"+
+"<textarea id=\"StyleInput\" oninput=\"updateGeneratedActor()\" style=\"width:345px;\" disabled></textarea>"+
+"<input type=\"checkbox\" id=\"ClassOn\" onclick=\"enableField('ClassInput'); updateGeneratedActor();\">CSS class</button>"+
+"<input id=\"ClassInput\" oninput=\"updateGeneratedActor()\" style=\"width:345px;\" disabled></input></fieldset>"+
+'<br><br><button onclick="ActorOptions.Opacity=0; insertString(BuildCode,GeneratingActor); GeneratingActor=\'\'; showPreview();">OK</button><button onclick="ActorOptions.Opacity=0; GeneratingActor=\'\'; showPreview()">Cancel</button>'
+
+
+Actor("TweenOptions","DIV");
+thisActor.Opacity=0;
+thisActor.Y=200
+thisActor.Color="lightgrey"
+thisActor.Height=StageHeight-200
+thisActor.Width=400
+thisActor.Overflow="scroll" 
+thisActor.Generated=""
+
+thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" oninput=\"updateGeneratedTween();\"></select> <p>Actor<select id=\"ActorTween\" oninput=\"updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
+"Repeat<input id=\"RepeatInput\" type=\"number\" value=\"0\" min=\"-1\" label=\"Repeat\" oninput=\"updateGeneratedTween()\">"+
+"	Yoyo<input type=\"checkbox\" id=\"YoyoInput\" oninput=\"updateGeneratedTween()\"></p>"
+thisActor.Line5="<input type=\"checkbox\" id=\"WidthOnT\" onclick=\"enableField('WidthInput2'); updateGeneratedTween();\">Width </button>"
+thisActor.Line5_1="<input id=\"WidthInput2\" type=\"number\" value=\"200\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line6="<input type=\"checkbox\" id=\"HeightOnT\" onclick=\"enableField('HeightInput2'); updateGeneratedTween(); \">Height </button>"
+thisActor.Line6_1="<input id=\"HeightInput2\" type=\"number\" value=\"200\" step=\"+elementId('grid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line7="<input type=\"checkbox\" id=\"XOnT\" onclick=\" enableField('XInput2'); updateGeneratedTween();\">X </button>"
+thisActor.Line7_1="<input id=\"XInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.LineScale="<input type=\"checkbox\" id=\"ScaleOnT\" onclick=\" enableField('ScaleInput2'); updateGeneratedTween();\">Scale </button>"
+thisActor.LineScale_1="<input id=\"ScaleInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line8="<input type=\"checkbox\" id=\"YOnT\" onclick=\"enableField('YInput2'); updateGeneratedTween();\">Y </button>"
+thisActor.Line8_1="<input id=\"YInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line9="<input type=\"checkbox\" id=\"OpacityOnT\" onclick=\"enableField('OpacityInput2'); updateGeneratedTween();\">Opacity </button>"
+thisActor.Line9_1="<input id=\"OpacityInput2\" type=\"number\" min=\"0\" max=\"100\" step=\"+elementId('TweenGrid').value+\" value=\"100\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line10="<input type=\"checkbox\" id=\"AngleOnT\" onclick=\"enableField('AngleInput2'); updateGeneratedTween();\">Angle </button>"
+thisActor.Line10_1="<input id=\"AngleInput2\" type=\"number\" min=\"-360\" max=\"360\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line11="<input type=\"checkbox\" id=\"SkewXOnT\" onclick=\"enableField('SkewXInput2'); updateGeneratedTween();\">Skew X </button>"
+thisActor.Line11_1="<input id=\"SkewXInput2\" type=\"number\" min=\"-100\" max=\"100\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line12="<input type=\"checkbox\" id=\"SkewYOnT\" onclick=\"enableField('SkewYInput2'); updateGeneratedTween();\">Skew Y </button>"
+thisActor.Line12_1="<input id=\"SkewYInput2\" type=\"number\" min=\"-100\" max=\"100\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line13="<fieldset><legend>3d transforms</legend><input type=\"checkbox\" id=\"RotateXOnT\" onclick=\" enableField('RotateXInput2'); updateGeneratedTween();\">Rotate X </button>"
+thisActor.Line13_1="<input id=\"RotateXInput2\" type=\"number\" min=\"-360\" max=\"360\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line14="<input type=\"checkbox\" id=\"RotateYOnT\" onclick=\"enableField('RotateYInput2'); updateGeneratedTween();\">Rotate Y </button>"
+thisActor.Line14_1="<input id=\"RotateYInput2\" type=\"number\" min=\"-360\" max=\"360\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line15="<input type=\"checkbox\" id=\"RotateZOnT\" onclick=\"enableField('RotateZInput2'); updateGeneratedTween();\">Rotate Z </button>"
+thisActor.Line15_1="<input id=\"RotateZInput2\" type=\"number\" min=\"-360\" max=\"360\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line16="<input type=\"checkbox\" id=\"TranslateXOnT\" onclick=\"enableField('TranslateXInput2'); updateGeneratedTween();\">Translate X </button>"
+thisActor.Line16_1="<input id=\"TranslateXInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line17="<input type=\"checkbox\" id=\"TranslateYOnT\" onclick=\"enableField('TranslateYInput2'); updateGeneratedTween();\">Translate Y </button>"
+thisActor.Line17_1="<input id=\"TranslateYInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line18="<input type=\"checkbox\" id=\"TranslateZOnT\" onclick=\"enableField('TranslateZInput2'); updateGeneratedTween();\">Translate Z </button>"
+thisActor.Line18_1="<input id=\"TranslateZInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" value=\"0\" step=\"10\" oninput=\"updateGeneratedTween()\" disabled></fieldset>"
+thisActor.Text=''+TweenOptions.Line1+'<br>'+TweenOptions.Line5+TweenOptions.Line5_1+'<br>'+TweenOptions.Line6+TweenOptions.Line6_1+'<br>'+TweenOptions.Line7+TweenOptions.Line7_1+'<br>'+TweenOptions.Line8+TweenOptions.Line8_1+'<br>'+TweenOptions.LineScale+TweenOptions.LineScale_1+'<br>'+TweenOptions.Line9+TweenOptions.Line9_1+'<br>'+TweenOptions.Line10+TweenOptions.Line10_1+'<br>'+TweenOptions.Line11+TweenOptions.Line11_1+'<br>'+TweenOptions.Line12+TweenOptions.Line12_1+'<br><br>'+TweenOptions.Line13+TweenOptions.Line13_1+'<br>'+TweenOptions.Line14+TweenOptions.Line14_1+'<br>'+TweenOptions.Line15+TweenOptions.Line15_1+'<br>'+TweenOptions.Line16+TweenOptions.Line16_1+'<br>'+TweenOptions.Line17+TweenOptions.Line17_1+'<br>'+TweenOptions.Line18+TweenOptions.Line18_1+'<br><br><button onclick="//AllTweens[CurrentlyEditingTween]=GeneratingTween;\n  TweenOptions.Opacity=0;">OK</button><button onclick="TweenOptions.Opacity=0; AllTweens[CurrentlyEditingTween]=\' \'; AllSceneTweens[CurrentlyEditingTween]=\'\'; showPreview()">Delete</button>'
+
+
+Actor("SeekBar","DIV");SeekBar.Opacity=50;SeekBar.Y=StageHeight-50;SeekBar.X=500;SeekBar.Width=StageWidth-500;
+SeekBar.Text='<input type=\"range\" min=\"0\" max=\"'+TimeLength+'\" value=\"0\" class=\"slider\" id=\"myRange\" style=\"width:100%\" oninput=\"Seek()">';
+Actor("Duration","p");Duration.Parent="SeekBar";Duration.Y=0;Duration.Text="0";Duration.FontSize=25;Actor("pauseBtn","button");pauseBtn.Text="⏸";pauseBtn.FontSize=30;pauseBtn.X=-100;pauseBtn.Height=50;pauseBtn.Width=100;pauseBtn.MouseUp="elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.pause();pauseBtn.Opacity=0; playBtn.Opacity=100; Pause(RefSound);";pauseBtn.Parent="SeekBar";Actor("playBtn","button");playBtn.Text="⏵︎";playBtn.FontSize=30;playBtn.X=-100;playBtn.Height=50;playBtn.Width=100;playBtn.Opacity=0;playBtn.MouseUp="elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.play();pauseBtn.Opacity=100; playBtn.Opacity=0;Play(RefSound);";playBtn.Parent="SeekBar";
+
+
+Actor("TimelineVisual","iframe");
+thisActor.Y=StageHeight-250;
+thisActor.X=400;
+thisActor.Width=StageWidth-400;
+thisActor.Color="lightgrey";
+thisActor.Overflow="hidden";
+
+var ColorVar='#000000';
+
+Actor('ContextMenu','div');
+//thisActor.Color="#bababa";
+thisActor.Overflow="auto";
+thisActor.Opacity=0;
+thisActor.Width=500;
+thisActor.Text="<details><summary>Actor</summary><button onclick=\"ActorOptions.Opacity=100;elementId('Id').value='ID'+Math.round(Math.random()*1000);ContextMenu.Opacity=0;\">Create actor</button>"+
+InsertCodeBtn("Parent ","\'Parent:null,\'")+
+InsertCodeBtn("Source ","\'Source:null,\'")+
+InsertCodeBtn("Color ","'Color:"+"`#000000`"+",'")+
+InsertCodeBtn("Shape ","'Shape:"+"null"+",'")+
+InsertCodeBtn("X ","\'X:0,\'")+
+InsertCodeBtn("Y ","\'Y:0,\'")+
+InsertCodeBtn("Width ","\'Width:200,\'")+
+InsertCodeBtn("Height ","\'Height:200,\'")+
+InsertCodeBtn("Opacity ","\'Opacity:100,\'")+
+InsertCodeBtn("Angle ","\'Angle:0,\'")+
+InsertCodeBtn("Skew X ","\'SkewX:0,\'")+
+InsertCodeBtn("Skew Y ","\'SkewY:0,\'")+
+InsertCodeBtn("Rotate X ","'RotateX:"+"0"+",'")+
+InsertCodeBtn("Rotate Y ","'RotateY:"+"0"+",'")+
+InsertCodeBtn("Rotate Z ","'RotateZ:"+"0"+",'")+
+InsertCodeBtn("Translate X ","'TranslateX:"+"0"+",'")+
+InsertCodeBtn("Translate Y ","'TranslateY:"+"0"+",'")+
+InsertCodeBtn("Translate Z ","'TranslateZ:"+"0"+",'")+
+InsertCodeBtn("Text ","'Text:"+"`Insert text here`"+",'")+
+InsertCodeBtn("Font size ","'FontSize:"+"12"+",'")+
+InsertCodeBtn("Mouse Down ","'MouseDown:"+"`//Insert code here`"+",'")+
+InsertCodeBtn("Mouse Up ","'MouseUp:"+"`//Insert code here`"+",'")+
+InsertCodeBtn("Draggable ","'Draggable:"+"true"+",'")+
+InsertCodeBtn("Mouse Down ","'MouseDown:"+"`//Insert code here`"+",'")+
+InsertCodeBtn("Custom CSS ","'Style:"+"`//Insert css here`"+",'")+
+InsertCodeBtn("CSS class ","'Class:"+"`//Insert classnames here`"+",'")+
+
+"</details>"+
+
+"<details><summary>Scenes</summary>"+
+InsertCodeBtn("Create New Scene <input placeholder='SceneId' id='createSceneInput'></input>","\`Scene('`+elementId('createSceneInput').value+`');\`")+
+InsertCodeBtn("Next Scene ","\'NextScene();\'")+
+InsertCodeBtn("Previous Scene ","\'PrevScene();\'")+
+InsertCodeBtn("Go To Scene <input placeholder='SceneId' id='gotoSceneInput'></input>","\'GotoScene( \`Scene(`+elementId('gotoSceneInput').value+`);\` );\'")+
+InsertCodeBtn("Get The Current Scene ","\'GetScene();\'")+
+"</details>"+
+
+"<details><summary>Script</summary>"+
+InsertCodeBtn("if <input placeholder='conditions' id='ifInput'></input> <input placeholder='code' id='ifInput2'></input>","\`if( `+elementId('ifInput').value+`  ){\n	`+elementId('ifInput2').value+`	\n}\`")+
+InsertCodeBtn("New array <input placeholder='arrayId' id='arrayInput'></input> <input placeholder='item 1, item 2 ...' id='arrayInput2'></input>","\`var `+elementId('arrayInput').value+`=new Array(`+elementId('arrayInput2').value+`);\`")+
+InsertCodeBtn("for loop <input placeholder='array' id='loopInput'></input> <input placeholder='code' id='loopInput2'></input>","\`for (let i = 0; i < `+elementId('loopInput').value+`.length; i++) {\n `+elementId('loopInput2').value+` \n}\`")+
+"</details>"+
+
+"<details><summary>Inbuilt functions</summary>"+
+InsertCodeBtn("Set a text <input placeholder='Actor' id='textInput'></input> <input placeholder='Text' id='textInput2'></input>","\`SetText(`+elementId('textInput').value+`,\'`+elementId('textInput2').value+`\');\`")+
+InsertCodeBtn("Set a Source <input placeholder='Actor' id='sourceInput'></input> <input placeholder='Source' id='sourceInput2'></input>","\`SetSource(`+elementId('sourceInput').value+`,\'`+elementId('sourceInput2').value+`\');\`")+
+InsertCodeBtn("Check for collision <input placeholder='Actor' id='collisionInput'></input> <input placeholder='Actor' id='collisionInput2'></input>","\`if( Collision(`+elementId('collisionInput').value+`,`+elementId('collisionInput2').value+`)==true){\n\n}\`")+
+InsertCodeBtn("Get DOM element <input placeholder='Actor' id='elementInput'></input>","\`elementId(\'`+elementId('elementInput').value+`\')`")+
+InsertCodeBtn("Animate <input placeholder='Actor' id='actorInput'></input>","\`Move.to(\`+elementId('actorInput').value+`\,{X:0, Y:0, duration:1})`")+
+"</details>"+
+
+"<details><summary>Global variables</summary>"+
+InsertCodeBtn("Stage width","\`StageWidth`")+
+InsertCodeBtn("Stage height","\`StageHeight`")+
+InsertCodeBtn("Actural width","\`window.innerWidth`")+
+InsertCodeBtn("Actural height","\`window.innerHeight`")+
+InsertCodeBtn("Scaling(Fit,None,Width,Height)","Scaling`")+
+InsertCodeBtn("Mouse X","\`MouseX`")+
+InsertCodeBtn("Mouse Y","\`MouseY`")+
+"</details>"+
+
+"<details><summary>Keyboard</summary>"+
+InsertCodeBtn("Press a key <input placeholder='Key' id='keyDownInput'></input>","\`window.onkeydown=function(){\n	if(event.key==\'`+elementId('keyDownInput').value+`\'){\n	/*code here*/   \n}\n}\`")+
+InsertCodeBtn("Release key <input placeholder='Key' id='keyUpInput'></input>","\`window.onkeyup=function(){\n	if(event.key==\'`+elementId('keyUpInput').value+`\'){\n	/*code here*/   \n}\n}\`")+
+InsertCodeBtn("Specific key","\`if(event.key==/*specify key*/){\n	/*code here*/   \n}\`")+
+"</details>"+
+
+"<details><summary>Media</summary>"+
+InsertCodeBtn("Play media <input placeholder='Actor' id='playInput'></input>","\`Play(`+elementId('playInput').value+`);\`")+
+InsertCodeBtn("Pause media <input placeholder='Actor' id='pauseInput'></input>","\`Pause(`+elementId('pauseInput').value+`);\`")+
+InsertCodeBtn("Stop media <input placeholder='Actor' id='stopInput'></input>","\`Stop(`+elementId('stopInput').value+`);\`")+
+InsertCodeBtn("Get duration of media <input placeholder='Actor' id='getDurationInput'></input>","\`GetDuration(`+elementId('getDurationInput').value+`);\`")+
+InsertCodeBtn("Get current time of media <input placeholder='Actor' id='getCurrentInput'></input>","\`GetCurrentTime(`+elementId('getCurrentInput').value+`);\`")+
+InsertCodeBtn("Set current time of media <input placeholder='Actor' id='setCurrentInput'></input><input style='width: 50px' type='number' placeholder='seconds' id='setCurrentInput2'>","\`SetCurrentTime(`+elementId('setCurrentInput').value+`,`+elementId('setCurrentInput2').value+`);\`")+
+InsertCodeBtn("Set volume <input placeholder='Actor' id='setVolumeInput'><input style='width: 50px' type='number' placeholder='0-1' id='setVolumeInput2'>","\`SetVolume(`+elementId('setVolumeInput').value+`, `+elementId('setVolumeInput2').value+``")+
+InsertCodeBtn("Get volume <input placeholder='Actor' id='getVolumeInput'></input>","\`GetVolume(`+elementId('getVolumeInput').value+`)`")+
+"</details>"+
+
+"<details><summary>SCORM</summary>"+
+InsertCodeBtn("Set a SCORM objective<input placeholder='Name' id='setScormInput'></input> <input placeholder='Value' id='setScormInput2'></input>","\`SetObjective(\'`+elementId('setScormInput').value+`\',\'`+elementId('setScormInput2').value+`\');\`")+
+InsertCodeBtn("Get a SCORM objective <input placeholder='Name' id='getScormInput'></input>","\`GetObjective(\'`+elementId('getScormInput').value+`\'));\`")+
+InsertCodeBtn("Set Course as 'Completed'","\`CompleteCourse();\`")+
+"</details>"
+;
+thisActor.FontSize=16;
+
+
+}
+
+function Update(){
+
+StageWidth=window.innerWidth, StageHeight=window.innerHeight;
+
+if(resizer.Active==true){
+//  ActorOptions.Width=MouseX;
+  resizer.X=MouseX-10;
+  buildCode.Width=MouseX-10
+  //SelectScript.Width=MouseX-10
+  buildCode.Height=StageHeight
+  generalCode.Width=MouseX-10
+  generalCode.Height=StageHeight
+  updateCode.Width=MouseX-10
+  updateCode.Height=StageHeight
+  scenestartCode.Width=MouseX-10
+  scenestartCode.Height=StageHeight
+  resizeCode.Width=MouseX-10
+  resizeCode.Height=StageHeight
+  HEAD.Width=MouseX-10
+  HEAD.Height=StageHeight
+  PreviewOverlay.Opacity=10
+  //SeekBar.X=resizer.X+playBtn.Width;
+  SeekBar.Width=PreviewWindow.Width-playBtn.Width
+  
+  
+}
+if(resizer.Active==false){
+    PreviewOverlay.Opacity=0
+}
+
+PreviewWindow.X=resizer.X+15
+PreviewWindow.Width=StageWidth-resizer.X-12
+PreviewOverlay.X=resizer.X+15
+
+
+
+
+elementId("myRange").max=(TimeLength);
+SetText(Duration,""+SceneTimePosition);
+elementId("myRange").value=SceneTimePosition*100;
+}
+
+function SceneStart(){
+
+
+
+
+
+
+
+
+
+
+
+var whatScript="generalCode";
+var CurrentScript="BuildSpecial";
+
+BuildCode=CodeMirror(elementId("buildCode"), {
+  lineNumbers: false,
+//  tabSize: 2,
+  value: 'Scene("Scene1");',
+  mode: 'javascript',
+  lineWrapping:true,
+  extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+BuildCode.foldCode(CodeMirror.Pos(0, 0));
+
+BuildCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+		ContextMenu.Height=StageHeight-MouseY;
+
+		return false;
+});
+
+BuildCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+
+GeneralCode=CodeMirror(elementId("generalCode"), {
+  lineNumbers: false,
+  tabSize: 2,
+  value: 'console.log("Hello, World");',
+  mode: 'javascript',
+  lineWrapping:true,
+    extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+GeneralCode.foldCode(CodeMirror.Pos(0, 0));
+
+
+GeneralCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+
+		return false;
+});
+
+GeneralCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+UpdateCode=CodeMirror(elementId("updateCode"), {
+  lineNumbers: false,
+  tabSize: 2,
+  value: '',
+  mode: 'javascript',
+  lineWrapping:true,
+   extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+UpdateCode.foldCode(CodeMirror.Pos(0, 0));
+
+UpdateCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+
+		return false;
+});
+
+UpdateCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+ScenestartCode=CodeMirror(elementId("scenestartCode"), {
+  lineNumbers: false,
+  tabSize: 2,
+  value: '',
+  mode: 'javascript',
+  lineWrapping:true,
+  extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+ScenestartCode.foldCode(CodeMirror.Pos(0, 0));
+
+ScenestartCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+
+		return false;
+});
+
+ScenestartCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+ResizeCode=CodeMirror(elementId("resizeCode"), {
+  lineNumbers: false,
+  tabSize: 2,
+  value: '',
+  mode: 'javascript',
+  lineWrapping:true,
+  extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+ResizeCode.foldCode(CodeMirror.Pos(0, 0));
+
+ResizeCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+
+		return false;
+});
+
+ResizeCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+HEADCode=CodeMirror(elementId("HEAD"), {
+  lineNumbers: false,
+  tabSize: 2,
+  value: '<style></style>',
+  mode: 'htmlmixed',
+  lineWrapping:true,
+  extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+    foldGutter: true,
+    gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+});
+HEADCode.foldCode(CodeMirror.Pos(0, 0));
+
+HEADCode.on('contextmenu', function(event){
+		ContextMenu.Opacity=100;
+		ContextMenu.X=MouseX;
+		ContextMenu.Y=MouseY;
+
+		return false;
+});
+
+HEADCode.on("click", function() {
+
+         ContextMenu.Opacity=0;
+});
+
+var getCodeMirror=document.getElementsByClassName("CodeMirror")
+
+elementId("generalCode").oninput=function(){showPreview()}
+elementId("buildCode").oninput=function(){showPreview()}
+elementId("updateCode").oninput=function(){showPreview()}
+elementId("scenestartCode").oninput=function(){showPreview()}
+elementId("resizeCode").oninput=function(){showPreview()}
+elementId("HEAD").oninput=function(){showPreview()}
+
+ShowSelectedScript(buildCode,'Build',BuildCode)
+BuildCode.focus();
+
+JsCode = "<scri"+"pt>\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+
+	var build=BuildCode.getValue();
+  var GetSceneName = build.split('Scene("');
+	var AllSceneNames=new Array;
+	
+var select=document.getElementById("Scenes");
+		option = document.createElement( 'option' );
+        option.text = "Play";
+		option.value = "Scenes[CurrentScene]";
+		option.setAttribute("selected","selected");
+		select.add(option);
+	
+document.getElementById("Scenes").onchange=function(){showPreview()};
+showPreview();
+
+
+renderTriggerEditor("triggerEditor");
+
+} 
+//showPreview();
+//updateActorList();
+
+
+
+
+ 
+function Resize(){
+
+
+
+StageWidth=window.innerWidth, StageHeight=window.innerHeight;
+
+KeyframeOptions.X=0
+KeyframeOptions.Height=StageHeight-80
+
+PreviewWindow.Height=StageHeight-280
+resizer.Height=StageHeight-80
+
+SaveHTML.X=StageWidth-120
+
+LoadHTML.X=StageWidth-240
+LoadSound.X=StageWidth-800;
+//SeekBar.X=resizer.X+playBtn.Width;
+SeekBar.Width=StageWidth-600;
+SeekBar.Y=StageHeight-50;
+//NewActorBtn2.Y=StageHeight-80;
+NewTweenBtn.Y=StageHeight-30;
+//thisActor.Width=StageWidth-400;
+TimelineVisual.Y=StageHeight-TimelineVisual.Height-50;
+TimelineVisual.Width=StageWidth-400;
+ActorOptions.Height=StageHeight-60;
+TweenOptions.Height=StageHeight-200;
+
+buildCode.Height=StageHeight
+generalCode.Height=StageHeight
+updateCode.Height=StageHeight
+scenestartCode.Height=StageHeight
+resizeCode.Height=StageHeight
+HEAD.Height=StageHeight
+BuildSpecial.Height=StageHeight-60;
+EventEditor.Height=StageHeight-60;
+
+
+
+
+
+}
+</script>
+<script src="js/engine.js"></script>
+<script src="js/gsap.min.js"></script>
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.css">
+</link>
+
+<script type="text/javascript"
+  src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/codemirror.min.js">
+</script>
+<script type="text/javascript"src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.52.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/mode/htmlmixed/htmlmixed.min.js" integrity="sha512-IC+qg9ITjo2CLFOTQcO6fBbvisTeJmiT5D5FnXsCptqY8t7/UxWhOorn2X+GHkoD1FNkyfnMJujt5PcB7qutyA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/foldcode.min.js" integrity="sha512-Q2qfEJEU257Qlqc4/5g6iKuJNnn5L0xu2D48p8WHe9YC/kLj2UfkdGD01qfxWk+XIcHsZngcA8WuKcizF8MAHA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/foldgutter.min.css" integrity="sha512-YwkMTlTHn8dBnwa47IF+cKsS00HPiiVhQ4DpwT1KF2gUftfFR7aefepabSPLAs6zrMyD89M3w0Ow6mQ5XJEUCw==" crossorigin="anonymous" referrerpolicy="no-referrer" /></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/foldgutter.min.js" integrity="sha512-kEVEkqJPlijyiRihpbPuhIW6wkb5wcEaVsfYm/utqn8ToMspk7E2fK5UyZ2HdnJnA4/0HyQwqeKzHNuPm+zyCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/indent-fold.min.js" integrity="sha512-Q6g5qQfa6ko+Y+0BwAciUAq01qxgfScTPFP2Fsrr+zIrTe5Yq3tN5xaA919MmBs/1RMz/jyctknYavjc3k+/xg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/brace-fold.min.js" integrity="sha512-5MuaB1PVXvhsYVG0Ozb0bwauN7/D1VU4P8dwo5E/xiB9SXY+VSEhIyxt1ggYk2xaB/RKqKL7rPXpm1o1IlTQDA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<style>
+
+
+.CodeMirror{
+height:92%;
+
+}
+
+.CodeMirror pre {
+
+}
+
+div{
+font-size:15px;
+}
+
+html{
+overflow:hidden;
+}
+
+#PlayerVisible{
+margin:auto;
+}
+#PreviewOverlay{
+border-style:solid;
+}
+
+button {
+  background-color: white;
+  color: black;
+  border: 2px solid #555555;
+  transition-duration: 0.1s;
+}
+
+button:hover {
+  background-color: #555555;
+  color: white;
+}
+
+//label {
+//  background-color: white;
+//  color: black;
+//  border: 2px solid #555555;
+//  transition-duration: 0.1s;
+//}
+
+//label:hover {
+//	background-color: #555555;
+//  color: white;
+//}
+
+details{
+background-color:lightgray;
+border:double;
+}
+
+ul {
+  padding-left: 0.2em; /* eller 0.5em for endnu mindre */
+  margin-left: 5px;
+  //list-style-type: none; /* valgfrit: fjern bullet points */
+}
+
+li{
+background-color: lightgrey;
+    margin: 0.5em;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0 2px;
+  font-size: 1em;
+  cursor: pointer;
+  line-height: 1;
+}
+.icon-btn:hover {
+  opacity: 0.7;
+}
+.trigger-row{
+margin:1em;
+background-color:lightgray;
+}
+.condition-row{
+margin:1em;
+}
+.action-row{
+margin:1em;
+}
+summary{
+font-size:smaller;
+}
+
+
+</style>
+
+</head>
+<body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<div id="stage" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative;"></div>
+<div id="propertyEditor" style="
+  display:none;
+  position:absolute;
+  top:20px;
+  left:0px;
+  width:360px;
+  background:white;
+  border:1px solid #ccc;
+  box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  border-radius:8px;
+  z-index:1000;
+  padding:15px;
+  max-height:80vh;
+  overflow:auto;
+">
+  <h3 style="margin-top:0;">Rediger objekt</h3>
+  <form id="propertyForm"></form>
+  <button id="closeEditor" onclick="document.getElementById("propertyEditor").style.display = "none"">Luk</button>
+</div>
+</body>
+
+</html>

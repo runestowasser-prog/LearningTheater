@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html style="height:100%;" >
+<head>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</script>
+<!--- ✂✂✂ --->
+
+
+<style>
+html{
+background-color:black
+}
+</style>
+
+
+<!--- ✂✂✂ --->
+<style>::selection {background: none;}</style>
+<script src="js/SCORM_API_wrapper.js"></script>		
+<script src="js/engine.js">
+</script>
+<script src="js/gsap.min.js"></script>
+</head>
+<body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:hidden; display:contents; ">
+<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>
+ <!--- ✂✂✂ ---><script>
+ var Move=gsap;
+ //✂✂✂
+
+
+console.log("Hello, World");
+
+
+//✂✂✂ 
+SCORMTracking=false;
+FollowSL=false;
+StageWidth=1920, StageHeight=1080;
+Scaling="Fit";
+Overflow="hidden";
+ 
+Triggers.push({ 
+      event: "SceneStart", 
+      target: null, 
+      conditions: [], 
+      actions: [{"fn":"DuplicateActor","args":["block","1"],"code":"DuplicateActor(\"block\",1)"},{"fn":"SetProperty","args":["ball","activated","=","\"false\""],"code":"ball.activated = \"false\""}] 
+    });
+Triggers.push({ 
+      event: "SceneStart", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["group","blocks"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"blocks\")"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["X","=","(Math.random()*10)*100"],"code":"Ensemble.forEach(a => a[\"X\"] = (Math.random()*10)*100)"},{"fn":"SetEnsembleProperty","args":["Y","=","(Math.random()*10)*100"],"code":"Ensemble.forEach(a => a[\"Y\"] = (Math.random()*10)*100)"},{"fn":"SetEnsembleProperty","args":["Opacity","=","100"],"code":"Ensemble.forEach(a => a[\"Opacity\"] = 100)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["group","balls"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"filterEnsemble","args":["activated","==","true"],"code":"Ensemble = Ensemble.filter(a => a[\"activated\"] == \"true\")"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["X","+=","a.speedX/2"],"code":"Ensemble.forEach(a => a[\"X\"] += a.speedX/2)"},{"fn":"SetEnsembleProperty","args":["Y","+=","a.speedY/3"],"code":"Ensemble.forEach(a => a[\"Y\"] += a.speedY/3)"},{"fn":"MoveActor","args":["field","X","(-MouseX)/10+450","power1.out","1","0"],"code":"Move.to(field,{X:(-MouseX)/10+450,ease:\"power1.out\",duration:1,delay:0})"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["group","balls"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"Gather2ndEnsemble","args":["bouncing","true"],"code":"Ensemble2 = Actors.filter(a => a[\"bouncing\"] == \"true\")"},{"fn":"filter2ndEnsemble","args":["Opacity",">","0"],"code":"Ensemble2 = Ensemble2.filter(a => a[\"Opacity\"] > \"0\")"},{"fn":"EnsemblesCollide","args":[true,true,false,false],"code":"Ensemble = Ensemble.filter(a => Ensemble2.some(b => Collision( a, b ) && (Collision(a,b).side === \"top\" || Collision(a,b).side === \"bottom\")))"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["speedY","=","-a.speedY"],"code":"Ensemble.forEach(a => a[\"speedY\"] = -a.speedY)"},{"fn":"SetEnsembleProperty","args":["speedY","+=","1"],"code":"Ensemble.forEach(a => a[\"speedY\"] += 1)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"","args":[],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"","args":[],"code":"Ensemble2 = Actors.filter(a => a[\"bouncing\"] == \"true\")"},{"fn":"filter2ndEnsemble","args":["Opacity",">","0"],"code":"Ensemble2 = Ensemble2.filter(a => a[\"Opacity\"] > \"0\")"},{"fn":"EnsemblesCollide","args":[false,false,"true","true"],"code":"Ensemble = Ensemble.filter(a => Ensemble2.some(b => Collision( a, b ) && (Collision(a,b).side === \"left\" || Collision(a,b).side === \"right\")))"}], 
+      actions: [{"fn":"","args":[],"code":"Ensemble.forEach(a => a[\"speedX\"] = -a.speedX)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["destroy","true"],"code":"Ensemble = Actors.filter(a => a[\"destroy\"] == \"true\")"},{"fn":"Gather2ndEnsemble","args":["group","balls"],"code":"Ensemble2 = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"EnsemblesCollide","args":["true","true","true","true"],"code":"Ensemble = Ensemble.filter(a => Ensemble2.some(b => Collision( a, b )))"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["Opacity","-=","100"],"code":"Ensemble.forEach(a => a[\"Opacity\"] -= 100)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [], 
+      actions: [{"fn":"","args":[],"code":"Move.to(paddle,{X:MouseX/1.6-100,duration:1})"}] 
+    });
+Triggers.push({ 
+      event: "MouseUp", 
+      target: "field", 
+      conditions: [{"fn":"GatherEnsemble","args":["group","balls"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["activated","=","\"true\""],"code":"Ensemble.forEach(a => a[\"activated\"] = \"true\")"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["group","balls"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"filterEnsemble","args":["activated","==","false"],"code":"Ensemble = Ensemble.filter(a => a[\"activated\"] == \"false\")"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["X","=","paddle.X+80"],"code":"Ensemble.forEach(a => a[\"X\"] = paddle.X+80)"},{"fn":"SetEnsembleProperty","args":["Y","=","paddle.Y-100"],"code":"Ensemble.forEach(a => a[\"Y\"] = paddle.Y-100)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["group","balls"],"code":"Ensemble = Actors.filter(a => a[\"group\"] == \"balls\")"},{"fn":"filterEnsemble","args":["Y",">","1700"],"code":"Ensemble = Ensemble.filter(a => a[\"Y\"] > \"1700\")"}], 
+      actions: [{"fn":"SetEnsembleProperty","args":["activated","=","\"false\""],"code":"Ensemble.forEach(a => a[\"activated\"] = \"false\")"},{"fn":"SetEnsembleProperty","args":["speedX","=","10"],"code":"Ensemble.forEach(a => a[\"speedX\"] = 10)"},{"fn":"SetEnsembleProperty","args":["speedY","=","-10"],"code":"Ensemble.forEach(a => a[\"speedY\"] = -10)"}] 
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+      conditions: [{"fn":"GatherEnsemble","args":["destroy","true"],"code":"Ensemble = Actors.filter(a => a[\"destroy\"] == \"true\")"},{"fn":"filterEnsemble","args":["Opacity","==","100"],"code":"Ensemble = Ensemble.filter(a => a[\"Opacity\"] == \"100\")"},{"fn":"","args":[],"code":"Ensemble.length==0"}], 
+      actions: [{"fn":"GotoScene","args":["Scene1"],"code":"GotoScene(Scene1)"},{"fn":"SetProperty","args":["ball","speedX","=","10"],"code":"ball.speedX = 10"},{"fn":"SetProperty","args":["ball","speedY","=","-10"],"code":"ball.speedY = -10"}] 
+    });
+function Build(){
+//✂✂✂
+Actor('field','div');
+ActorProps(thisActor, {
+  Parent: "stage",
+  Width: 1180,
+  Height: 1690,
+  X: 370,
+  Y: -390,
+  Z: 0,
+  Angle: 0,
+  RotateX: 60,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  Style: `background: #22C1C3;
+background: radial-gradient(circle, rgba(34, 193, 195, 1) 0%, rgba(0, 0, 0, 1) 100%);`,
+  Color: "#1f7529",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
+Actor('leftSide','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 100,
+  Height: 1600,
+  X: -90,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 90,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 100,
+  TransformOriginY: 0,
+  Draggable: false,
+  Style: `background: #22C1C3;
+background: radial-gradient(circle, rgba(34, 193, 195, 1) 0%, rgba(0, 0, 0, 1) 100%);`,
+  Color: "#242424",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "bouncing", value: "true", type:"string" },
+  ],
+  bouncing: "true",
+});
+
+Actor('rightSide','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 100,
+  Height: 1600,
+  X: 1167,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 90,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 0,
+  TransformOriginY: 100,
+  Draggable: false,
+  Style: `background: #22C1C3;
+background: radial-gradient(circle, rgba(34, 193, 195, 1) 0%, rgba(0, 0, 0, 1) 100%);`,
+  Color: "#242424",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 103,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "bouncing", value: "true", type:"string" },
+  ],
+  bouncing: "true",
+});
+
+Actor('topSide','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 1165,
+  Height: 100,
+  X: 6,
+  Y: -104,
+  Z: 0,
+  Angle: 0,
+  RotateX: -90,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 100,
+  TransformOriginY: 100,
+  Draggable: false,
+  Style: `background: #22C1C3;
+background: radial-gradient(circle, rgba(34, 193, 195, 1) 0%, rgba(0, 0, 0, 1) 100%);`,
+  Color: "#4f4f4f",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "bouncing", value: "true", type:"string" },
+  ],
+  bouncing: "true",
+});
+
+Actor('ball','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 50,
+  Height: 50,
+  X: 400,
+  Y: 1400,
+  Z: 0,
+  Angle: 0,
+  RotateX: -65,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 50,
+  TransformOriginY: 100,
+  Draggable: false,
+  Style: `background: #ffffff;
+background: radial-gradient(circle, rgba(255, 255, 255, 1) 0%, rgba(87, 199, 199, 1) 50%, rgba(9, 41, 54, 1) 100%);`,
+  Color: "#bbaaaa",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Shape: "Circle",
+  Controls: false,
+  CustomProps: [
+    { name: "group", value: "balls", type:"string" },
+    { name: "speedX", value: "10", type:"number" },
+    { name: "speedY", value: "-10", type:"number" },
+    { name: "activated", value: "false", type:"string" },
+  ],
+  group: "balls",
+  speedX: 10,
+  speedY: -10,
+  activated: "false",
+});
+
+Actor('paddle','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 200,
+  Height: 50,
+  X: 500,
+  Y: 1600,
+  Z: 0,
+  Angle: 0,
+  RotateX: -70,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 50,
+  TransformOriginY: 100,
+  Draggable: false,
+  Style: `border-radius:1em;
+background: #ffffff;
+background: linear-gradient(178deg, rgba(255, 255, 255, 1) 0%, rgba(87, 199, 199, 1) 50%, rgba(9, 41, 54, 1) 100%);`,
+  Color: "#9eb8ea",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "bouncing", value: "true", type:"string" },
+  ],
+  bouncing: "true",
+});
+
+Actor('block','div');
+ActorProps(thisActor, {
+  Parent: "field",
+  Width: 200,
+  Height: 100,
+  X: 600,
+  Y: 100,
+  Z: 0,
+  Angle: 0,
+  RotateX: 90,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginY: 100,
+  Draggable: false,
+  Style: `background: #ffffff;
+background: linear-gradient(321deg, rgba(255, 255, 255, 1) 0%, rgba(176, 12, 12, 1) 50%, rgba(9, 41, 54, 1) 100%);`,
+  Color: "#a12121",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "bouncing", value: "true", type:"string" },
+    { name: "destroy", value: "true", type:"string" },
+    { name: "group", value: "blocks", type:"string" },
+  ],
+  bouncing: "true",
+  destroy: "true",
+  group: "blocks",
+});
+
+Scene("Scene1");
+
+Scene("Scene2");
+
+
+//✂✂✂ 
+
+
+//Tween
+
+Scene1.Timeline.from(field,{id: 1,Opacity:0,RotateX:0,ease:"linear", duration:1, repeat:0,yoyo:false, data:"from"},0);//✂✂✂
+} 
+
+function Update(){
+//✂✂✂
+
+
+//✂✂✂
+}
+
+function SceneStart(){
+//✂✂✂
+
+
+
+
+
+//✂✂✂
+} 
+
+function Resize(){
+//✂✂✂
+
+
+
+
+
+//✂✂✂
+}</script>
