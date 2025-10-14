@@ -159,7 +159,7 @@ function updateActorList() {
   // 4. Opbyg træet
   const container = document.getElementById("BuildSpecial");
 
-  function createList(groupedItems, parentId = "stage", level = 0) {
+ /* function createList(groupedItems, parentId = "stage", level = 0) {
     const ul = document.createElement("ul");
     ul.style.marginLeft = `${level * 10}px`;
 
@@ -216,132 +216,273 @@ if (item.__type === "Actor") {
   li.appendChild(copyBtn);
 }*/
 
-// 🧬 Kopiér-knap
-if (item.__type === "Actor") {
-  const copyBtn = document.createElement("button");
-  copyBtn.textContent = "🧬";
-  copyBtn.style.marginLeft = "5px";
-  copyBtn.className = "icon-btn";
-  copyBtn.title = "Kopiér Actor";
 
-  copyBtn.addEventListener("click", () => {
-    const newID = prompt("ID for kopi af " + item.ID + ":");
-    if (!newID) return;
+  // Ny createList
+ /* function createList(groupedItems, parentId = "stage", level = 0) {
+  const container = document.createElement("div");
+  container.style.marginLeft = `${level * 10}px`;
 
-    if (AllActors.some(a => a.ID === newID)) {
-      alert("ID'et findes allerede!");
-      return;
-    }
+  const items = groupedItems[parentId] || [];
 
-    // Lav kopien med alle børn
-    const original = AllActors.find(a => a.ID === item.ID);
-    if (!original) {
-      alert("Kunne ikke finde actor med ID " + item.ID);
-      return;
-    }
+  items.forEach(item => {
+    // Hvis item har børn → brug <details>
+    const hasChildren = !!groupedItems[item.ID];
+    let wrapper;
 
-    // Sørg for, at duplicateCount findes globalt
-    if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
-    window.duplicateCount++;
+    if (hasChildren) {
+      wrapper = document.createElement("details");
+      wrapper.open = level < 1; // åbner kun topniveau som standard
+      const summary = document.createElement("summary");
+      summary.style.cursor = "pointer";
+      summary.textContent = `${item.ID} (${item.__type})`;
+      wrapper.appendChild(summary);
 
-    // Rekursiv kopi med samme suffix
-    const suffix = window.duplicateCount.toString();
-    const clone = duplicateActorTree(original, newID, suffix);
+      // Tilføj knapper inde i summary
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "✏️";
+      editBtn.className = "icon-btn";
+      editBtn.style.marginLeft = "5px";
+      editBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // så summary ikke toggler
+        openPropertyEditor(item);
+      });
+      summary.appendChild(editBtn);
 
-    AllActors.push(...clone.allCopies);
-    updateActorList();
-    BuildCode.setValue(exportToCode());
-    showPreview();
-    openPropertyEditor(clone.root); // ✏️ Åbn editor på roden
-  });
-
-  li.appendChild(copyBtn);
-}
-
-function duplicateActorTree(original, newRootID, suffix) {
-  const allCopies = [];
-
-  // Lokal rekursiv kopi-funktion
-  function cloneRecursive(actor, newParentID) {
-    const copy = cloneActor(actor);
-
-    // Generér nyt ID
-    if (actor.ID === original.ID) {
-      // root actor får det brugeren angav
-      copy.ID = newRootID;
-    } else {
-      copy.ID = actor.ID + suffix;
-    }
-
-    // Opdater Parent hvis nødvendigt
-    copy.Parent = newParentID || actor.Parent;
-
-    allCopies.push(copy);
-
-    // Find børn
-    const children = AllActors.filter(a => a.Parent === actor.ID);
-    for (const child of children) {
-      const childCopy = cloneRecursive(child, copy.ID);
-    }
-
-    return copy;
-  }
-
-  const rootCopy = cloneRecursive(original, original.Parent);
-  return { root: rootCopy, allCopies };
-}
-
-
-
-
-
-
+      // 🧬 Kopiér-knap
+      if (item.__type === "Actor") {
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "🧬";
+        copyBtn.className = "icon-btn";
+        copyBtn.style.marginLeft = "5px";
+        copyBtn.title = "Kopiér Actor";
+        copyBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const newID = prompt("ID for kopi af " + item.ID + ":");
+          if (!newID) return;
+          if (AllActors.some(a => a.ID === newID)) {
+            alert("ID'et findes allerede!");
+            return;
+          }
+          if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
+          window.duplicateCount++;
+          const suffix = window.duplicateCount.toString();
+          const clone = duplicateActorTree(item, newID, suffix);
+          AllActors.push(...clone.allCopies);
+          updateActorList();
+          BuildCode.setValue(exportToCode());
+          showPreview();
+          openPropertyEditor(clone.root);
+        });
+        summary.appendChild(copyBtn);
+      }
 
       // ❌ Slet-knap
       const deleteBtn = document.createElement("button");
       deleteBtn.textContent = "❌";
-	      deleteBtn.style.marginLeft = "5px";
-      deleteBtn.addEventListener("click", () => {
-        const confirmDelete = confirm("Slet " + item.ID + "?");
-        if (confirmDelete) {
+      deleteBtn.className = "icon-btn";
+      deleteBtn.style.marginLeft = "5px";
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (confirm("Slet " + item.ID + "?")) {
           removeFromOriginalArray(item);
           updateActorList();
         }
       });
-      li.appendChild(deleteBtn);
-	deleteBtn.className = "icon-btn";
+      summary.appendChild(deleteBtn);
 
+      // 🔼 Flyt op
+      const upBtn = document.createElement("button");
+      upBtn.textContent = "⬆️";
+      upBtn.className = "icon-btn";
+      upBtn.style.marginLeft = "5px";
+      upBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        moveItem(item, -1);
+      });
+      summary.appendChild(upBtn);
 
-      // Rekursiv opbygning
-      if (groupedItems[item.ID]) {
-        const childList = createList(groupedItems, item.ID, level + 1);
-        li.appendChild(childList);
+      // 🔽 Flyt ned
+      const downBtn = document.createElement("button");
+      downBtn.textContent = "⬇️";
+      downBtn.className = "icon-btn";
+      downBtn.style.marginLeft = "2px";
+      downBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        moveItem(item, 1);
+      });
+      summary.appendChild(downBtn);
+
+      // Rekursiv del
+      const childList = createList(groupedItems, item.ID, level + 1);
+      wrapper.appendChild(childList);
+    } else {
+      // Hvis ingen børn → almindelig <div>
+      wrapper = document.createElement("div");
+      wrapper.textContent = `${item.ID} (${item.__type})`;
+
+      // Tilføj samme knapper
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "✏️";
+      editBtn.className = "icon-btn";
+      editBtn.style.marginLeft = "5px";
+      editBtn.addEventListener("click", () => openPropertyEditor(item));
+      wrapper.appendChild(editBtn);
+
+      if (item.__type === "Actor") {
+        const copyBtn = document.createElement("button");
+        copyBtn.textContent = "🧬";
+        copyBtn.className = "icon-btn";
+        copyBtn.style.marginLeft = "5px";
+        copyBtn.title = "Kopiér Actor";
+        copyBtn.addEventListener("click", () => {
+          const newID = prompt("ID for kopi af " + item.ID + ":");
+          if (!newID) return;
+          if (AllActors.some(a => a.ID === newID)) {
+            alert("ID'et findes allerede!");
+            return;
+          }
+          if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
+          window.duplicateCount++;
+          const suffix = window.duplicateCount.toString();
+          const clone = duplicateActorTree(item, newID, suffix);
+          AllActors.push(...clone.allCopies);
+          updateActorList();
+          BuildCode.setValue(exportToCode());
+          showPreview();
+          openPropertyEditor(clone.root);
+        });
+        wrapper.appendChild(copyBtn);
       }
-	// 🔼 Flyt op
-const upBtn = document.createElement("button");
-upBtn.textContent = "⬆️";
-upBtn.className = "icon-btn";
-upBtn.style.marginLeft = "5px";
-upBtn.addEventListener("click", () => moveItem(item, -1));
-li.appendChild(upBtn);
 
-// 🔽 Flyt ned
-const downBtn = document.createElement("button");
-downBtn.textContent = "⬇️";
-downBtn.className = "icon-btn";
-downBtn.style.marginLeft = "2px";
-downBtn.addEventListener("click", () => moveItem(item, 1));
-li.appendChild(downBtn);
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "❌";
+      deleteBtn.className = "icon-btn";
+      deleteBtn.style.marginLeft = "5px";
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Slet " + item.ID + "?")) {
+          removeFromOriginalArray(item);
+          updateActorList();
+        }
+      });
+      wrapper.appendChild(deleteBtn);
+    }
 
-      ul.appendChild(li);
+    container.appendChild(wrapper);
+  });
+
+  return container;
+}
+*/
+
+// 🌳 Globalt objekt til fold-status
+if (typeof window.actorFoldState === "undefined") {
+  window.actorFoldState = {};
+}
+
+function createList(groupedItems, parentId = "stage", level = 0) {
+  const container = document.createElement("div");
+  container.style.marginLeft = `${level * 10}px`;
+
+  const items = groupedItems[parentId] || [];
+
+  items.forEach(item => {
+    const details = document.createElement("details");
+    details.className = "actor-node";
+    details.style.marginBottom = "4px";
+
+    // Husk fold-status
+    details.open = window.actorFoldState[item.ID] ?? (level < 1); // åbn topniveau som standard
+
+    // Når brugeren folder ud/ind → gem status
+    details.addEventListener("toggle", () => {
+      window.actorFoldState[item.ID] = details.open;
     });
 
-    // ✅ Aktiver Sortable EFTER hele listen er lavet
-    makeSortable(ul, parentId);
+    // SUMMARY: overskrift + knapper
+    const summary = document.createElement("summary");
+    summary.textContent = `${item.ID} (${item.__type})`;
+    summary.style.cursor = "pointer";
+    details.appendChild(summary);
 
-    return ul;
-  }
+    // 🧩 Knapper — ens for alle noder
+    const makeBtn = (emoji, title, handler) => {
+      const btn = document.createElement("button");
+      btn.textContent = emoji;
+      btn.title = title;
+      btn.className = "icon-btn";
+      btn.style.marginLeft = "5px";
+      btn.addEventListener("click", e => {
+        e.stopPropagation(); // så summary ikke toggler
+        handler();
+      });
+      return btn;
+    };
 
+    // ✏️ Rediger
+    summary.appendChild(makeBtn("✏️", "Rediger", () => openPropertyEditor(item)));
+
+    // 🧬 Kopiér
+    if (item.__type === "Actor") {
+      summary.appendChild(makeBtn("🧬", "Kopiér Actor", () => {
+        const newID = prompt("ID for kopi af " + item.ID + ":");
+        if (!newID) return;
+        if (AllActors.some(a => a.ID === newID)) {
+          alert("ID'et findes allerede!");
+          return;
+        }
+
+        if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
+        window.duplicateCount++;
+        const suffix = window.duplicateCount.toString();
+
+        const clone = duplicateActorTree(item, newID, suffix);
+        AllActors.push(...clone.allCopies);
+        updateActorList();
+        BuildCode.setValue(exportToCode());
+        showPreview();
+        openPropertyEditor(clone.root);
+      }));
+    }
+
+    // ❌ Slet
+    summary.appendChild(makeBtn("❌", "Slet", () => {
+      if (confirm("Slet " + item.ID + "?")) {
+        removeFromOriginalArray(item);
+        updateActorList();
+      }
+    }));
+
+    // 🔼 Op / 🔽 Ned
+    summary.appendChild(makeBtn("⬆️", "Flyt op", () => moveItem(item, -1)));
+    summary.appendChild(makeBtn("⬇️", "Flyt ned", () => moveItem(item, 1)));
+
+    // 👶 Børn
+    const children = groupedItems[item.ID];
+    if (children) {
+      const childList = createList(groupedItems, item.ID, level + 1);
+      details.appendChild(childList);
+    }
+
+    container.appendChild(details);
+  });
+
+  return container;
+}
+
+
+
+function duplicateActorTree(original, newRootID, suffix) { const allCopies = []; // Lokal rekursiv kopi-funktion 
+function cloneRecursive(actor, newParentID) { const copy = cloneActor(actor); 
+// Generér nyt ID 
+if (actor.ID === original.ID) { 
+// root actor får det brugeren angav 
+copy.ID = newRootID; } else { copy.ID = actor.ID + suffix; } 
+// Opdater Parent hvis nødvendigt 
+copy.Parent = newParentID || actor.Parent; allCopies.push(copy); 
+// Find børn 
+const children = AllActors.filter(a => a.Parent === actor.ID); for (const child of children) { const childCopy = cloneRecursive(child, copy.ID); } return copy; } const rootCopy = cloneRecursive(original, original.Parent); return { root: rootCopy, allCopies }; }
+  
+  
   // 4. Indsæt i DOM'en
 const fullList = createList(grouped);
 container.innerHTML = "";
@@ -1318,18 +1459,7 @@ conditionFnSelect.onchange = () => {
     args: initialArgs,
     code
   };
-//};
 
-
-/*  // Hvis der ikke er nogen inputs, generér koden med det samme
-  if (fnDef.args.length === 0) {
-    trigger.conditions[conditionIndex] = {
-      fn: conditionFnSelect.value,
-      args: [],
-      code: fnDef.build([])
-    };
-    conditionInput.value = trigger.conditions[conditionIndex].code;
-  }*/
 };
 
  const conditionInput = document.createElement("input");
@@ -1395,22 +1525,7 @@ if (!Array.isArray(trigger.actions)) {
 }
 
 // 🔧 NY hjælper: laver en pæn opsummering af hver trigger
-/*function generateTriggerSummary(trigger) {
-  let txt = `${trigger.event}`;
-  if (trigger.target) txt += ` → ${trigger.target}`;
 
-  if (trigger.conditions && trigger.conditions.length > 0) {
-    const conditionsSummary = trigger.conditions.map(c => c.code || c).join(" AND ");
-    txt += ` → IF ${conditionsSummary}`;
-  }
-
-  if (trigger.actions && trigger.actions.length > 0) {
-    const actionsSummary = trigger.actions.map(a => a.code || a).join(", ");
-    txt += ` → DO ${actionsSummary}`;
-  }
-
-  return txt;
-}*/
 function generateTriggerSummary(trigger, conditionDefs, actionDefs) {
    let txt = `${trigger.event}`;
   if (trigger.target) txt += ` → ${trigger.target}`;
@@ -3321,7 +3436,7 @@ button:hover {
 
 details{
 background-color:lightgray;
-border:double;
+//border:double;
 }
 
 ul {
