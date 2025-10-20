@@ -118,7 +118,7 @@ function GetComment() {
 
 // === SCORM Objective Manager ===
 // Sikrer lookup, auto-oprettelse og status/score-håndtering baseret på id
-
+if(SCORMTracking==true){
 const SCORMObjectiveManager = {
   map: {},
 
@@ -179,7 +179,7 @@ const SCORMObjectiveManager = {
     }
   }
 };
-
+}
 // === COURSE CONTROL ===
 
 function CompleteCourse() {
@@ -860,7 +860,70 @@ function init(){
 		SceneStartTrigger();
 		
 		
-	
+				// === SCORM Objective Manager ===
+				// Sikrer lookup, auto-oprettelse og status/score-håndtering baseret på id
+				if(SCORMTracking==true){
+				SCORMObjectiveManager = {
+				  map: {},
+
+				  // Finder eller opretter index for et objective-id
+				  getIndex(id) {
+				    // Tjek om vi allerede kender id'et
+				    if (this.map[id] !== undefined) return this.map[id];
+
+				    // Ellers prøv at finde det i SCORM
+				    let i = 0;
+				    while (true) {
+				      const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
+				      if (!existingId) break;
+				      if (existingId === id) {
+				        this.map[id] = i;
+				        return i;
+				      }
+				      i++;
+				    }
+
+				    // Ikke fundet → opret nyt objective i næste ledige index
+				    const newIndex = i;
+				    pipwerks.SCORM.set(`cmi.objectives.${newIndex}.id`, id);
+				    this.map[id] = newIndex;
+				    return newIndex;
+				  },
+
+				  // === STATUS ===
+				  setStatus(id, status) {
+				    const i = this.getIndex(id);
+				    pipwerks.SCORM.set(`cmi.objectives.${i}.status`, status);
+				  },
+
+				  getStatus(id) {
+				    const i = this.getIndex(id);
+				    return pipwerks.SCORM.get(`cmi.objectives.${i}.status`);
+				  },
+
+			  // === SCORE ===
+				  setScore(id, score) {
+				    const i = this.getIndex(id);
+				    pipwerks.SCORM.set(`cmi.objectives.${i}.score.raw`, score);
+				  },
+
+				  getScore(id) {
+				    const i = this.getIndex(id);
+ 				   return Number(pipwerks.SCORM.get(`cmi.objectives.${i}.score.raw`) || 0);
+  				},
+
+ 		 // === EXISTENCE CHECK ===
+ 			 exists(id) {
+			    let i = 0;
+  				  while (true) {
+ 				     const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
+				      if (!existingId) return false;
+				      if (existingId === id) return true;
+				      i++;
+ 				   }
+  				}
+			};
+		}
 }
 
 /*
