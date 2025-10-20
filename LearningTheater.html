@@ -3294,7 +3294,7 @@ elementId("scenestartCode").oninput=function(){showPreview()}
 elementId("resizeCode").oninput=function(){showPreview()}
 elementId("HEAD").oninput=function(){showPreview()}
 
-ShowSelectedScript(buildCode,'Build',BuildCode)
+ShowSelectedScript(BuildSpecial,'Build GUI',BuildCode)
 BuildCode.focus();
 
 JsCode = "<scri"+"pt>\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
@@ -3315,7 +3315,7 @@ showPreview();
 
 
 renderTriggerEditor("triggerEditor");
-
+showPreview();
 } 
 //showPreview();
 //updateActorList();
