@@ -720,41 +720,54 @@ function mouseUp(e){
 	}
 }*/
 
-function Collision(e1, e2) {
-	const rect1 = { x: e1.X, y: e1.Y, width: e1.Width, height: e1.Height };
-	const rect2 = { x: e2.X, y: e2.Y, width: e2.Width, height: e2.Height };
+function Collision(e1, e2, modifierX, modifierY) {
+  // Justér bredde/højde ud fra skalering
+  const rect1 = { 
+    x: e1.X + modifierX, 
+    y: e1.Y + modifierY, 
+    width: e1.Width * (e1.Scale || 1), 
+    height: e1.Height * (e1.Scale || 1) 
+  };
+  const rect2 = { 
+    x: e2.X, 
+    y: e2.Y, 
+    width: e2.Width * (e2.Scale || 1), 
+    height: e2.Height * (e2.Scale || 1) 
+  };
 
-	if (rect1.x < rect2.x + rect2.width &&
-		rect1.x + rect1.width > rect2.x &&
-		rect1.y < rect2.y + rect2.height &&
-		rect1.y + rect1.height > rect2.y) {
+  // Simpel overlap-test
+  if (
+    rect1.x < rect2.x + rect2.width &&
+    rect1.x + rect1.width > rect2.x &&
+    rect1.y < rect2.y + rect2.height &&
+    rect1.y + rect1.height > rect2.y
+  ) {
+    // Beregn kollisionsside
+    const dx = (rect1.x + rect1.width / 2) - (rect2.x + rect2.width / 2);
+    const dy = (rect1.y + rect1.height / 2) - (rect2.y + rect2.height / 2);
+    const width = (rect1.width + rect2.width) / 2;
+    const height = (rect1.height + rect2.height) / 2;
+    const crossWidth = width * dy;
+    const crossHeight = height * dx;
 
-		// Beregn kollisionsside
-		const dx = (rect1.x + rect1.width / 2) - (rect2.x + rect2.width / 2);
-		const dy = (rect1.y + rect1.height / 2) - (rect2.y + rect2.height / 2);
-		const width = (rect1.width + rect2.width) / 2;
-		const height = (rect1.height + rect2.height) / 2;
-		const crossWidth = width * dy;
-		const crossHeight = height * dx;
+    let side = null;
+    if (Math.abs(dx) <= width && Math.abs(dy) <= height) {
+      if (crossWidth > crossHeight) {
+        side = (crossWidth > -crossHeight) ? "bottom" : "left";
+      } else {
+        side = (crossWidth > -crossHeight) ? "right" : "top";
+      }
+    }
 
-		let side = null;
-		if (Math.abs(dx) <= width && Math.abs(dy) <= height) {
-			if (crossWidth > crossHeight) {
-				side = (crossWidth > -crossHeight) ? "bottom" : "left";
-			} else {
-				side = (crossWidth > -crossHeight) ? "right" : "top";
-			}
-		}
+    return {
+      valueOf: () => true, // gør if (Collision(...)) muligt
+      side
+    };
+  }
 
-		// Returnér objekt der fungerer som "true"
-		return {
-			valueOf: () => true,   // gør at if (Collision(...)) virker
-			side: side             // ekstra information
-		};
-	}
-
-	return false; // ingen kollision
+  return false;
 }
+
 
 
 
@@ -859,104 +872,8 @@ function init(){
 		SceneStart();
 		SceneStartTrigger();
 		
-		
-				// === SCORM Objective Manager ===
-				// Sikrer lookup, auto-oprettelse og status/score-håndtering baseret på id
-				if(SCORMTracking==true){
-				SCORMObjectiveManager = {
-				  map: {},
-
-				  // Finder eller opretter index for et objective-id
-				  getIndex(id) {
-				    // Tjek om vi allerede kender id'et
-				    if (this.map[id] !== undefined) return this.map[id];
-
-				    // Ellers prøv at finde det i SCORM
-				    let i = 0;
-				    while (true) {
-				      const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
-				      if (!existingId) break;
-				      if (existingId === id) {
-				        this.map[id] = i;
-				        return i;
-				      }
-				      i++;
-				    }
-
-				    // Ikke fundet → opret nyt objective i næste ledige index
-				    const newIndex = i;
-				    pipwerks.SCORM.set(`cmi.objectives.${newIndex}.id`, id);
-				    this.map[id] = newIndex;
-				    return newIndex;
-				  },
-
-				  // === STATUS ===
-				  setStatus(id, status) {
-				    const i = this.getIndex(id);
-				    pipwerks.SCORM.set(`cmi.objectives.${i}.status`, status);
-				  },
-
-				  getStatus(id) {
-				    const i = this.getIndex(id);
-				    return pipwerks.SCORM.get(`cmi.objectives.${i}.status`);
-				  },
-
-			  // === SCORE ===
-				  setScore(id, score) {
-				    const i = this.getIndex(id);
-				    pipwerks.SCORM.set(`cmi.objectives.${i}.score.raw`, score);
-				  },
-
-				  getScore(id) {
-				    const i = this.getIndex(id);
- 				   return Number(pipwerks.SCORM.get(`cmi.objectives.${i}.score.raw`) || 0);
-  				},
-
- 		 // === EXISTENCE CHECK ===
- 			 exists(id) {
-			    let i = 0;
-  				  while (true) {
- 				     const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
-				      if (!existingId) return false;
-				      if (existingId === id) return true;
-				      i++;
- 				   }
-  				}
-			};
-		}
+	   
 }
-
-/*
-var duplicateCount=0;
-function DuplicateActor(baseID, count) {
-  const original = Elements.find(el => el.ID === baseID);
-  if (!original) {
-    console.warn(`Element med ID "${baseID}" blev ikke fundet.`);
-    return;
-  }
-
-  for (let i = 1; i <= count; i++) {
-    const clone = {};
-
-    // Kopiér kun primitive værdier og arrays/objekter uden funktioner
-    for (const key in original) {
-      const value = original[key];
-      if (typeof value !== "function" && key !== "CustomProps") {
-        // Hvis det er et objekt eller array, lav en simpel kopi
-        clone[key] = Array.isArray(value)
-          ? [...value]
-          : (value && typeof value === "object")
-          ? { ...value }
-          : value;
-      }
-    }
-	duplicateCount++;
-    clone.ID = `${baseID}${duplicateCount}`;
-  
-    Elements.push(clone);
-    GenerateElement(clone);
-  }
-}*/
 
 
 

@@ -62,29 +62,38 @@ const ConditionFunctions = {
   },
 
 "Collision": {
-  label: "Collision between two actors",
+  label: "Collision between two actors (with optional side filtering and motion offset)",
   category: "Actor",
   args: [
-    { type: "actor", label: "Actors[0]" },
-    { type: "actor", label: "Actors[1]" },
+    { type: "actor", label: "Actor 1" },
+    { type: "actor", label: "Actor 2" },
     { type: "boolean", label: "Top", defaultValue: "true" },
     { type: "boolean", label: "Bottom", defaultValue: "true" },
     { type: "boolean", label: "Left", defaultValue: "true" },
-    { type: "boolean", label: "Right", defaultValue: "true" }
+    { type: "boolean", label: "Right", defaultValue: "true" },
+    { type: "raw", label: "X modifier", defaultValue: "0" },
+    { type: "raw", label: "Y modifier", defaultValue: "0" }
   ],
   build: (args) => {
-    const [a, b, top, bottom, left, right] = args;
-    if (top && bottom && left && right) {
-      return `Collision(${a}, ${b})`;
+    const [a, b, top, bottom, left, right, modX, modY] = args;
+
+    // Hvis alle sider er valgt ? klassisk collision
+    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
+    if (allSidesSelected) {
+      return `Collision(${a}, ${b}, ${modX}, ${modY})`;
     }
-    let checks = [];
-    if (top) checks.push(`Collision(${a}, ${b}).side === "top"`);
-    if (bottom) checks.push(`Collision(${a}, ${b}).side === "bottom"`);
-    if (left) checks.push(`Collision(${a}, ${b}).side === "left"`);
-    if (right) checks.push(`Collision(${a}, ${b}).side === "right"`);
-    return `Collision(${a}, ${b}) && (${checks.join(" || ")})`;
+
+    // Filtrér på valgte sider
+    const checks = [];
+    if (top === true || top === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "top"`);
+    if (bottom === true || bottom === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "bottom"`);
+    if (left === true || left === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "left"`);
+    if (right === true || right === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "right"`);
+
+    return `Collision(${a}, ${b}, ${modX}, ${modY}) && (${checks.join(" || ")})`;
   }
 },
+
 
 
 
@@ -116,16 +125,6 @@ const ConditionFunctions = {
   build: (args) => `${args[0]} = Actors.filter(a => a["${args[1]}"] == "${args[2]}")`
   },
 
- /*   "Gather2ndEnsemble": {
-  label: "Gather 2nd ensemble by property",
-	category:"Ensemble",
-
-  args: [
-    { type: "string", label: "Property name" },
-    { type: "raw", label: "Property value" }
-  ],
-  build: (args) => `Ensemble2 = Actors.filter(a => a["${args[0]}"] == "${args[1]}")`
-  },*/
 
   "filterEnsemble": {
   label: "Filter ensemble",
@@ -140,69 +139,70 @@ const ConditionFunctions = {
   build: (args) => `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} "${args[3]}")`
   },
 
-/*"filter2ndEnsemble": {
-  label: "Filter 2nd ensemble by property",
-	category:"Ensemble",
-
-  args: [
-    { type: "string", label: "Property name" },
-    { type: "compare", label: "", defaultValue:"=="},
-    { type: "raw", label: "Property value" }
-  ],
-  build: (args) => `Ensemble2 = Ensemble2.filter(a => a["${args[0]}"] ${args[1]} "${args[2]}")`
-  },*/
 
 
-  "ActorEnsembleCollide": {
+ "ActorEnsembleCollision": {
   label: "Actor collides with any in Ensemble",
   category: "Ensemble",
   args: [
-    { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-	{ type: "raw", label: "Ensemble" },
-    { type: "boolean", label: "Top", defaultValue: "true" },
-    { type: "boolean", label: "Bottom", defaultValue: "true" },
-    { type: "boolean", label: "Left", defaultValue: "true" },
-    { type: "boolean", label: "Right", defaultValue: "true" }
-  ],
-  build: (args) => {
-    const [actor, ensemble, top, bottom, left, right] = args;
-    if (top && bottom && left && right) {
-      return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a))`;
-    }
-    let checks = [];
-    if (top) checks.push(`Collision(${actor}, a).side === "top"`);
-    if (bottom) checks.push(`Collision(${actor}, a).side === "bottom"`);
-    if (left) checks.push(`Collision(${actor}, a).side === "left"`);
-    if (right) checks.push(`Collision(${actor}, a).side === "right"`);
-    return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a) && (${checks.join(" || ")}))`;
-  }
-},
-
- "EnsemblesCollide": {
-  label: "Ensemble collides with any in 2nd Ensemble",
-  category: "Ensemble",
-  args: [
-
-	{ type: "raw", label: "Ensemble" },
-	{ type: "raw", label: "2nd ensemble" },
+    { type: "actor", label: "Actor" },
     { type: "boolean", label: "Top", defaultValue: "true" },
     { type: "boolean", label: "Bottom", defaultValue: "true" },
     { type: "boolean", label: "Left", defaultValue: "true" },
     { type: "boolean", label: "Right", defaultValue: "true" },
+    { type: "raw", label: "X modifier (optional)", defaultValue: "0" },
+    { type: "raw", label: "Y modifier (optional)", defaultValue: "0" }
   ],
   build: (args) => {
-    const [ensemble, ensemble2, top, bottom, left, right] = args;
-    if (top && bottom && left && right) {
-      return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision( a, b )))`;
+    const [actor, top, bottom, left, right, modX, modY] = args;
+
+    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
+    if (allSidesSelected) {
+      return `Ensemble = Ensemble.filter(a => Collision(${actor}, a, ${modX}, ${modY}))`;
     }
-    let checks = [];
-    if (top) checks.push(`Collision(a,b).side === "top"`);
-    if (bottom) checks.push(`Collision(a,b).side === "bottom"`);
-    if (left) checks.push(`Collision(a,b).side === "left"`);
-    if (right) checks.push(`Collision(a,b).side === "right"`);
-    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision( a, b ) && (${checks.join(" || ")})))`;
+
+    const checks = [];
+    if (top === true || top === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "top"`);
+    if (bottom === true || bottom === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "bottom"`);
+    if (left === true || left === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "left"`);
+    if (right === true || right === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "right"`);
+
+    return `Ensemble = Ensemble.filter(a => Collision(${actor}, a, ${modX}, ${modY}) && (${checks.join(" || ")}))`;
   }
 },
+
+
+"EnsemblesCollide": {
+  label: "Ensemble collides with any in 2nd Ensemble",
+  category: "Ensemble",
+  args: [
+    { type: "raw", label: "Ensemble" },
+    { type: "raw", label: "2nd Ensemble" },
+    { type: "boolean", label: "Top", defaultValue: "true" },
+    { type: "boolean", label: "Bottom", defaultValue: "true" },
+    { type: "boolean", label: "Left", defaultValue: "true" },
+    { type: "boolean", label: "Right", defaultValue: "true" },
+    { type: "raw", label: "X modifier (optional)", defaultValue: "0" },
+    { type: "raw", label: "Y modifier (optional)", defaultValue: "0" }
+  ],
+  build: (args) => {
+    const [ensemble, ensemble2, top, bottom, left, right, modX, modY] = args;
+
+    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
+    if (allSidesSelected) {
+      return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a, b, ${modX}, ${modY})))`;
+    }
+
+    const checks = [];
+    if (top === true || top === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "top"`);
+    if (bottom === true || bottom === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "bottom"`);
+    if (left === true || left === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "left"`);
+    if (right === true || right === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "right"`);
+
+    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})))`;
+  }
+},
+
 
 
 
