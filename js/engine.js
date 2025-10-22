@@ -49,149 +49,111 @@ var MousePressure;
 
 
 
-//SCORM functions
+/* ================================
+   SCORM BASIC FUNCTIONS
+   ================================ */
+
 function SCORM_init() {
-	this.scorm = pipwerks.SCORM;
-	this.scorm.version = "1.2";
-	pipwerks.SCORM.init();
-	console.log("SCORM initialized:", this.scorm.connection.isActive);
+  this.scorm = pipwerks.SCORM;
+  this.scorm.version = "1.2";
+  const success = this.scorm.init();
+  console.log("SCORM init:", success);
+  return success;
 }
 
-// === PROGRESS / LOCATION ===
-
-function SetLocation(location) {
-	pipwerks.SCORM.set("cmi.core.lesson_location", String(location));
+function SCORM_save() {
+  pipwerks.SCORM.save();
+  console.log("SCORM data saved.");
 }
 
-function GetLocation() {
-	return pipwerks.SCORM.get("cmi.core.lesson_location") || "";
+function SCORM_exit() {
+  pipwerks.SCORM.quit();
+  console.log("SCORM session ended.");
 }
 
-// === SCORE ===
-
-function SetScore(raw, min = 0, max = 100) {
-	pipwerks.SCORM.set("cmi.core.score.raw", String(raw));
-	pipwerks.SCORM.set("cmi.core.score.min", String(min));
-	pipwerks.SCORM.set("cmi.core.score.max", String(max));
-}
-
-function GetScore() {
-	return {
-		raw: Number(pipwerks.SCORM.get("cmi.core.score.raw") || 0),
-		min: Number(pipwerks.SCORM.get("cmi.core.score.min") || 0),
-		max: Number(pipwerks.SCORM.get("cmi.core.score.max") || 100)
-	};
-}
-
-// === STATUS ===
+/* ================================
+   STATUS & LOCATION
+   ================================ */
 
 function SetStatus(status) {
-	// allowed: "not attempted", "incomplete", "completed", "passed", "failed"
-	pipwerks.SCORM.set("cmi.core.lesson_status", status);
+  // status: "passed", "completed", "failed", "incomplete", "browsed", "not attempted"
+  pipwerks.SCORM.set("cmi.core.lesson_status", status);
+  SCORM_save();
 }
 
 function GetStatus() {
-	return pipwerks.SCORM.get("cmi.core.lesson_status");
+  return pipwerks.SCORM.get("cmi.core.lesson_status");
 }
 
-// === STUDENT INFO ===
-
-function GetStudentName() {
-	return pipwerks.SCORM.get("cmi.core.student_name");
+function SetLocation(location) {
+  // fx scenenavn eller side-id
+  pipwerks.SCORM.set("cmi.core.lesson_location", String(location));
+  SCORM_save();
 }
 
-function GetStudentID() {
-	return pipwerks.SCORM.get("cmi.core.student_id");
+function GetLocation() {
+  return pipwerks.SCORM.get("cmi.core.lesson_location");
 }
 
-// === COMMENTS ===
+/* ================================
+   SCORE HANDLING
+   ================================ */
 
-function SetComment(text) {
-	pipwerks.SCORM.set("cmi.comments", text);
+function SetScore(score, min = 0, max = 100) {
+  pipwerks.SCORM.set("cmi.core.score.raw", score);
+  pipwerks.SCORM.set("cmi.core.score.min", min);
+  pipwerks.SCORM.set("cmi.core.score.max", max);
+  SCORM_save();
 }
 
-function GetComment() {
-	return pipwerks.SCORM.get("cmi.comments");
+function GetScore() {
+  return pipwerks.SCORM.get("cmi.core.score.raw");
 }
 
-// === OBJECTIVES ===
+/* ================================
+   OBJECTIVES
+   ================================ */
 
-// === SCORM Objective Manager ===
-// Sikrer lookup, auto-oprettelse og status/score-håndtering baseret på id
-if(SCORMTracking==true){
-const SCORMObjectiveManager = {
-  map: {},
-
-  // Finder eller opretter index for et objective-id
-  getIndex(id) {
-    // Tjek om vi allerede kender id'et
-    if (this.map[id] !== undefined) return this.map[id];
-
-    // Ellers prøv at finde det i SCORM
-    let i = 0;
-    while (true) {
-      const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
-      if (!existingId) break;
-      if (existingId === id) {
-        this.map[id] = i;
-        return i;
-      }
-      i++;
-    }
-
-    // Ikke fundet → opret nyt objective i næste ledige index
-    const newIndex = i;
-    pipwerks.SCORM.set(`cmi.objectives.${newIndex}.id`, id);
-    this.map[id] = newIndex;
-    return newIndex;
-  },
-
-  // === STATUS ===
-  setStatus(id, status) {
-    const i = this.getIndex(id);
-    pipwerks.SCORM.set(`cmi.objectives.${i}.status`, status);
-  },
-
-  getStatus(id) {
-    const i = this.getIndex(id);
-    return pipwerks.SCORM.get(`cmi.objectives.${i}.status`);
-  },
-
-  // === SCORE ===
-  setScore(id, score) {
-    const i = this.getIndex(id);
-    pipwerks.SCORM.set(`cmi.objectives.${i}.score.raw`, score);
-  },
-
-  getScore(id) {
-    const i = this.getIndex(id);
-    return Number(pipwerks.SCORM.get(`cmi.objectives.${i}.score.raw`) || 0);
-  },
-
-  // === EXISTENCE CHECK ===
-  exists(id) {
-    let i = 0;
-    while (true) {
-      const existingId = pipwerks.SCORM.get(`cmi.objectives.${i}.id`);
-      if (!existingId) return false;
-      if (existingId === id) return true;
-      i++;
-    }
-  }
-};
+function SetObjective(index, id) {
+  pipwerks.SCORM.set(`cmi.objectives.${index}.id`, String(id));
 }
-// === COURSE CONTROL ===
+
+function SetObjectiveStatus(index, status) {
+  // status: "passed", "completed", "failed", "incomplete", "browsed", "not attempted"
+  pipwerks.SCORM.set(`cmi.objectives.${index}.status`, String(status));
+  SCORM_save();
+}
+
+function GetObjectiveStatus(index) {
+  return pipwerks.SCORM.get(`cmi.objectives.${index}.status`);
+}
+
+/* ================================
+   COURSE COMPLETION
+   ================================ */
 
 function CompleteCourse() {
-	pipwerks.SCORM.set("cmi.core.lesson_status", "completed");
-	pipwerks.SCORM.save();
+  pipwerks.SCORM.set("cmi.core.lesson_status", "completed");
+  SCORM_save();
 }
 
-function ExitCourse() {
-	pipwerks.SCORM.save();
-	pipwerks.SCORM.quit();
-	console.log("SCORM session closed.");
+/* ================================
+   COMMENTS (for custom data)
+   ================================ */
+
+function WriteComment(str) {
+  pipwerks.SCORM.set("cmi.comments", String(str));
+  SCORM_save();
 }
+
+function ReadComment() {
+  return pipwerks.SCORM.get("cmi.comments");
+}
+
+
+
+
+
 
 //mouse/pointer Functions
 function MousePosition(event){

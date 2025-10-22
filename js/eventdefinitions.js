@@ -41,7 +41,7 @@ const ConditionFunctions = {
 
     args: [ 
 	{ type: "actor", label: "Actor ", defaultValue: "Actors[0]" },
-	{ type: "xory", label: "", defaultValue: "X"},
+	{ type: "property", label: "", include:["X","Y"], defaultValue: "X"},
 	{ type: "compare", label: "", defaultValue: "=="},
        	{ type: "number", label: "", defaultValue: "0"},
 	
@@ -56,13 +56,13 @@ const ConditionFunctions = {
 
     args: [
       { type: "actor", label: "Actor",defaultValue:"Actors[0]" },
-      { type: "raw", label: "Property", defaultValue:"X" }
+      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" }
     ],
     build: (args) => `${args[0]}.${args[1]}`
   },
 
 "Collision": {
-  label: "Collision between two actors (with optional side filtering and motion offset)",
+  label: "Collision between two actors",
   category: "Actor",
   args: [
     { type: "actor", label: "Actor 1" },
@@ -119,7 +119,7 @@ const ConditionFunctions = {
 
   args: [
 	{ type: "raw", label: "Ensemble name" },
-    { type: "string", label: "Property name" },
+    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
     { type: "raw", label: "Property value" }
   ],
   build: (args) => `${args[0]} = Actors.filter(a => a["${args[1]}"] == "${args[2]}")`
@@ -132,7 +132,7 @@ const ConditionFunctions = {
 
   args: [
     { type: "raw", label: "Ensemble name" },
-    { type: "string", label: "Property name" },
+    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
     { type: "compare", label: "",defaultValue:"=="},
     { type: "raw", label: "Property value" }
   ],
@@ -230,77 +230,49 @@ const ConditionFunctions = {
   
  
 
-  "GetSCORMStatus": {
-    label: "Get SCORM lesson status",
-    category: "SCORM",
-    args: [],
-    build: (args) => `GetStatus()`
-  },
+   "SCORM Score is at least": {
+  label: "SCORM score is at least",
+  category: "SCORM",
+  args: [
+    { type: "number", label: "Minimum score" }
+  ],
+  build: (args) => `parseFloat(GetScore()) >= ${args[0]}`
+},
 
-  "CheckSCORMStatus": {
-    label: "Check SCORM status equals",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Status (completed, incomplete, passed, failed)" }
-    ],
-    build: (args) => `GetStatus() == "${args[0]}"`
-  },
+   "SCORM Location is":{
+  label: "SCORM location is",
+  category: "SCORM",
+  args: [
+    { type: "text", label: "Location name" }
+  ],
+  build: (args) => `GetLocation() === "${args[0]}"`
+},
 
-  "GetSCORMLocation": {
-    label: "Get SCORM lesson location",
-    category: "SCORM",
-    args: [],
-    build: (args) => `GetLocation()`
-  },
+   "SCORM Status is":{
+  label: "SCORM status is",
+  category: "SCORM",
+  args: [
+    { type: "dropdown", label: "Status", options: ["passed", "completed", "failed", "incomplete", "browsed", "not attempted"], defaultValue: "completed" }
+  ],
+  build: (args) => `GetStatus() === "${args[0]}"`
+},
 
-  "CheckSCORMScoreAtLeast": {
-    label: "Check SCORM score is at least",
-    category: "SCORM",
-    args: [
-      { type: "number", label: "Minimum score" }
-    ],
-    build: (args) => `GetScore().raw >= ${args[0]}`
-  },
 
-  // === OBJECTIVE CONDITIONS ===
+   "Get SCORM Objective Status": {
+  label: "Get SCORM objective status",
+  category: "SCORM",
+  args: [
+    { type: "number", label: "Objective index" }
+  ],
+  build: (args) => `GetObjectiveStatus(${args[0]})`
+},
 
-  "GetSCORMObjectiveStatus": {
-    label: "Get SCORM objective status",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" }
-    ],
-    build: (args) => `SCORMObjectiveManager.getStatus("${args[0]}")`
-  },
-
-  "CheckSCORMObjectiveStatus": {
-    label: "Check SCORM objective status equals",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" },
-      { type: "text", label: "Status (completed, passed, failed, etc.)" }
-    ],
-    build: (args) => `SCORMObjectiveManager.getStatus("${args[0]}") == "${args[1]}"`
-  },
-
-  "CheckSCORMObjectiveExists": {
-    label: "Check if SCORM objective exists",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" }
-    ],
-    build: (args) => `SCORMObjectiveManager.exists("${args[0]}")`
-  },
-
-  "CheckSCORMObjectiveScoreAtLeast": {
-    label: "Check SCORM objective score is at least",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" },
-      { type: "number", label: "Minimum score" }
-    ],
-    build: (args) => `SCORMObjectiveManager.getScore("${args[0]}") >= ${args[1]}`
-  }
+   "Read SCORM Comment": {
+  label: "Get SCORM comments",
+  category: "SCORM",
+  args: [],
+  build: () => `ReadComment()`
+},
 
   
   
@@ -459,7 +431,7 @@ const ActionFunctions = {
 
     args: [
       { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "string", label: "Property", defaultValue:"0"}
+      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
     ],
     build: (args) => `${args[0]}.${args[1]}=-${args[0]}.${args[1]}`
   },
@@ -469,7 +441,7 @@ const ActionFunctions = {
 
   args: [
 	{ type: "raw", label: "Ensemble name"},
-    { type: "string", label: "Target property", defaultValue:"X" },
+    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
     { type: "adjust", label: "Adjustment", defaultValue:"=" },
     { type: "raw", label: "New value" }
   ],
@@ -494,7 +466,7 @@ const ActionFunctions = {
 
     args: [
       { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "raw", label: "Property", defaultValue:"X" },
+      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
       { type: "adjust", label: "Adjustment", defaultValue:"=" },
       { type: "raw", label: "Value", defaultValue:"0" }
     ],
@@ -576,77 +548,91 @@ const ActionFunctions = {
 
 
 
-  "SetSCORMStatus": {
-    label: "Set SCORM lesson status",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Status (completed, incomplete, passed, failed)" }
-    ],
-    build: (args) => `SetStatus("${args[0]}")`
-  },
+   "Initialize SCORM": {
+  label: "Initialize SCORM connection",
+  category: "SCORM",
+  args: [],
+  build: () => `SCORM_init()`
+},
 
-  "SetSCORMLocation": {
-    label: "Set SCORM lesson location",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Location (scene/page name)" }
-    ],
-    build: (args) => `SetLocation("${args[0]}")`
-  },
+   "Save SCORM Data": {
+  label: "Save SCORM data",
+  category: "SCORM",
+  args: [],
+  build: () => `SCORM_save()`
+},
 
-  "SetSCORMScore": {
-    label: "Set SCORM score",
-    category: "SCORM",
-    args: [
-      { type: "number", label: "Score" },
-      { type: "number", label: "Min (optional)" },
-      { type: "number", label: "Max (optional)" }
-    ],
-    build: (args) => `SetScore(${args[0]}, ${args[1] || 0}, ${args[2] || 100})`
-  },
+   "Exit SCORM": {
+  label: "Exit SCORM session",
+  category: "SCORM",
+  args: [],
+  build: () => `SCORM_exit()`
+},
 
-  "SaveSCORM": {
-    label: "Save SCORM data",
-    category: "SCORM",
-    args: [],
-    build: () => `pipwerks.SCORM.save()`
-  },
+   "Set SCORM Status": {
+  label: "Set SCORM status",
+  category: "SCORM",
+  args: [
+    { type: "dropdown", label: "Status", options: ["passed", "completed", "failed", "incomplete", "browsed", "not attempted"] }
+  ],
+  build: (args) => `SetStatus("${args[0]}")`
+},
 
-  "CompleteSCORMCourse": {
-    label: "Complete SCORM course",
-    category: "SCORM",
-    args: [],
-    build: () => `CompleteCourse()`
-  },
+    "Set SCORM Location": {
+  label: "Set SCORM location",
+  category: "SCORM",
+  args: [
+    { type: "text", label: "Location string" }
+  ],
+  build: (args) => `SetLocation("${args[0]}")`
+},
 
-  "ExitSCORMCourse": {
-    label: "Exit SCORM course",
-    category: "SCORM",
-    args: [],
-    build: () => `ExitCourse()`
-  },
+   "Set SCORM Score": {
+  label: "Set SCORM score",
+  category: "SCORM",
+  args: [
+    { type: "number", label: "Score" },
+    { type: "number", label: "Min", default: 0 },
+    { type: "number", label: "Max", default: 100 }
+  ],
+  build: (args) => `SetScore(${args[0]}, ${args[1]}, ${args[2]})`
+},
 
-  // === OBJECTIVE ACTIONS ===
+   "Set SCORM Objective ID":{
+  label: "Set SCORM objective ID",
+  category: "SCORM",
+  args: [
+    { type: "number", label: "Index" },
+    { type: "text", label: "Objective ID" }
+  ],
+  build: (args) => `SetObjective(${args[0]}, "${args[1]}")`
+},
 
-  "SetSCORMObjectiveStatus": {
-    label: "Set SCORM objective status",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" },
-      { type: "text", label: "Status (completed, passed, failed, etc.)" }
-    ],
-    build: (args) => `SCORMObjectiveManager.setStatus("${args[0]}", "${args[1]}")`
-  },
+   "Set SCORM Objective Status": {
+  label: "Set SCORM objective status",
+  category: "SCORM",
+  args: [
+    { type: "number", label: "Index" },
+    { type: "dropdown", label: "Status", options: ["passed", "completed", "failed", "incomplete", "browsed", "not attempted"] }
+  ],
+  build: (args) => `SetObjectiveStatus(${args[0]}, "${args[1]}")`
+},
 
-  "SetSCORMObjectiveScore": {
-    label: "Set SCORM objective score",
-    category: "SCORM",
-    args: [
-      { type: "text", label: "Objective ID" },
-      { type: "number", label: "Score" }
-    ],
-    build: (args) => `SCORMObjectiveManager.setScore("${args[0]}", ${args[1]})`
-  }
+   "Complete SCORM Course": {
+  label: "Mark SCORM course as complete",
+  category: "SCORM",
+  args: [],
+  build: () => `CompleteCourse()`
+},
+
+   "Write SCORM Comment": {
+  label: "Write SCORM comment",
+  category: "SCORM",
+  args: [
+    { type: "text", label: "Comment text" }
+  ],
+  build: (args) => `WriteComment("${args[0]}")`
+},
 
 
 
