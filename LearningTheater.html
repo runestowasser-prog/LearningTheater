@@ -1260,21 +1260,49 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   	break;
 	
        case "property":
-        input = document.createElement("select");
-		var AllProps=getAllProperties();
-        allProps.forEach(prop => {
-          const option = document.createElement("option");
-          option.value = prop;
-          input.appendChild(option);
-        });
-        input.value = argsValues[index] || "";
-        break;
+  input = document.createElement("select");
+
+  // Hent alle properties
+  let allProps = getAllProperties();
+
+  // 🧠 Filtrer ud fra definition (hvis defineret)
+  if (arg.include && Array.isArray(arg.include)) {
+    allProps = allProps.filter(p => arg.include.includes(p));
+  } else if (arg.exclude && Array.isArray(arg.exclude)) {
+    allProps = allProps.filter(p => !arg.exclude.includes(p));
+  }
+
+  // Byg dropdown
+  allProps.forEach(prop => {
+    const option = document.createElement("option");
+    option.value = prop;
+    option.textContent = prop;
+    input.appendChild(option);
+  });
+
+  input.value = argsValues[index] || "";
+  break;
+
         
 	case "linebreak":
         lineBreak = document.createElement("br");
 		
         break;
 
+	
+	// 🆕 NY TYPE: dropdown
+	case "dropdown":
+	input = document.createElement("select");
+	if (arg.options && Array.isArray(arg.options)) {
+	arg.options.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt;
+        option.textContent = opt;
+        input.appendChild(option);
+	});
+	}
+	input.value = argsValues[index] || (arg.options?.[0] || "");
+	break;
 
     }
 
@@ -1949,7 +1977,7 @@ function showPreview(){
   frame.write(HTMLCode+jsCode);
   frame.close();
 	updateActorList();
-	//allProps=getAllProperties();
+	allProps=getAllProperties();
 
 }
 
