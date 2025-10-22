@@ -61,10 +61,18 @@ Trigger creation with categorized condition/action lists
 
 An optional code editor for global scripts like General, Build, SceneStart, etc.
 
-### **Timeline Animation (GSAP)**
+---
 
-Learning Theater includes a timeline-based animation editor powered by GSAP.
+### **Timeline Animation (GSAP)**
+Learning Theater includes a timeline-based animation editor powered by **GSAP**.  
 You can animate any Actor property visually, chain keyframes, and play or preview animations directly in the scene editor.
+
+Animations can also be **exported for use inside Articulate Storyline**.  
+When embedded in a Storyline web object, the animation automatically syncs to Storyline’s **playhead (seekbar)** — meaning you can control HTML motion directly from Storyline’s timeline.
+
+This makes Learning Theater a powerful **HTML animation companion** for existing e-learning workflows, bridging the gap between timeline-driven authoring tools and fully custom JavaScript projects.
+
+---
 
 ### **SCORM 1.2 Integration**
 
@@ -107,3 +115,35 @@ When and how to save SCORM data
 How properties are updated
 
 What logic defines your interactivity
+
+## 🎬 Using Learning Theater with Articulate Storyline
+
+One of Learning Theater’s most unique features is its ability to **sync animations directly with Articulate Storyline’s playhead**.  
+This allows you to build HTML-based motion and interactivity that perfectly follows Storyline’s seekbar — ideal for creating rich, timeline-driven animations that remain fully integrated in a traditional e-learning workflow.
+
+### 🧭 How to set it up
+
+1. **Enable Playhead Sync**
+   - In Learning Theater, open **Settings** and check the option  
+     **“Follow Storyline playhead”**.
+
+2. **Export the HTML animation**
+   - Click **Save HTML** and save your project as `index.html`  
+     in the same folder as your Learning Theater project.
+
+3. **Add it to Storyline**
+   - In Articulate Storyline, insert a **Web Object** and point it to  
+     the folder containing your `index.html`.
+
+4. **Match the timeline length**
+   - Make sure Storyline’s **slide timeline** has the **same duration** as your animation.
+
+5. **Keep it visible**
+   - Ensure the **Web Object** stays visible for the entire slide duration.
+
+Once configured, Learning Theater will automatically track Storyline’s playhead position and sync all animations accordingly — providing seamless integration between **Storyline’s timeline** and your **custom HTML animation**.
+
+---
+
+✅ *Tip:* You can combine this setup with the GSAP timeline editor and the Trigger system to create interactive, synchronized experiences that go far beyond what Storyline’s built-in motion paths can achieve.
+
