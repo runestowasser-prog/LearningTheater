@@ -47,7 +47,7 @@ Conditions["SCORM Status is"] = {
   ],
   build: (args) => `GetStatus() === "${args[0]}"`
 };
-
+```
 
 Editor
 
