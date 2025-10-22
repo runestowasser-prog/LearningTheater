@@ -88,18 +88,35 @@ Custom handling of cmi.comments and lesson_status
 
 Unlike traditional tools, Learning Theater gives you full control over what data is saved and when.
 
+---
 
-### **🚀 Example Workflow**
+## 🚀 Example Workflow
 
-Create Actors in the editor or via code inside Build()
+1. Create your scene and Actors in the editor or directly via the `Build()` function.  
+2. Define Triggers to handle interactivity.  
+3. Add animations using the **GSAP timeline editor**.  
+4. (Optional) Connect to an LMS via SCORM.  
+5. When finished, **save your work in the same folder** where Learning Theater is running.  
+6. **Zip the folder contents** — this zipped folder **is your SCORM package**.
 
-Define Triggers to handle interactivity
+Unlike traditional authoring tools, Learning Theater doesn’t use a separate export process.  
+Everything happens in a single working directory, giving you **full control** over files, scripts, and SCORM data.
 
-Add animations via the GSAP timeline editor
+---
 
-Connect to an LMS via SCORM (optional)
+### 💻 Works 100% Offline
 
-Export your project as a standalone SCORM package or HTML module
+Learning Theater is fully self-contained — no server or localhost setup required.  
+You can open it directly from your filesystem (`file://`) and work locally without internet access.
+
+This design makes it ideal for:
+- Secure corporate or educational environments where local hosting is restricted  
+- Rapid prototyping without setup overhead  
+- Portable, folder-based project management
+
+Because everything lives in plain HTML, JS, and JSON files, you always know exactly what your project contains — and you can move, copy, or zip it freely without breaking anything.
+
+---
 
 ### **💡 Design Philosophy**
 
