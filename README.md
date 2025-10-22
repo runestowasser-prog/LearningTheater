@@ -49,7 +49,7 @@ Conditions["SCORM Status is"] = {
 };
 ```
 
-###Editor
+### **Editor**
 
 The visual editor provides:
 
@@ -61,12 +61,12 @@ Trigger creation with categorized condition/action lists
 
 An optional code editor for global scripts like General, Build, SceneStart, etc.
 
-###Timeline Animation (GSAP)
+### **Timeline Animation (GSAP)**
 
 Learning Theater includes a timeline-based animation editor powered by GSAP.
 You can animate any Actor property visually, chain keyframes, and play or preview animations directly in the scene editor.
 
-###SCORM 1.2 Integration
+### **SCORM 1.2 Integration**
 
 Optional SCORM integration (via pipwerks.SCORM) provides:
 
@@ -81,7 +81,7 @@ Custom handling of cmi.comments and lesson_status
 Unlike traditional tools, Learning Theater gives you full control over what data is saved and when.
 
 
-###🚀 Example Workflow
+### **🚀 Example Workflow**
 
 Create Actors in the editor or via code inside Build()
 
@@ -93,7 +93,7 @@ Connect to an LMS via SCORM (optional)
 
 Export your project as a standalone SCORM package or HTML module
 
-###💡 Design Philosophy
+### **💡 Design Philosophy**
 
 “Full control, minimal friction.”
 
