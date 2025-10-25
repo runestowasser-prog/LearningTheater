@@ -159,225 +159,14 @@ function updateActorList() {
   // 4. Opbyg træet
   const container = document.getElementById("BuildSpecial");
 
- /* function createList(groupedItems, parentId = "stage", level = 0) {
-    const ul = document.createElement("ul");
-    ul.style.marginLeft = `${level * 10}px`;
-
-    const items = groupedItems[parentId] || [];
-
-    items.forEach(item => {
-      const li = document.createElement("li");
-      li.dataset.id = item.ID;
-
-      const label = document.createElement("span");
-      label.textContent = `${item.ID} (${item.__type})`;
-      li.appendChild(label);
-
-      // ✏️ Rediger-knap
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "✏️";
-	editBtn.className = "icon-btn";
-      editBtn.style.marginLeft = "5px";
-      editBtn.addEventListener("click", () => {
-        openPropertyEditor(item);
-        
-      });
-      li.appendChild(editBtn);
-/*	// 🧬 Kopiér-knap
-if (item.__type === "Actor") {
-  const copyBtn = document.createElement("button");
-  copyBtn.textContent = "🧬";
-  copyBtn.style.marginLeft = "5px";
-	copyBtn.className = "icon-btn";
-
-  copyBtn.title = "Kopiér Actor";
-
-  copyBtn.addEventListener("click", () => {
-    const newID = prompt("ID for kopi af " + item.ID + ":");
-    if (!newID) return;
-
-    if (AllActors.some(a => a.ID === newID)) {
-      alert("ID'et findes allerede!");
-      return;
-    }
-
-    // Lav en dyb kopi, men fjern ID og __type
-    const clone = cloneActor(item);
-	clone.ID = newID;
-    //delete clone.__type;
-
-    AllActors.push(clone);
-    updateActorList();
-    BuildCode.setValue(exportToCode());
-    showPreview();
-    openPropertyEditor(clone); // ✏️ Åbn editor på kopien
-  });
-
-  li.appendChild(copyBtn);
-}*/
-
-
-  // Ny createList
- /* function createList(groupedItems, parentId = "stage", level = 0) {
-  const container = document.createElement("div");
-  container.style.marginLeft = `${level * 10}px`;
-
-  const items = groupedItems[parentId] || [];
-
-  items.forEach(item => {
-    // Hvis item har børn → brug <details>
-    const hasChildren = !!groupedItems[item.ID];
-    let wrapper;
-
-    if (hasChildren) {
-      wrapper = document.createElement("details");
-      wrapper.open = level < 1; // åbner kun topniveau som standard
-      const summary = document.createElement("summary");
-      summary.style.cursor = "pointer";
-      summary.textContent = `${item.ID} (${item.__type})`;
-      wrapper.appendChild(summary);
-
-      // Tilføj knapper inde i summary
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "✏️";
-      editBtn.className = "icon-btn";
-      editBtn.style.marginLeft = "5px";
-      editBtn.addEventListener("click", (e) => {
-        e.stopPropagation(); // så summary ikke toggler
-        openPropertyEditor(item);
-      });
-      summary.appendChild(editBtn);
-
-      // 🧬 Kopiér-knap
-      if (item.__type === "Actor") {
-        const copyBtn = document.createElement("button");
-        copyBtn.textContent = "🧬";
-        copyBtn.className = "icon-btn";
-        copyBtn.style.marginLeft = "5px";
-        copyBtn.title = "Kopiér Actor";
-        copyBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const newID = prompt("ID for kopi af " + item.ID + ":");
-          if (!newID) return;
-          if (AllActors.some(a => a.ID === newID)) {
-            alert("ID'et findes allerede!");
-            return;
-          }
-          if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
-          window.duplicateCount++;
-          const suffix = window.duplicateCount.toString();
-          const clone = duplicateActorTree(item, newID, suffix);
-          AllActors.push(...clone.allCopies);
-          updateActorList();
-          BuildCode.setValue(exportToCode());
-          showPreview();
-          openPropertyEditor(clone.root);
-        });
-        summary.appendChild(copyBtn);
-      }
-
-      // ❌ Slet-knap
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "❌";
-      deleteBtn.className = "icon-btn";
-      deleteBtn.style.marginLeft = "5px";
-      deleteBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (confirm("Slet " + item.ID + "?")) {
-          removeFromOriginalArray(item);
-          updateActorList();
-        }
-      });
-      summary.appendChild(deleteBtn);
-
-      // 🔼 Flyt op
-      const upBtn = document.createElement("button");
-      upBtn.textContent = "⬆️";
-      upBtn.className = "icon-btn";
-      upBtn.style.marginLeft = "5px";
-      upBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        moveItem(item, -1);
-      });
-      summary.appendChild(upBtn);
-
-      // 🔽 Flyt ned
-      const downBtn = document.createElement("button");
-      downBtn.textContent = "⬇️";
-      downBtn.className = "icon-btn";
-      downBtn.style.marginLeft = "2px";
-      downBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        moveItem(item, 1);
-      });
-      summary.appendChild(downBtn);
-
-      // Rekursiv del
-      const childList = createList(groupedItems, item.ID, level + 1);
-      wrapper.appendChild(childList);
-    } else {
-      // Hvis ingen børn → almindelig <div>
-      wrapper = document.createElement("div");
-      wrapper.textContent = `${item.ID} (${item.__type})`;
-
-      // Tilføj samme knapper
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "✏️";
-      editBtn.className = "icon-btn";
-      editBtn.style.marginLeft = "5px";
-      editBtn.addEventListener("click", () => openPropertyEditor(item));
-      wrapper.appendChild(editBtn);
-
-      if (item.__type === "Actor") {
-        const copyBtn = document.createElement("button");
-        copyBtn.textContent = "🧬";
-        copyBtn.className = "icon-btn";
-        copyBtn.style.marginLeft = "5px";
-        copyBtn.title = "Kopiér Actor";
-        copyBtn.addEventListener("click", () => {
-          const newID = prompt("ID for kopi af " + item.ID + ":");
-          if (!newID) return;
-          if (AllActors.some(a => a.ID === newID)) {
-            alert("ID'et findes allerede!");
-            return;
-          }
-          if (typeof window.duplicateCount === "undefined") window.duplicateCount = 0;
-          window.duplicateCount++;
-          const suffix = window.duplicateCount.toString();
-          const clone = duplicateActorTree(item, newID, suffix);
-          AllActors.push(...clone.allCopies);
-          updateActorList();
-          BuildCode.setValue(exportToCode());
-          showPreview();
-          openPropertyEditor(clone.root);
-        });
-        wrapper.appendChild(copyBtn);
-      }
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "❌";
-      deleteBtn.className = "icon-btn";
-      deleteBtn.style.marginLeft = "5px";
-      deleteBtn.addEventListener("click", () => {
-        if (confirm("Slet " + item.ID + "?")) {
-          removeFromOriginalArray(item);
-          updateActorList();
-        }
-      });
-      wrapper.appendChild(deleteBtn);
-    }
-
-    container.appendChild(wrapper);
-  });
-
-  return container;
-}
-*/
 
 // 🌳 Globalt objekt til fold-status
 if (typeof window.actorFoldState === "undefined") {
   window.actorFoldState = {};
 }
+
+
+
 
 function createList(groupedItems, parentId = "stage", level = 0) {
   const container = document.createElement("div");
@@ -418,16 +207,200 @@ function createList(groupedItems, parentId = "stage", level = 0) {
       return btn;
     };
 
-    // ✏️ Rediger
-    summary.appendChild(makeBtn("✏️", "Rediger", () => openPropertyEditor(item)));
 
+	
+	// ✏️ Rediger kun actors
+if (item.__type === "Actor") {
+  summary.appendChild(makeBtn("✏️", "Edit", () => openPropertyEditor(item)));
+}
+
+/*
+// 📝 Rename (fungerer for både actors og scener)
+summary.appendChild(makeBtn("📝", "Rename", () => {
+  const oldID = item.ID;
+  const newID = prompt("Enter new ID:", item.ID);
+  if (!newID || newID === item.ID) return;
+
+  // check if ID already exists
+  if (AllActors.some(a => a.ID === newID) || AllScenes.some(s => s.ID === newID)) {
+    alert("An Actor or Scene with that ID already exists.");
+    return;
+  }
+
+  // Lav en kopi, men bevar __type og andre interne felter
+  const clone = cloneWithoutRuntime(item);
+  clone.ID = newID;
+
+  // Tilføj til den korrekte liste
+  if (item.__type === "Scene") {
+    AllScenes.push(clone);
+  } else {
+    AllActors.push(clone);
+  }
+
+  // Fjern den gamle fra den rigtige liste
+  removeFromOriginalArray(item);
+  
+  // 🔍 Opdater tweens (kode-strenge) så de peger på det nye ID
+  if (Array.isArray(AllTweens)) {
+    for (let i = 0; i < AllTweens.length; i++) {
+      AllTweens[i] = AllTweens[i].replaceAll(oldID, newID);
+    }
+  }
+  // 🔁 Opdater parent references i Actors
+	for (const actor of AllActors) {
+	if (actor.Parent === oldID) {
+		actor.Parent = newID;
+	}
+}
+
+
+  // Opdater UI
+  updateActorList();
+  showPreview();
+
+  console.log(`Renamed ${item.__type} ${item.ID} → ${newID}`);
+}));
+*/
+
+// Helper: klon uden runtime-felter/funktioner
+function cloneWithoutRuntime(obj) {
+  const cache = new WeakMap();
+  function cloneRecursive(o) {
+    if (o === null || typeof o !== "object") return o;
+    if (cache.has(o)) return cache.get(o);
+    const result = Array.isArray(o) ? [] : {};
+    cache.set(o, result);
+    for (const key in o) {
+      const val = o[key];
+      // spring funktioner og runtime-felter over
+      if (typeof val === "function") continue;
+      if (["Timeline", "_next", "_prev", "__runtimeOnly"].includes(key)) continue;
+      result[key] = cloneRecursive(val);
+    }
+    return result;
+  }
+  return cloneRecursive(obj);
+}
+
+// Hjælpefunktion: find actor/scene efter ID
+function findByID(id) {
+  const a = (AllActors || []).find(x => x.ID === id);
+  if (a) return a;
+  return (AllScenes || []).find(x => x.ID === id);
+}
+
+// Rename-knaplogik (bruges i dit træ)
+summary.appendChild(makeBtn("📝", "Rename", () => {
+  const oldID = item.ID;
+  const newID = prompt("Enter new ID for this item:", oldID);
+  if (!newID || newID === oldID) return;
+
+  // Validate uniqueness
+  if ((AllActors || []).some(a => a.ID === newID) || (AllScenes || []).some(s => s.ID === newID)) {
+    alert("An Actor or Scene with that ID already exists.");
+    return;
+  }
+
+  // Hvis scene og eneste scene -> forbyd (eller kræv ny scene først)
+  if (item.__type === "Scene" && (AllScenes || []).length <= 1) {
+    alert("You cannot rename the only scene. Create another scene first.");
+    return;
+  }
+
+  // Lav en sikker kopi uden runtime-felter
+  const clone = cloneWithoutRuntime(item);
+  clone.ID = newID;
+
+  // Indsæt klonen i korrekt array (på samme position, hvis ønsket)
+  if (item.__type === "Scene") {
+    const idx = AllScenes.indexOf(item);
+    if (idx !== -1) AllScenes.splice(idx, 1, clone);
+    else AllScenes.push(clone);
+  } else {
+    const idx = AllActors.indexOf(item);
+    if (idx !== -1) AllActors.splice(idx, 1, clone);
+    else AllActors.push(clone);
+  }
+
+  // Fjern originalen fra dens oprindelige array, hvis den stadig findes
+  removeFromOriginalArray(item);
+
+  // Opdater parent referencer for direkte children (og bevar dybere struktur)
+  for (const a of AllActors) {
+    if (a.Parent === oldID) {
+      a.Parent = newID;
+    }
+  }
+
+  // Hvis du også vil opdatere nested parents (søger rekursivt efter
+  // actors hvis parent-kæde indeholder oldID), kan du bruge denne (valgfri):
+  // function isDescendant(actor, ancestorID) {
+  //   let p = actor.Parent;
+  //   while (p) {
+  //     if (p === ancestorID) return true;
+  //     const parentObj = findByID(p);
+  //     if (!parentObj) break;
+  //     p = parentObj.Parent;
+  //   }
+  //   return false;
+  // }
+  // AllActors.forEach(a => { if (isDescendant(a, oldID) && a.Parent === oldID) a.Parent = newID; });
+
+  // Opdater tweens (kode-strenge)
+  if (Array.isArray(AllTweens)) {
+    for (let i = 0; i < AllTweens.length; i++) {
+      AllTweens[i] = AllTweens[i].replaceAll(oldID, newID);
+    }
+  }
+
+  // Opdater DOM elementets id hvis eksisterer
+  const domEl = document.getElementById(oldID);
+  if (domEl) domEl.id = newID;
+
+  // (Valgfrit) Opdatér triggers: søg-og-erstat oldID i alle trigger-koder/args
+  if (Array.isArray(GeneratedTriggers)) {
+    for (const trig of GeneratedTriggers) {
+      // Hvis triggers gemmer ID’er i feltet target eller i args, opdaterer vi dem
+      if (trig.target === oldID) trig.target = newID;
+      if (Array.isArray(trig.conditions)) {
+        trig.conditions = trig.conditions.map(c => {
+          if (typeof c === "string") return c.replaceAll(oldID, newID);
+          if (c && Array.isArray(c.args)) {
+            c.args = c.args.map(a => (typeof a === "string" ? a.replaceAll(oldID, newID) : a));
+          }
+          return c;
+        });
+      }
+      if (Array.isArray(trig.actions)) {
+        trig.actions = trig.actions.map(a => {
+          if (typeof a === "string") return a.replaceAll(oldID, newID);
+          if (a && Array.isArray(a.args)) {
+            a.args = a.args.map(x => (typeof x === "string" ? x.replaceAll(oldID, newID) : x));
+          }
+          return a;
+        });
+      }
+    }
+  }
+
+  // UI-opdateringer
+  updateActorList();
+  renderTriggerEditor?.("triggerEditor"); // opdater editor-visningen så den reflekterer ændringer
+  showPreview();
+  console.log(`Renamed ${item.__type} ${oldID} → ${newID}`);
+}));
+
+
+	
+	
     // 🧬 Kopiér
     if (item.__type === "Actor") {
-      summary.appendChild(makeBtn("🧬", "Kopiér Actor", () => {
-        const newID = prompt("ID for kopi af " + item.ID + ":");
+      summary.appendChild(makeBtn("🧬", "Copy Actor", () => {
+        const newID = prompt("ID for copy of " + item.ID + ":");
         if (!newID) return;
         if (AllActors.some(a => a.ID === newID)) {
-          alert("ID'et findes allerede!");
+          alert("ID already exists!");
           return;
         }
 
@@ -440,21 +413,21 @@ function createList(groupedItems, parentId = "stage", level = 0) {
         updateActorList();
         BuildCode.setValue(exportToCode());
         showPreview();
-        openPropertyEditor(clone.root);
+        //openPropertyEditor(clone.root);
       }));
     }
 
     // ❌ Slet
-    summary.appendChild(makeBtn("❌", "Slet", () => {
-      if (confirm("Slet " + item.ID + "?")) {
+    summary.appendChild(makeBtn("❌", "Delete", () => {
+      if (confirm("Delete " + item.ID + "?")) {
         removeFromOriginalArray(item);
         updateActorList();
       }
     }));
 
     // 🔼 Op / 🔽 Ned
-    summary.appendChild(makeBtn("⬆️", "Flyt op", () => moveItem(item, -1)));
-    summary.appendChild(makeBtn("⬇️", "Flyt ned", () => moveItem(item, 1)));
+    summary.appendChild(makeBtn("⬆️", "Move up", () => moveItem(item, -1)));
+    summary.appendChild(makeBtn("⬇️", "Move down", () => moveItem(item, 1)));
 
     // 👶 Børn
     const children = groupedItems[item.ID];
@@ -499,7 +472,7 @@ addSceneBtn.addEventListener("click", () => {
   if (!id) return;
 
   if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
-    alert("ID'et findes allerede!");
+    alert("ID already exists!");
     return;
   }
 
@@ -622,7 +595,7 @@ if (!item._original) item._original = { ...item };
 
   const original = item._original || {};
 
-  editor.innerHTML = "<h3>Redigér: " + item.ID + "</h3>";
+  editor.innerHTML = "<h3>Edit: " + item.ID + "</h3>";
 	// Input til EditorGrid (step size for number inputs)
 const gridWrapper = document.createElement("div");
 gridWrapper.className = "editor-row";
@@ -648,8 +621,17 @@ gridInput.addEventListener("input", () => {
 gridWrapper.appendChild(gridInput);
 editor.appendChild(gridWrapper);
 
+	const propertyExclusions = {
+		//Scene: ["Parent", "Draggable", "Shape", "Source", "Controls"],
+		div: ["Controls"],
+		img: ["Text", "Controls", "FontSize", "Color"],
+		shape: ["Source", "Text", "FontSize", "Class", "Style"],
+		iframe: ["Controls",],
+		audio: ["Color", "FontSize"],
+		video: ["Text", "FontSize", "Color"],
+	};
 
-  const properties = [
+  const allProperties = [
     "ID", "Type", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
     "ShowOrigin", "Controls", "Width", "Height", "X", "Y", "Scale", "Opacity",
     "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateX",
@@ -660,9 +642,13 @@ editor.appendChild(gridWrapper);
   const parentOptions = [...AllScenes, ...AllActors].map(obj => obj.ID);
   const htmlTags = ["div", "img", "video", "audio", "iframe", "canvas", "button", "object","input","select","option","textarea"];
   const shapeOptions = ["Square", "Circle", "Triangle", "Star", "LeftArrow", "RightArrow", "Heart", "Lightning", "Home", "Play", "Pause", "Diamond", "Keyhole", "SpeechBubble"];
+  
+  const actorType = item.Type?.toLowerCase() || "default";
+  const exclude = propertyExclusions[actorType] || [];
+  const properties = allProperties.filter(p => !exclude.includes(p));
 
   properties.forEach(prop => {
-    //const value = item[prop] ?? "";
+
 	const value = original[prop] ?? "";	
 
 
@@ -698,6 +684,10 @@ editor.appendChild(gridWrapper);
         const option = document.createElement("option");
         option.value = tag;
         option.textContent = tag;
+		input.addEventListener("change", () => {
+			item.Type = input.value;
+			openPropertyEditor(item);
+		});
         if (tag === value) option.selected = true;
         input.appendChild(option);
       });
@@ -737,7 +727,7 @@ editor.appendChild(gridWrapper);
   checkbox.style.marginLeft = "10px";
 
   const toggleLabel = document.createElement("label");
-  toggleLabel.textContent = "Brug farve";
+  toggleLabel.textContent = "Use color";
   toggleLabel.style.marginLeft = "5px";
 
   // Når man slår farve til/fra
