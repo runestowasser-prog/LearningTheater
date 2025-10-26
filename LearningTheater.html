@@ -1318,7 +1318,7 @@ function renderTriggerEditor(containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
 
-  const eventTypes = ["Update", "SceneStart", "Resize", "MouseDown", "MouseUp"];
+  const eventTypes = ["Update", "SceneStart", "MouseDown", "MouseUp"];
   const eventsWithTarget = ["MouseDown", "MouseUp"];
 
   GeneratedTriggers.forEach((trigger, index) => {
@@ -3454,7 +3454,7 @@ button:hover {
 
 details{
 background-color:lightgray;
-text-align:right;
+text-align:left;
 //border:double;
 }
 
@@ -3469,7 +3469,7 @@ background-color: lightgrey;
     margin: 0.5em;
 }
 
-.icon-btn {
+/*.icon-btn {
   background: none;
   border: none;
   padding: 2px;
@@ -3477,10 +3477,11 @@ background-color: lightgrey;
   font-size: 1em;
   cursor: pointer;
   line-height: 1;
+  position: relative;
 }
 .icon-btn:hover {
   opacity: 0.7;
-}
+}*/
 .trigger-row{
 margin:1em;
 background-color:lightgray;
@@ -3503,6 +3504,86 @@ white-space: pre;
 input{
 //width:100%;
 }
+
+/* Gør summary til flex-container */
+details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding-right: 80px; /* reserver plads til knapperne */
+  overflow: hidden;
+}
+
+/* Sørg for at teksten afkortes hvis for lang */
+details > summary span,
+details > summary .label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Positionér alle .icon-btn knapper til højre */
+details > summary .icon-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 4px;
+}
+
+/* Sørg for fast afstand mellem knapperne */
+details > summary .icon-btn:nth-last-of-type(1) { right: 0; }
+details > summary .icon-btn:nth-last-of-type(2) { right: 25px; }
+details > summary .icon-btn:nth-last-of-type(3) { right: 50px; }
+details > summary .icon-btn:nth-last-of-type(4) { right: 75px; }
+details > summary .icon-btn:nth-last-of-type(5) { right: 100px; }
+details > summary .icon-btn:nth-last-of-type(6) { right: 125px; }
+
+/* Tilføj flere hvis du har flere knapper */
+
+summary .icon-btn {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: #ddd;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+summary .icon-btn:hover {
+  background: #bbb;
+}
+
+details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  padding-left: 1.2em; /* plads til din trekant */
+}
+
+details > summary::before {
+  content: "▶";
+  position: absolute;
+  left: 0.2em;
+  font-size: 0.8em;
+  transition: transform 0.2s;
+}
+
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+
+
 
 
 </style>
