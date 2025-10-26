@@ -426,8 +426,9 @@ summary.appendChild(makeBtn("📝", "Rename", () => {
     }));
 
     // 🔼 Op / 🔽 Ned
-    summary.appendChild(makeBtn("⬆️", "Move up", () => moveItem(item, -1)));
-    summary.appendChild(makeBtn("⬇️", "Move down", () => moveItem(item, 1)));
+    summary.appendChild(makeBtn("▴", "Move up", () => moveItem(item, -1)));
+    summary.appendChild(makeBtn("▾", "Move down", () => moveItem(item, 1)));
+	
 
     // 👶 Børn
     const children = groupedItems[item.ID];
@@ -1764,14 +1765,14 @@ wrapper.appendChild(addActionBtn);
 
     // 🔼🔽 Sorteringsknapper
     const upBtn = document.createElement("button");
-    upBtn.textContent = "⬆️";
+    upBtn.textContent = "▴";
     upBtn.className = "icon-btn";
     upBtn.style.marginLeft = "5px";
     upBtn.onclick = () => moveTriggerUp(index);
     summary.appendChild(upBtn);
 
     const downBtn = document.createElement("button");
-    downBtn.textContent = "⬇️";
+    downBtn.textContent = "▾";
     downBtn.className = "icon-btn";
     downBtn.style.marginLeft = "2px";
     downBtn.onclick = () => moveTriggerDown(index);
@@ -1780,7 +1781,7 @@ wrapper.appendChild(addActionBtn);
 	
 	// 📄 Duplicate button
 	const duplicateBtn = document.createElement("button");
-	duplicateBtn.textContent = "📄";
+	duplicateBtn.textContent = "🧬";
 	duplicateBtn.title = "Duplicate event";
 	duplicateBtn.className = "icon-btn";
 
@@ -1803,7 +1804,7 @@ wrapper.appendChild(addActionBtn);
 	
     // 🗑️ Delete button
     const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "🗑️";
+    deleteBtn.textContent = "❌";
     deleteBtn.className = "icon-btn";
     deleteBtn.onclick = () => {
       GeneratedTriggers.splice(index, 1);
@@ -3512,6 +3513,8 @@ details > summary {
   justify-content: space-between;
   position: relative;
   padding-right: 80px; /* reserver plads til knapperne */
+  padding-bottom: 3px;
+  padding-top: 3px;
   overflow: hidden;
 }
 
@@ -3556,6 +3559,7 @@ summary .icon-btn {
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  font-size: 18px;
 }
 
 summary .icon-btn:hover {
