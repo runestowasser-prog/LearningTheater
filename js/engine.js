@@ -265,6 +265,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.Class=undefined;
 	S.Scale=1;
 	S.ShowOrigin=false;
+	S.InputType=undefined;
     return S;
 }
 
@@ -327,11 +328,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,null,16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,null,16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	
@@ -628,6 +629,9 @@ function GenerateElement(id){
 			t.innerHTML += id.Text;
 			x.appendChild(t);
 			x.innerHTML = id.Text;
+		}
+		if(id.InputType!=undefined){
+			x.type=id.InputType;
 		}
 			
 		if(id.Draggable==true){
