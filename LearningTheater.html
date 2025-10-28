@@ -1262,13 +1262,56 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   	});
   	break;
 
-       case "raw":
-  	input = document.createElement("input");
-  	input.value = argsValues[index] || "";
-  	input.addEventListener("input", () => {
-    	onChange(argsValues[index], input.value);
-  	});
-  	break;
+    case "raw":
+  input = document.createElement("input");
+  input.value = argsValues[index] || "";
+  input.style.width = "50%";
+
+  input.addEventListener("input", () => {
+    onChange(index, input.value);
+  });
+
+  input.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+
+    const menuItems = [
+      { label: "CurrentScene", value: "CurrentScene" },
+      { label: "StageWidth", value: "StageWidth" },
+      { label: "StageHeight", value: "StageHeight" },
+      { label: "MouseX", value: "MouseX" },
+      { label: "MouseY", value: "MouseY" },
+      "divider",
+      { label: "Beregn procent", value: "(value/total)*100" },
+      { label: "Tilføj 1", value: "x+1" },
+      { label: "Træk 1 fra", value: "x-1" },
+    ];
+
+    showContextMenu(e.pageX, e.pageY, menuItems, (choice) => {
+      // indsæt valgte tekst dér, hvor cursoren er
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = input.value;
+      input.value = text.slice(0, start) + choice + text.slice(end);
+      input.selectionStart = input.selectionEnd = start + choice.length;
+      onChange(index, input.value);
+    });
+  });
+  break;
+
+
+
+	
+/*		case "help":
+	// ?? Hjælpeknap
+  const helpBtn = document.createElement("button");
+  helpBtn.textContent = "?";
+  helpBtn.className = "help-btn";
+  helpBtn.title = "Indsæt global variabel";
+  helpBtn.onclick = (e) => {
+    e.stopPropagation();
+    openGlobalsHelp(input);
+  };
+  break;*/
 	
        case "property":
   input = document.createElement("select");
@@ -1331,6 +1374,64 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
 
   return container;
 }
+
+
+
+function showContextMenu(x, y, items, onSelect) {
+  // Fjern eksisterende
+  const old = document.getElementById("contextMenu");
+  if (old) old.remove();
+
+  const menu = document.createElement("div");
+  menu.id = "contextMenu";
+  menu.style.position = "absolute";
+  menu.style.left = x + "px";
+  menu.style.top = y + "px";
+  menu.style.background = "#222";
+  menu.style.color = "#fff";
+  menu.style.padding = "4px 0";
+  menu.style.borderRadius = "6px";
+  menu.style.boxShadow = "0 2px 10px rgba(0,0,0,0.4)";
+  menu.style.zIndex = 99999;
+  menu.style.minWidth = "180px";
+  menu.style.fontFamily = "sans-serif";
+
+  for (const item of items) {
+    if (item === "divider") {
+      const div = document.createElement("div");
+      div.style.borderTop = "1px solid #555";
+      div.style.margin = "4px 0";
+      menu.appendChild(div);
+      continue;
+    }
+    const btn = document.createElement("div");
+    btn.textContent = item.label;
+    btn.style.padding = "6px 12px";
+    btn.style.cursor = "pointer";
+    btn.addEventListener("mouseenter", () => (btn.style.background = "#444"));
+    btn.addEventListener("mouseleave", () => (btn.style.background = "transparent"));
+    btn.addEventListener("click", () => {
+      onSelect(item.value);
+      menu.remove();
+    });
+    menu.appendChild(btn);
+  }
+
+  document.body.appendChild(menu);
+
+  // Fjern menu ved klik udenfor
+  document.addEventListener(
+    "click",
+    function closeMenu() {
+      menu.remove();
+      document.removeEventListener("click", closeMenu);
+    },
+    { once: true }
+  );
+}
+
+
+
 
 let triggerFoldState = {};
 
@@ -3196,6 +3297,11 @@ BuildCode.on("click", function() {
 
          ContextMenu.Opacity=0;
 });
+BuildCode.on("inputRead", function (cm, change) {
+  if (change.text[0].match(/\w/)) {
+    cm.showHint({ completeSingle: false });
+  }
+});
 
 
 GeneralCode=CodeMirror(elementId("generalCode"), {
@@ -3223,6 +3329,11 @@ GeneralCode.on("click", function() {
 
          ContextMenu.Opacity=0;
 });
+GeneralCode.on("inputRead", function (cm, change) {
+  if (change.text[0].match(/\w/)) {
+    cm.showHint({ completeSingle: false });
+  }
+});
 
 UpdateCode=CodeMirror(elementId("updateCode"), {
   lineNumbers: false,
@@ -3247,6 +3358,11 @@ UpdateCode.on('contextmenu', function(event){
 UpdateCode.on("click", function() {
 
          ContextMenu.Opacity=0;
+});
+UpdateCode.on("inputRead", function (cm, change) {
+  if (change.text[0].match(/\w/)) {
+    cm.showHint({ completeSingle: false });
+  }
 });
 
 ScenestartCode=CodeMirror(elementId("scenestartCode"), {
@@ -3273,6 +3389,11 @@ ScenestartCode.on("click", function() {
 
          ContextMenu.Opacity=0;
 });
+ScenestartCode.on("inputRead", function (cm, change) {
+  if (change.text[0].match(/\w/)) {
+    cm.showHint({ completeSingle: false });
+  }
+});
 
 ResizeCode=CodeMirror(elementId("resizeCode"), {
   lineNumbers: false,
@@ -3297,6 +3418,11 @@ ResizeCode.on('contextmenu', function(event){
 ResizeCode.on("click", function() {
 
          ContextMenu.Opacity=0;
+});
+ResizeCode.on("inputRead", function (cm, change) {
+  if (change.text[0].match(/\w/)) {
+    cm.showHint({ completeSingle: false });
+  }
 });
 
 HEADCode=CodeMirror(elementId("HEAD"), {
@@ -3412,6 +3538,9 @@ EventEditor.Height=StageHeight-60;
 
 
 }
+
+
+
 </script>
 <script src="js/engine.js"></script>
 <script src="js/gsap.min.js"></script>
@@ -3429,6 +3558,11 @@ EventEditor.Height=StageHeight-60;
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/foldgutter.min.js" integrity="sha512-kEVEkqJPlijyiRihpbPuhIW6wkb5wcEaVsfYm/utqn8ToMspk7E2fK5UyZ2HdnJnA4/0HyQwqeKzHNuPm+zyCw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/indent-fold.min.js" integrity="sha512-Q6g5qQfa6ko+Y+0BwAciUAq01qxgfScTPFP2Fsrr+zIrTe5Yq3tN5xaA919MmBs/1RMz/jyctknYavjc3k+/xg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/fold/brace-fold.min.js" integrity="sha512-5MuaB1PVXvhsYVG0Ozb0bwauN7/D1VU4P8dwo5E/xiB9SXY+VSEhIyxt1ggYk2xaB/RKqKL7rPXpm1o1IlTQDA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"></script>
+
 
 <style>
 
@@ -3614,12 +3748,63 @@ details[open] > summary::before {
   transform: rotate(90deg);
 }
 
-
+.raw-cm-wrapper .CodeMirror {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
 
 
 
 </style>
+<script>
+const GlobalSuggestions = [
+  { label: "CurrentScene", info: "Aktiv scene" },
+  { label: "StageWidth", info: "Bredde på scenen i pixels" },
+  { label: "StageHeight", info: "Højde på scenen i pixels" },
+  { label: "MouseX", info: "Musens X-position" },
+  { label: "MouseY", info: "Musens Y-position" },
+  { label: "AllActors", info: "Array med alle aktører" },
+  { label: "AllScenes", info: "Array med alle scener" }
+];
 
+// Gem original JS hinter
+const defaultJsHint = CodeMirror.hint.javascript;
+
+// Registrér vores udvidede variant
+CodeMirror.registerHelper("hint", "javascript", function (editor) {
+  const cur = editor.getCursor();
+  const token = editor.getTokenAt(cur);
+  const start = token.start;
+  const end = cur.ch;
+  const currentWord = token.string;
+
+  // Hent den originale suggestions-liste
+  let defaultList = [];
+  if (defaultJsHint) {
+    const builtIn = defaultJsHint(editor);
+    if (builtIn && builtIn.list) defaultList = builtIn.list;
+  }
+
+  // Dine egne globale forslag
+  const globalList = GlobalSuggestions
+    .filter(s => s.label.toLowerCase().startsWith(currentWord.toLowerCase()))
+    .map(s => ({
+      text: s.label,
+      displayText: s.label + " — " + s.info,
+    }));
+
+  return {
+    list: [...globalList, ...defaultList],
+    from: CodeMirror.Pos(cur.line, start),
+    to: CodeMirror.Pos(cur.line, end)
+  };
+});
+
+
+</script>
 </head>
 <body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
