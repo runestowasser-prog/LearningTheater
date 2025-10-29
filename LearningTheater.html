@@ -1103,6 +1103,14 @@ function getAllProperties() {
 }
 
 
+function syncEnsemblesFromPreview() {
+  if (window.PreviewWindow && window.PreviewWindow.Ensembles) {
+    window.Ensembles = structuredClone(window.PreviewWindow.Ensembles);
+  }
+}
+
+
+
 // ðŸ”§ HjÃ¦lpefunktion til at bygge argument inputs
 function renderArgsInputs(argsDef, argsValues, onChange) {
   const container = document.createElement("div");
@@ -1267,36 +1275,85 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   input.value = argsValues[index] || "";
   input.style.width = "50%";
 
-  input.addEventListener("input", () => {
-    onChange(index, input.value);
-  });
+  input.addEventListener("input", () => onChange(index, input.value));
 
-  input.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-
-    const menuItems = [
-      { label: "CurrentScene", value: "CurrentScene" },
-      { label: "StageWidth", value: "StageWidth" },
-      { label: "StageHeight", value: "StageHeight" },
-      { label: "MouseX", value: "MouseX" },
-      { label: "MouseY", value: "MouseY" },
-      "divider",
-      { label: "Beregn procent", value: "(value/total)*100" },
-      { label: "Tilføj 1", value: "x+1" },
-      { label: "Træk 1 fra", value: "x-1" },
-    ];
-
-    showContextMenu(e.pageX, e.pageY, menuItems, (choice) => {
-      // indsæt valgte tekst dér, hvor cursoren er
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      const text = input.value;
-      input.value = text.slice(0, start) + choice + text.slice(end);
-      input.selectionStart = input.selectionEnd = start + choice.length;
-      onChange(index, input.value);
-    });
-  });
+  // Tilføj højreklik-menu
+  attachHelperMenu(input, (val) => onChange(index, val));
   break;
+
+
+case "ensemble": {
+  input = document.createElement("select");
+  input.className = "arg-input";
+
+  function getPreviewWindow() {
+    const iframe = document.getElementById("PreviewWindow");
+    if (!iframe) return window; // fallback til editor window
+    try {
+      return iframe.contentWindow || window;
+    } catch (e) {
+      // cross-origin eller lignende — fallback
+      console.warn("Could not access preview.contentWindow:", e);
+      return window;
+    }
+  }
+
+  function updateDropdown() {
+  const pw = getPreviewWindow();
+  input.innerHTML = "";
+
+  const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles"];
+  const candidates = Object.keys(pw || {})
+    .filter(k => {
+      try {
+        const v = pw[k];
+        // kun arrays, ikke funktioner, og ikke interne navne
+        return (
+          Array.isArray(v) &&
+          v.length >= 0 &&
+          !exclude.includes(k)
+        );
+      } catch (e) {
+        return false;
+      }
+    });
+
+  if (candidates.length === 0) {
+    const none = document.createElement("option");
+    none.textContent = "(no ensembles)";
+    none.disabled = true;
+    input.appendChild(none);
+  } else {
+    candidates.forEach(name => {
+      let count = 0;
+      try { count = (pw[name] && pw[name].length) || 0; } catch(e){}
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = `${name} (${count})`;
+      input.appendChild(opt);
+    });
+    // Gendan tidligere valgt værdi hvis muligt
+    if (argsValues[index]) {
+      const found = Array.from(input.options).some(o => o.value === argsValues[index]);
+      if (found) input.value = argsValues[index];
+    }
+  }
+}
+
+
+  // Opdater lige inden brug (når dropdown åbnes) og på fokus
+  input.addEventListener("mousedown", updateDropdown);
+  input.addEventListener("focus", updateDropdown);
+
+  input.addEventListener("change", () => {
+    onChange(index, input.value); // bruger den signatur du sagde var gældende
+  });
+
+  // initial population
+  updateDropdown();
+  break;
+}
+
 
 
 
@@ -1375,26 +1432,61 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   return container;
 }
 
+//universal helper function
+function attachHelperMenu(input, onChange) {
+  input.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+
+    const menuItems = [
+      { label: "?? Globale variabler", header: true },
+      { label: "CurrentScene", value: "CurrentScene" },
+      { label: "StageWidth", value: "StageWidth" },
+      { label: "StageHeight", value: "StageHeight" },
+      { label: "MouseX", value: "MouseX" },
+      { label: "MouseY", value: "MouseY" },
+      { label: "divider" },
+      { label: "?? Beregninger", header: true },
+      { label: "x + 1", value: "x+1" },
+      { label: "x - 1", value: "x-1" },
+      { label: "Procent af total", value: "(value/total)*100" },
+      { label: "Gennemsnit (a,b)", value: "(a+b)/2" },
+      { label: "Tilfældig værdi", value: "Math.random()" },
+      { label: "Afrund til heltal", value: "Math.round(x)" },
+      { label: "Min/max", value: "Math.min(a,b)" },
+    ];
+
+    showContextMenu(e.pageX, e.pageY, menuItems, (choice) => {
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = input.value;
+      input.value = text.slice(0, start) + choice + text.slice(end);
+      input.selectionStart = input.selectionEnd = start + choice.length;
+      if (onChange) onChange(input.value);
+    });
+  });
+}
 
 
 function showContextMenu(x, y, items, onSelect) {
-  // Fjern eksisterende
   const old = document.getElementById("contextMenu");
   if (old) old.remove();
 
   const menu = document.createElement("div");
   menu.id = "contextMenu";
-  menu.style.position = "absolute";
-  menu.style.left = x + "px";
-  menu.style.top = y + "px";
-  menu.style.background = "#222";
-  menu.style.color = "#fff";
-  menu.style.padding = "4px 0";
-  menu.style.borderRadius = "6px";
-  menu.style.boxShadow = "0 2px 10px rgba(0,0,0,0.4)";
-  menu.style.zIndex = 99999;
-  menu.style.minWidth = "180px";
-  menu.style.fontFamily = "sans-serif";
+  Object.assign(menu.style, {
+    position: "absolute",
+    left: x + "px",
+    top: y + "px",
+    background: "#222",
+    color: "#fff",
+    padding: "4px 0",
+    borderRadius: "6px",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.4)",
+    zIndex: 99999,
+    minWidth: "220px",
+    fontFamily: "sans-serif",
+    fontSize: "13px"
+  });
 
   for (const item of items) {
     if (item === "divider") {
@@ -1404,6 +1496,18 @@ function showContextMenu(x, y, items, onSelect) {
       menu.appendChild(div);
       continue;
     }
+
+    if (item.header) {
+      const h = document.createElement("div");
+      h.textContent = item.label;
+      h.style.fontWeight = "bold";
+      h.style.opacity = "0.8";
+      h.style.padding = "4px 10px";
+      h.style.fontSize = "12px";
+      menu.appendChild(h);
+      continue;
+    }
+
     const btn = document.createElement("div");
     btn.textContent = item.label;
     btn.style.padding = "6px 12px";
@@ -1419,7 +1523,6 @@ function showContextMenu(x, y, items, onSelect) {
 
   document.body.appendChild(menu);
 
-  // Fjern menu ved klik udenfor
   document.addEventListener(
     "click",
     function closeMenu() {
@@ -1429,6 +1532,7 @@ function showContextMenu(x, y, items, onSelect) {
     { once: true }
   );
 }
+
 
 
 
@@ -2079,7 +2183,7 @@ function showPreview(){
   
 	
   
-    var jsCode = "<scri"+"pt>\n var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
   SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
   
@@ -3259,7 +3363,28 @@ elementId("myRange").value=SceneTimePosition*100;
 
 function SceneStart(){
 
+const previewWindow = document.getElementById("PreviewWindow").contentWindow;
 
+function getPreview() {
+  return window.previewWindow || window; // fallback hvis du tester uden preview
+}
+
+function setEnsemble(name, members) {
+  getPreview().Ensembles[name] = members;
+}
+
+function getEnsemble(name) {
+  return getPreview().Ensembles[name] || [];
+}
+
+function clearEnsemble(name) {
+  delete getPreview().Ensembles[name];
+}
+
+function getEnsembleList() {
+  const p = getPreview();
+  return p.Ensembles ? Object.keys(p.Ensembles) : [];
+}
 
 
 
@@ -3802,8 +3927,13 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
     to: CodeMirror.Pos(cur.line, end)
   };
 });
-
-
+/*
+var PreviewWindow=elementId("PreviewWindow");
+function syncEnsemblesFromPreview() {
+  if (window.PreviewWindow && window.PreviewWindow.Ensembles) {
+    window.Ensembles = structuredClone(window.PreviewWindow.Ensembles);
+  }
+}*/
 </script>
 </head>
 <body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
