@@ -115,29 +115,31 @@ const ConditionFunctions = {
 
     "GatherEnsemble": {
   label: "Gather ensemble by",
-	category:"Ensemble",
-
-  args: [
-	{ type: "raw", label: "Ensemble name" },
-    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
-    { type: "raw", label: "Property value" }
-  ],
-  build: (args) => `${args[0]} = Actors.filter(a => a["${args[1]}"] == "${args[2]}")`
-  },
-
-
-  "filterEnsemble": {
-  label: "Filter ensemble",
-	category:"Ensemble",
-
+  category: "Ensemble",
   args: [
     { type: "raw", label: "Ensemble name" },
-    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
-    { type: "compare", label: "",defaultValue:"=="},
+    { type: "property", label: "Property", exclude: ["BackgroundImage","Click","Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue: "X" },
     { type: "raw", label: "Property value" }
   ],
-  build: (args) => `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} "${args[3]}")`
-  },
+  build: (args) => `GatherEnsemble(${JSON.stringify(args[0])}, ${JSON.stringify(args[1])}, ${JSON.stringify(args[2])})`
+},
+
+"FilterEnsemble": {
+  label: "Filter ensemble",
+  category: "Ensemble",
+  args: [
+    { type: "ensemble", label: "Ensemble" },
+    { type: "property", label: "Property", defaultValue: "X" },
+    { type: "compare", label: "", defaultValue: "==" },
+    { type: "raw", label: "Value" }
+  ],
+  build: (args) =>
+    `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} "${args[3]}")`
+},
+
+
+
+
 
 
 
@@ -487,6 +489,22 @@ const ActionFunctions = {
 
     ],
     build: (args) => `Move.to(${args[0]},{X:${args[1]}.X+${args[2]}, Y:${args[1]}.Y+${args[3]}, duration:${args[4]}})`
+  },
+  
+  "ToggleProperty": {
+	label: "Toggle Property",
+	category: "Actor",
+  
+	args: [
+		{ label: "Actor", type: "actor" },
+		{ label: "Property", type: "property",},
+		{ label: "Value A", type: "raw" },
+		{ label: "Value B", type: "raw" },
+	],
+	
+  build: (args) => 
+	`if (${args[0]}.${args[1]} == ${args[2]}) {   ${args[0]}.${args[1]} = ${args[3]};  } else {    ${args[0]}.${args[1]} = ${args[2]};      }    `
+	
   },
 
   "ChangeColor": {

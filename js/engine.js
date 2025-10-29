@@ -14,6 +14,7 @@ Ensemble2 = [];
 
 
 
+
 var StageWidth=640,StageHeight=360;
 var Scene;
 Elements = new Array();
@@ -944,6 +945,8 @@ function SceneStartTrigger() {
 
 function runTriggers(eventName) {
   if (!Array.isArray(Triggers)) return;
+  // Initér per-trigger ensemble-store
+     if (!window.Ensembles) window.Ensembles = {};
 
   for (const trigger of Triggers) {
     if (trigger.event !== eventName) continue;
@@ -1098,3 +1101,38 @@ actions.forEach(act => {
 }
 
 var Actors=Elements;
+
+// ---------- Ensemble helpers ----------
+window.Ensembles = window.Ensembles || {};
+
+window._getEnsembleStoreFor = function(name) {
+  if (typeof name === "string" && name.startsWith("_")) {
+    window.Ensembles = window.Ensembles || {};
+    return window.Ensembles;
+  }
+  window._triggerEnsembles = window._triggerEnsembles || {};
+  return window._triggerEnsembles;
+};
+
+function GatherEnsemble(name, property, value) {
+  if (!window.Actors) return;
+  const result = Actors.filter(a => a[property] == value);
+  window[name] = result;
+  return result;
+}
+
+function FilterEnsemble(name, property, compare, value) {
+  if (!window[name]) return;
+  const result = window[name].filter(a => {
+    try {
+      return eval(`a["${property}"] ${compare} ${value}`);
+    } catch {
+      return false;
+    }
+  });
+  window[name] = result;
+  return result;
+}
+
+
+
