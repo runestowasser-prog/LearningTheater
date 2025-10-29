@@ -115,6 +115,7 @@ function showTimelines(){
 	frame.close();
 }
 
+
 function updateActorList() {
   const actors = AllActors;
 
@@ -623,32 +624,25 @@ editor.appendChild(gridWrapper);
 
 	const propertyExclusions = {
 		//Scene: ["Parent", "Draggable", "Shape", "Source", "Controls"],
-		div: ["Controls","InputType"],
-		img: ["Text", "Controls", "FontSize", "Color","InputType"],
-		video: ["Text",,"InputType"],
-		audio: ["Text",,"InputType"],
-		iframe: ["Controls",,"InputType"],
-		canvas: ["Text","Controls","InputType"],
-		audio: ["Text", "FontSize","InputType"],
-		video: ["Text", "FontSize", "Color","InputType"],
-		button: ["Controls","InputType"],
-		input: ["Controls"],
-		select: ["Controls","Text","InputType"],
-		option: ["Shape","TransformOriginX","TransformOriginY","ShowOrigin","Controls","Width","Height","X","Y","Scale","Opacity","Angle","SkewX","SkewY","RotateX","RotateY","RotateZ","TranslateX","TranslateY","TranslateZ","Draggable","InputType"],
+		div: ["Controls"],
+		img: ["Text", "Controls", "FontSize", "Color"],
+		shape: ["Source", "Text", "FontSize", "Class", "Style"],
+		iframe: ["Controls",],
+		audio: ["Color", "FontSize"],
+		video: ["Text", "FontSize", "Color"],
 	};
 
   const allProperties = [
-    "ID", "Type", "InputType", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
+    "ID", "Type", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
     "ShowOrigin", "Controls", "Width", "Height", "X", "Y", "Scale", "Opacity",
     "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateX",
     "TranslateY", "TranslateZ", "Text", "FontSize", "MouseDown", "MouseUp",
-    "Draggable", "Style", "Class",
+    "Draggable", "Style", "Class"
   ];
 
   const parentOptions = [...AllScenes, ...AllActors].map(obj => obj.ID);
-  const htmlTags = ["div", "video", "audio", "iframe", "canvas", "input", "textarea"];
+  const htmlTags = ["div", "img", "video", "audio", "iframe", "canvas", "button", "object","input","select","option","textarea"];
   const shapeOptions = ["Square", "Circle", "Triangle", "Star", "LeftArrow", "RightArrow", "Heart", "Lightning", "Home", "Play", "Pause", "Diamond", "Keyhole", "SpeechBubble"];
-  const inputTypeOptions = ["text", "number", "range","checkbox","color","date","file","password","radio","time"];
   
   const actorType = item.Type?.toLowerCase() || "default";
   const exclude = propertyExclusions[actorType] || [];
@@ -688,20 +682,6 @@ editor.appendChild(gridWrapper);
     } else if (prop === "Type") {
       input = document.createElement("select");
       htmlTags.forEach(tag => {
-        const option = document.createElement("option");
-        option.value = tag;
-        option.textContent = tag;
-		input.addEventListener("change", () => {
-			item.Type = input.value;
-			openPropertyEditor(item);
-		});
-        if (tag === value) option.selected = true;
-        input.appendChild(option);
-      });
-	
-	} else if (prop === "InputType") {
-      input = document.createElement("select");
-      inputTypeOptions.forEach(tag => {
         const option = document.createElement("option");
         option.value = tag;
         option.textContent = tag;
@@ -976,11 +956,11 @@ function generateActorCode(actor) {
   code += `ActorProps(thisActor, {\n`;
 
   const keysToInclude = [
-    "Parent", "InputType", "Width", "Height", "X", "Y", "Z", "Angle", "RotateX", "RotateY", "RotateZ",
+    "Parent", "Width", "Height", "X", "Y", "Z", "Angle", "RotateX", "RotateY", "RotateZ",
     "ShowOrigin", "TransformOriginX", "TransformOriginY", "Draggable", "MouseDown", "MouseUp", "Click", "Style", "Color", 
     "Text", "TextColor", "FontSize", "Opacity", "TranslateX", "TranslateY", 
     "TranslateZ", "Scale", "SkewX", "SkewY", "Overflow", "BackgroundImage", "Source", "Shape", "Controls",
-    "Class", 
+    "Class"
   ];
 
   keysToInclude.forEach(key => {
@@ -3559,15 +3539,7 @@ ResizeCode.on("inputRead", function (cm, change) {
 HEADCode=CodeMirror(elementId("HEAD"), {
   lineNumbers: false,
   tabSize: 2,
-  value: `<style>
-	html{
-	font-family:arial;
-	}
-	svg{
-	width:100%;
-	height:100%;
-	}
-	</style>`,
+  value: '<style></style>',
   mode: 'htmlmixed',
   lineWrapping:true,
   extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
