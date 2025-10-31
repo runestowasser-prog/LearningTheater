@@ -134,7 +134,7 @@ const ConditionFunctions = {
     { type: "raw", label: "Value" }
   ],
   build: (args) =>
-    `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} "${args[3]}")`
+    `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} ${args[3]})`
 },
 
 
@@ -148,6 +148,7 @@ const ConditionFunctions = {
   category: "Ensemble",
   args: [
     { type: "actor", label: "Actor" },
+	{ type: "ensemble", label: "Ensemble" },
     { type: "boolean", label: "Top", defaultValue: "true" },
     { type: "boolean", label: "Bottom", defaultValue: "true" },
     { type: "boolean", label: "Left", defaultValue: "true" },
@@ -160,7 +161,7 @@ const ConditionFunctions = {
 
     const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
     if (allSidesSelected) {
-      return `Ensemble = Ensemble.filter(a => Collision(${actor}, a, ${modX}, ${modY}))`;
+      return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a, ${modX}, ${modY}))`;
     }
 
     const checks = [];
@@ -169,17 +170,17 @@ const ConditionFunctions = {
     if (left === true || left === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "left"`);
     if (right === true || right === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "right"`);
 
-    return `Ensemble = Ensemble.filter(a => Collision(${actor}, a, ${modX}, ${modY}) && (${checks.join(" || ")}))`;
+    return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a, ${modX}, ${modY}) && (${checks.join(" || ")}))`;
   }
 },
 
 
 "EnsemblesCollide": {
-  label: "Ensemble collides with any in 2nd Ensemble",
+  label: "Ensembles collides",
   category: "Ensemble",
   args: [
-    { type: "raw", label: "Ensemble" },
-    { type: "raw", label: "2nd Ensemble" },
+    { type: "ensemble", label: "Ensemble" },
+    { type: "ensemble", label: "2nd Ensemble" },
     { type: "boolean", label: "Top", defaultValue: "true" },
     { type: "boolean", label: "Bottom", defaultValue: "true" },
     { type: "boolean", label: "Left", defaultValue: "true" },
@@ -201,7 +202,7 @@ const ConditionFunctions = {
     if (left === true || left === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "left"`);
     if (right === true || right === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "right"`);
 
-    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})))`;
+    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})) && ${ensemble}.length>0)`;
   }
 },
 
@@ -212,7 +213,7 @@ const ConditionFunctions = {
   "EnsembleNotEmpty":{
   label: "Ensemble is NOT empty",
   args:[
-  { type: "raw", label: "Ensemble" },
+  { type: "ensemble", label: "Ensemble" },
   ],
 	category:"Ensemble",
 
@@ -222,7 +223,7 @@ const ConditionFunctions = {
     "EnsembleEmpty":{
   label: "Ensemble is empty",
   args:[
-  { type: "raw", label: "Ensemble" },
+  { type: "ensemble", label: "Ensemble" },
   ],
 	category:"Ensemble",
 
@@ -360,24 +361,36 @@ const ActionFunctions = {
     label: "Go to next scene",
 	category:"Scene",
 
-    args: [],
-    build: () => `NextScene()`
+     args: [
+	{ type: "raw", label: "Duration", defaultValue:"0" },	
+	{ type: "dropdown", label: "Transition", options: ["Slide", "Fade",], defaultValue: "Fade" },
+	{ type: "dropdown", label: "Direction", options: ["Up", "Down","Left","Right"], defaultValue: "Left" }
+		
+	],
+    build: (args) => `NextScene("${args[1]}",${args[0]},"${args[2]}")`
   },
     "PreviousScene": {
     label: "Go to previous scene",
 	category:"Scene",
 
-    args: [],
-    build: () => `PrevScene()`
+    args: [
+	{ type: "raw", label: "Duration", defaultValue:"0" },	
+	{ type: "dropdown", label: "Transition", options: ["Slide", "Fade",], defaultValue: "Fade" },
+	{ type: "dropdown", label: "Direction", options: ["Up", "Down","Left","Right"], defaultValue: "Left" }
+		
+	],
+    build: (args) => `PrevScene("${args[1]}",${args[0]},"${args[2]}")`
   },
   "GotoScene": {
     label: "Go to scene",
 	category:"Scene",
-
-    args: [
+	args: [
+	{ type: "raw", label: "Duration", defaultValue:"0" },	
+	{ type: "dropdown", label: "Transition", options: ["Slide", "Fade",], defaultValue: "Fade" },
+	{ type: "dropdown", label: "Direction", options: ["Up", "Down","Left","Right"], defaultValue: "Left" },
     { type: "scene", label: "Scene",  defaultValue:"Scenes[0]" },
    ],
-    build: (args) => `GotoScene(${args[0]})`
+    build: (args) => `GotoScene("${args[1]}",${args[0]},"${args[2]}",${args[3]})`
   },
     "Fade Out": {
     label: "Fade out actor",
@@ -442,7 +455,7 @@ const ActionFunctions = {
 	category:"Ensemble",
 
   args: [
-	{ type: "raw", label: "Ensemble name"},
+	{ type: "ensemble", label: "Ensemble name"},
     { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
     { type: "adjust", label: "Adjustment", defaultValue:"=" },
     { type: "raw", label: "New value" }

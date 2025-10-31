@@ -229,7 +229,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	var S = new Object();
     S.X = X;
     S.Y = Y;
-    S.Width = 200;
+    S.Width = Width;
     S.Height = Height;
     S.Angle = Angle;
     S.Opacity = 100;
@@ -266,6 +266,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.Class=undefined;
 	S.Scale=1;
 	S.ShowOrigin=false;
+	S.InputType=undefined;
     return S;
 }
 
@@ -286,36 +287,73 @@ function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,
 	thisScene=id;
 }
 
-function NextScene(){
+
+function SceneTransition(Transition,Duration,direction,ThisScene,Next){
+	var thisScene=ThisScene;
+	var next=Next
+	
+  console.log("transition triggered")
+  if(Transition=="Slide"&&direction=="Left"){
+	gsap.to(thisScene, {duration: Duration, X: -StageWidth,ease:"power2.inOut"});
+	gsap.fromTo(Scenes[next], {X:StageWidth,Opacity:100},{duration: Duration, X: 0,ease:"power2.inOut"});
+  }
+    if(Transition=="Slide"&&direction=="Right"){
+	gsap.to(thisScene, {duration: Duration, X: StageWidth});
+	gsap.fromTo(Scenes[next], {X:-StageWidth,Opacity:100},{duration: Duration, X: 0});
+  }
+  if(Transition=="Slide"&&direction=="Up"){
+	gsap.to(thisScene, {duration: Duration, Y: -StageHeight,ease:"power2.inOut"});
+	gsap.fromTo(Scenes[next], {Y:StageHeight,Opacity:100},{duration: Duration, Y: 0,ease:"power2.inOut"});
+  }
+  if(Transition=="Slide"&&direction=="Down"){
+	gsap.to(thisScene, {duration: Duration, Y: StageHeight,ease:"power2.inOut"});
+	gsap.fromTo(Scenes[next], {Y:-StageHeight,Opacity:100},{duration: Duration, Y: 0,ease:"power2.inOut"});
+  }
+  
+  if(Transition=="Fade"){
+	gsap.to(thisScene, {duration: Duration, Opacity: 0});
+	gsap.fromTo(Scenes[next], {Opacity:0},{duration: Duration, Opacity: 100});
+  }
+}
+
+
+function NextScene(Transition,Duration,Direction){
 	var ThisScene=Scenes[CurrentScene];
 	var Next=Scenes.indexOf(ThisScene)+1;
-	gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
-	gsap.to(Scenes[Next], {duration: 0.1, Opacity: 100});
+	var direction=Direction
+	//gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
+	//gsap.to(Scenes[Next], {duration: 0.1, Opacity: 100});
+	SceneTransition(Transition,Duration,direction,ThisScene,Next);
 	CurrentScene++;
 	SceneStart();
 	SceneStartTrigger()
 	GetScene().Timeline.restart()
+	
 }
 
-function PrevScene(){
+function PrevScene(Transition,Duration,Direction){
 	var ThisScene=Scenes[CurrentScene];
 	var Next=Scenes.indexOf(ThisScene)-1;
-	gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
+	var direction=Direction
+	//gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
 	//ThisScene.Opacity=0;
-	gsap.to(Scenes[Next], {duration: 0.1, Opacity: 100});
+	//gsap.to(Scenes[Next], {duration: 0.1, Opacity: 100});
 	//Scenes[Next].Opacity=100;
+	SceneTransition(Transition,Duration,direction,ThisScene,Next);
 	CurrentScene--;
 	SceneStart();
 	SceneStartTrigger()
 	GetScene().Timeline.restart()
 }
 
-function GotoScene(n){
+function GotoScene(Transition,Duration,Direction,n){
 	var ThisScene=Scenes[CurrentScene];
+	var direction=Direction
 	var hash=n;
 	var Next=n;
-	gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
-	gsap.to(Next, {duration: 0.1, Opacity: 100});
+	//gsap.to(ThisScene, {duration: 0.1, Opacity: 0});
+	//gsap.to(Next, {duration: 0.1, Opacity: 100});
+	SceneTransition(Transition,Duration,direction,ThisScene,Scenes.indexOf(Next));
 	CurrentScene=Scenes.indexOf(Next);
 	SceneStart();
 	SceneStartTrigger()
@@ -328,11 +366,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,null,16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,null,16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	
@@ -630,6 +668,9 @@ function GenerateElement(id){
 			x.appendChild(t);
 			x.innerHTML = id.Text;
 		}
+		if(id.InputType!=undefined){
+			x.type=id.InputType;
+		}
 			
 		if(id.Draggable==true){
 			x.setAttribute("onmousedown","mouseDown("+id.ID+");  "+id.MouseDown+";");
@@ -827,8 +868,8 @@ function init(){
 	attachTriggerListener("stage", "MouseUp");
 
 	if (Scenes[0]!=undefined){
-		Scenes[0].Opacity=100;
-		//elementId(""+Scenes[0].ID).style.display="block";
+		//Scenes[0].Opacity=100;
+		elementId(""+Scenes[0].ID).style.display="block";
 		Scenes[0].Timeline.restart();
 		}
 		StartLoop();
@@ -941,8 +982,6 @@ function SceneStartTrigger() {
 
 function runTriggers(eventName) {
   if (!Array.isArray(Triggers)) return;
-  // Initér per-trigger ensemble-store
-     if (!window.Ensembles) window.Ensembles = {};
 
   for (const trigger of Triggers) {
     if (trigger.event !== eventName) continue;
