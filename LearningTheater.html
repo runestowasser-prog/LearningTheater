@@ -103,9 +103,9 @@ function showTimelines(){
 	//AllSceneTweens=frame.contentwindow.GetScene().value.Timeline.getChildren();
 	//console.log("Which scene: "+currentSelect);
 	
-	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
+	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
 
-	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens;var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\n Scene(\"Scene1\");\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"lightgrey\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\nthisActor.Overflow=\"scroll\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=true;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\n}\nfunction SceneStart(){\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
+	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens;var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"lightgrey\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\nthisActor.Overflow=\"scroll\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\n}\nfunction SceneStart(){Scene1.Opacity=100;\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
 	
 	frame=elementId("TimelineVisual").contentWindow.document;
 	frame.open();
@@ -1082,11 +1082,13 @@ function createNewTrigger(eventType = "Update") {
 
   return {
     event: eventType,
+    target: hasTarget ? (AllActors[0]?.ID || null) : null,  // Hvis der er Actors, vælg første, ellers null
+    comment: "",        // 👈 nyt felt: gemmer brugerens fritekst-kommentar
     conditions: ["true"],
-    actions: [],
-    target: hasTarget ? (AllActors[0]?.ID || null) : null  // Hvis der er Actors, vælg første, ellers null
+    actions: []
   };
 }
+
 
 
 //hjælpefunktion til select med properties
@@ -1297,7 +1299,7 @@ case "ensemble": {
     const pw = getPreviewWindow();
     input.innerHTML = "";
 
-    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles"];
+    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements"];
     const candidates = Object.keys(pw || {})
       .filter(k => {
         try {
@@ -1364,17 +1366,7 @@ case "ensemble": {
 
 
 	
-/*		case "help":
-	// ?? Hj�lpeknap
-  const helpBtn = document.createElement("button");
-  helpBtn.textContent = "?";
-  helpBtn.className = "help-btn";
-  helpBtn.title = "Inds�t global variabel";
-  helpBtn.onclick = (e) => {
-    e.stopPropagation();
-    openGlobalsHelp(input);
-  };
-  break;*/
+
 	
        case "property":
   input = document.createElement("select");
@@ -1444,21 +1436,26 @@ function attachHelperMenu(input, onChange) {
     e.preventDefault();
 
     const menuItems = [
-      { label: "?? Globale variabler", header: true },
+      { label: "?? Global variables", header: true },
       { label: "CurrentScene", value: "CurrentScene" },
       { label: "StageWidth", value: "StageWidth" },
       { label: "StageHeight", value: "StageHeight" },
       { label: "MouseX", value: "MouseX" },
       { label: "MouseY", value: "MouseY" },
       { label: "divider" },
-      { label: "?? Beregninger", header: true },
-      { label: "x + 1", value: "x+1" },
-      { label: "x - 1", value: "x-1" },
-      { label: "Procent af total", value: "(value/total)*100" },
-      { label: "Gennemsnit (a,b)", value: "(a+b)/2" },
-      { label: "Tilf�ldig v�rdi", value: "Math.random()" },
-      { label: "Afrund til heltal", value: "Math.round(x)" },
+      { label: "?? Calculations", header: true },
+      { label: "% of total", value: "(value/total)*100" },
+      { label: "Average (a,b)", value: "(a+b)/2" },
+      { label: "Random value", value: "Math.random()" },
+      { label: "Round", value: "Math.round(x)" },
       { label: "Min/max", value: "Math.min(a,b)" },
+	  { label: "?? Functions", header: true },
+	  { label: "Get dom-element of actor", value: "elementId(Id)" },
+	  { label: "Get duration of video or audio", value: "GetDuration(actor)" },
+	  { label: "Get current time of video or audio", value: "GetCurrentTime(actor)" },
+	  { label: "Get volume of video or audio", value: "GetVolume(actor)" },
+	  { label: "Get volume of video or audio", value: "GetVolume(actor)" },
+	  
     ];
 
     showContextMenu(e.pageX, e.pageY, menuItems, (choice) => {
@@ -1482,7 +1479,8 @@ function showContextMenu(x, y, items, onSelect) {
   Object.assign(menu.style, {
     position: "absolute",
     left: x + "px",
-    top: y + "px",
+    //top: y + "px",
+	top: "100px",
     background: "#222",
     color: "#fff",
     padding: "4px 0",
@@ -1556,7 +1554,7 @@ function renderTriggerEditor(containerId) {
   GeneratedTriggers.forEach((trigger, index) => {
     // 💡 NYT: Lav et details-tag til collapsing
     const details = document.createElement("details");
-    details.open = triggerFoldState[index] ?? true; // behold tidligere fold state
+    details.open = triggerFoldState[index] ?? false; // behold tidligere fold state
     details.style.marginBottom = "10px";
 
     // 💡 NYT: Generér summary tekst
@@ -1566,6 +1564,30 @@ function renderTriggerEditor(containerId) {
 
     const wrapper = document.createElement("div");
     wrapper.className = "trigger-row";
+	
+	// 📝 Kommentar-felt
+const commentLabel = document.createElement("label");
+commentLabel.textContent = "Comment:";
+commentLabel.style.display = "block";
+commentLabel.style.marginTop = "5px";
+
+const commentInput = document.createElement("textarea");
+commentInput.placeholder = "Beskriv kort, hvad dette trigger gør...";
+commentInput.value = trigger.comment || "";
+commentInput.rows = 2;
+commentInput.style.width = "100%";
+commentInput.style.resize = "vertical";
+commentInput.style.marginBottom = "10px";
+
+// Gem værdien direkte på triggeren
+commentInput.oninput = () => {
+  trigger.comment = commentInput.value;
+};
+
+// Tilføj til wrapper
+wrapper.appendChild(commentLabel);
+wrapper.appendChild(commentInput);
+
 
     // 1️⃣ Event dropdown
     const eventSelect = document.createElement("select");
@@ -1744,8 +1766,59 @@ if (conditionObj.fn && ConditionFunctions[conditionObj.fn]) {
   };
   conditionWrapper.appendChild(deleteConditionBtn);
 
+// Move up button
+const moveUpBtn = document.createElement("button");
+moveUpBtn.textContent = "⬆️";
+moveUpBtn.className = "icon-btn";
+moveUpBtn.onclick = () => {
+  if (conditionIndex > 0) {
+    const tmp = trigger.conditions[conditionIndex];
+    trigger.conditions[conditionIndex] = trigger.conditions[conditionIndex - 1];
+    trigger.conditions[conditionIndex - 1] = tmp;
+    renderTriggerEditor(containerId);
+  }
+};
+conditionWrapper.appendChild(moveUpBtn);
+
+// Move down button
+const moveDownBtn = document.createElement("button");
+moveDownBtn.textContent = "⬇️";
+moveDownBtn.className = "icon-btn";
+moveDownBtn.onclick = () => {
+  if (conditionIndex < trigger.conditions.length - 1) {
+    const tmp = trigger.conditions[conditionIndex];
+    trigger.conditions[conditionIndex] = trigger.conditions[conditionIndex + 1];
+    trigger.conditions[conditionIndex + 1] = tmp;
+    renderTriggerEditor(containerId);
+  }
+};
+conditionWrapper.appendChild(moveDownBtn);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   conditionList.appendChild(conditionWrapper);
 }
+
+
+
+
+
+
+
 
 // Render alle eksisterende conditions:
 if (!trigger.conditions) trigger.conditions = []; // fallback
@@ -1777,6 +1850,11 @@ if (!Array.isArray(trigger.actions)) {
 // 🔧 NY hjælper: laver en pæn opsummering af hver trigger
 
 function generateTriggerSummary(trigger, conditionDefs, actionDefs) {
+
+	// Hvis der findes en manuel kommentar, brug den som summary
+  if (trigger.comment && trigger.comment.trim() !== "") {
+    return `📝 ${trigger.comment.trim()}`;
+  }
    let txt = `${trigger.event}`;
   if (trigger.target) txt += ` → ${trigger.target}`;
 
@@ -1948,16 +2026,45 @@ actionWrapper.appendChild(actionFnSelect);
     actionWrapper.appendChild(actionInput);
 
     // Fjern-knap for action
-    const deleteActionBtn = document.createElement("button");
-    deleteActionBtn.textContent = "❌";
-  deleteActionBtn.className = "icon-btn";
-    deleteActionBtn.onclick = () => {
-      trigger.actions.splice(actionIndex, 1);
-      renderActions();
-    };
-    actionWrapper.appendChild(deleteActionBtn);
-	
-    actionsContainer.appendChild(actionWrapper);
+const deleteActionBtn = document.createElement("button");
+deleteActionBtn.textContent = "❌";
+deleteActionBtn.className = "icon-btn";
+deleteActionBtn.onclick = () => {
+  trigger.actions.splice(actionIndex, 1);
+  renderActions();
+};
+actionWrapper.appendChild(deleteActionBtn);
+
+// Flyt op-knap
+const moveUpBtn = document.createElement("button");
+moveUpBtn.textContent = "▴";
+moveUpBtn.className = "icon-btn";
+moveUpBtn.onclick = () => {
+  if (actionIndex > 0) {
+    const tmp = trigger.actions[actionIndex];
+    trigger.actions[actionIndex] = trigger.actions[actionIndex - 1];
+    trigger.actions[actionIndex - 1] = tmp;
+    renderActions();
+  }
+};
+actionWrapper.appendChild(moveUpBtn);
+
+// Flyt ned-knap
+const moveDownBtn = document.createElement("button");
+moveDownBtn.textContent = "▾";
+moveDownBtn.className = "icon-btn";
+moveDownBtn.onclick = () => {
+  if (actionIndex < trigger.actions.length - 1) {
+    const tmp = trigger.actions[actionIndex];
+    trigger.actions[actionIndex] = trigger.actions[actionIndex + 1];
+    trigger.actions[actionIndex + 1] = tmp;
+    renderActions();
+  }
+};
+actionWrapper.appendChild(moveDownBtn);
+
+actionsContainer.appendChild(actionWrapper);
+
 
     if (actionObj.fn) {
   actionFnSelect.value = actionObj.fn;
@@ -2117,11 +2224,13 @@ function exportTriggersToCode() {
     return `Triggers.push({ 
       event: "${trigger.event}", 
       target: ${trigger.target ? `"${trigger.target}"` : null}, 
+      comment: ${JSON.stringify(trigger.comment || "")}, 
       conditions: ${JSON.stringify(trigger.conditions || [])}, 
       actions: ${JSON.stringify(trigger.actions || [])} 
     });`;
   }).join("\n");
 }
+
 
 
 
@@ -2182,7 +2291,7 @@ function showPreview(){
   }
   
   
-  HTMLCode='<!DOCTYPE html>\n<html style="height:100%;" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;}</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; overflow:hidden;" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;}</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
   
   document.getElementById("Scenes").value=currentSelect;
 	
@@ -2329,7 +2438,7 @@ function loadFileAsText()
  
 	if( window.showOpenFilePicker ) {
 	[fileHandle] = await window.showOpenFilePicker({
-		startIn: file_handle,
+		//startIn: file_handle,
 		id:'startId',
 		//startIn: file-handle,
 		types: [{
