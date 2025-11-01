@@ -561,66 +561,6 @@ function GenerateElement(id){
 		x.setAttribute("data-actor-id", id.ID);
 
 
-/*		if(id.MouseDown==null){
-		id.MouseDown="//MouseDown"
-		}
-		if (id.MouseDown != undefined) {
-		  const fn = typeof id.MouseDown === "string"
-    ? new Function(id.MouseDown)
-    : id.MouseDown;
-
-  x.addEventListener("mousedown", () => {
-    // Kør MouseDown-funktion
-    fn();
-
-    // Kør triggers
-    Triggers.forEach(trigger => {
-      if (
-        trigger.event === "MouseDown" &&
-        trigger.target === id.ID &&
-        (
-          !trigger.conditions || 
-          new Function("return (" + trigger.conditions + ")")()
-        )
-      ) {
-        new Function(trigger.actions)();
-      }
-    });
-  });
-}
-
-			
-	
-
-		if(id.MouseUp==null){
-		id.MouseUp="//MouseUp"
-		}
-
-		if (id.MouseUp != undefined) {
-  const fn = typeof id.MouseUp === "string"
-    ? new Function(id.MouseUp)
-    : id.MouseUp;
-
-  x.addEventListener("mouseup", () => {
-    // Kør MouseUp-funktion
-    fn();
-
-    // Kør triggers
-    Triggers.forEach(trigger => {
-      if (
-        trigger.event === "MouseUp" &&
-        trigger.target === id.ID &&
-        (
-          !trigger.conditions || 
-          new Function("return (" + trigger.conditions + ")")()
-        )
-      ) {
-        new Function(trigger.actions)();
-      }
-    });
-  });
-}
-*/
 
 		
 		if(id.Source!=undefined){

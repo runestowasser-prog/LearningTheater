@@ -2,48 +2,53 @@
 const ConditionFunctions = {
  
  "GetVolume": {
-    label: "Get Volume of media",
+    label: "Volume is",
 	category:"Media",
     args: [
       { type: "actor", label: "media Actor" },
-      { type: "raw", label: "time", defaultValue:"0" }
+	  { type: "compare", label: "", defaultValue: "=="},
+      { type: "raw", label: "Volume", defaultValue:"0" }
 
     ],
-    build: (args) => `GetVolume(${args[0]},${args[1]})`
+    build: (args) => `GetVolume(${args[0]}}${args[1]}${args[2]})`
   },
 
  "GetDuration": {
-    label: "Get duration of media",
+    label: "Duration is",
 	category:"Media",
 
     args: [
       { type: "actor", label: "Actor" },
+	  { type: "compare", label: "", defaultValue: "=="},
+      { type: "raw", label: "Volume", defaultValue:"0" }
     ],
-    build: (args) => `GetDuration(${args[0]})`
+    build: (args) => `GetDuration(${args[0]})${args[1]}${args[2]}`
   },
 
  "GetCurrentTime": {
-    label: "Get current time of media",
+    label: "Current time is",
 	category:"Media",
 
     args: [
       { type: "actor", label: "Actor" },
+	  { type: "compare", label: "", defaultValue: "=="},
+      { type: "raw", label: "Volume", defaultValue:"0" }
     ],
-    build: (args) => `GetCurrentTime(${args[0]})`
+    build: (args) => `GetCurrentTime(${args[0]})${args[1]}${args[2]}`
   },
 
  
 
 
  "ActorPosition": {
-    label: "Get Actor position",
+    label: "Actor position is",
 	category:"Actor",
 
     args: [ 
 	{ type: "actor", label: "Actor ", defaultValue: "Actors[0]" },
 	{ type: "property", label: "", include:["X","Y"], defaultValue: "X"},
 	{ type: "compare", label: "", defaultValue: "=="},
-       	{ type: "number", label: "", defaultValue: "0"},
+    { type: "raw", label: "", defaultValue: "0"},
 	
     ],
     build: (args) => `${args[0]}.${args[1]} ${args[2]} ${args[3]}`
@@ -51,14 +56,16 @@ const ConditionFunctions = {
 
 
   "GetProperty": {
-    label: "Get a property from an actor",
+    label: "Actor property is",
 	category:"Actor",
 
     args: [
       { type: "actor", label: "Actor",defaultValue:"Actors[0]" },
-      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" }
+      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
+	  { type: "compare", label: "", defaultValue: "=="},
+	  { type: "raw", label: "", defaultValue: "0"},
     ],
-    build: (args) => `${args[0]}.${args[1]}`
+    build: (args) => `${args[0]}.${args[1]}${args[2]}${args[3]}`
   },
 
 "Collision": {
@@ -103,8 +110,8 @@ const ConditionFunctions = {
 
 
   "GetScene": {
-    label: "Scene",
-	category:"Scenes",
+    label: "Scene is",
+	category:"Scene",
 
     args: [
       { type: "scene", label: "Scene" },
@@ -125,7 +132,7 @@ const ConditionFunctions = {
 },
 
 "FilterEnsemble": {
-  label: "Filter ensemble",
+  label: "Trim ensemble",
   category: "Ensemble",
   args: [
     { type: "ensemble", label: "Ensemble" },
@@ -176,7 +183,7 @@ const ConditionFunctions = {
 
 
 "EnsemblesCollide": {
-  label: "Ensembles collides",
+  label: "Ensembles collide",
   category: "Ensemble",
   args: [
     { type: "ensemble", label: "Ensemble" },
@@ -221,7 +228,7 @@ const ConditionFunctions = {
   },
   
     "EnsembleEmpty":{
-  label: "Ensemble is empty",
+  label: "Ensemble IS empty",
   args:[
   { type: "ensemble", label: "Ensemble" },
   ],
