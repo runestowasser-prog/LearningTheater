@@ -1617,6 +1617,33 @@ wrapper.appendChild(commentInput);
 
     targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
     wrapper.appendChild(targetSelect);
+	
+	// 🔥 Fire Mode dropdown
+const fireModeLabel = document.createElement("label");
+fireModeLabel.textContent = "Fire mode:";
+fireModeLabel.style.marginLeft = "10px";
+
+const fireModeSelect = document.createElement("select");
+[
+  { value: "whiletrue", label: "While true (every frame)" },
+  { value: "once", label: "Once (first time condition is true)" },
+  { value: "onceWhileTrue", label: "Once while true (fires again after condition resets)" }
+].forEach(opt => {
+  const option = document.createElement("option");
+  option.value = opt.value;
+  option.textContent = opt.label;
+  if (trigger.fireMode === opt.value) option.selected = true;
+  fireModeSelect.appendChild(option);
+});
+
+fireModeSelect.onchange = () => {
+  trigger.fireMode = fireModeSelect.value;
+};
+
+// Tilføj til wrapper
+wrapper.appendChild(fireModeLabel);
+wrapper.appendChild(fireModeSelect);
+ 
 
     eventSelect.onchange = () => {
       trigger.event = eventSelect.value;
@@ -2226,10 +2253,12 @@ function exportTriggersToCode() {
       target: ${trigger.target ? `"${trigger.target}"` : null}, 
       comment: ${JSON.stringify(trigger.comment || "")}, 
       conditions: ${JSON.stringify(trigger.conditions || [])}, 
-      actions: ${JSON.stringify(trigger.actions || [])} 
+      actions: ${JSON.stringify(trigger.actions || [])},
+      fireMode: ${JSON.stringify(trigger.fireMode || "whiletrue")}
     });`;
   }).join("\n");
 }
+
 
 
 
@@ -2298,7 +2327,7 @@ function showPreview(){
   
 	
   
-    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n window.TriggerFlags = {}; parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
   SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
   
