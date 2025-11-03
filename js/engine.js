@@ -737,59 +737,47 @@ function FollowSLPlayer(){
 	}
 }
 
-function Loop(){
+function Loop() {
+  // Kør Update med relevante parametre
+  Update(
+    DeltaRatio = gsap.ticker.deltaRatio(),
+    FrameRatio = gsap.ticker.deltaRatio(),
+    FollowSLPlayer(),
+    runTriggers("Update") // <-- eneste sted, hvor Update-triggers køres
+  );
 
-	Update(DeltaRatio=gsap.ticker.deltaRatio(),
-	FrameRatio=gsap.ticker.deltaRatio(),
-	FollowSLPlayer(),
-	Triggers.forEach(trigger => {
-    	if (trigger.when === "Update" && trigger.conditions()) {
-      		trigger.actions();
-    		}
-  	}), runTriggers("Update"),
-	
-	);
-	document.getElementById("stage").style.perspective=""+(document.getElementById("stage").style.width)+"";
-	for(var i=0;i<Scenes.length;i++){
-		UpdateElement(Scenes[i]);
-		
-	}
+  // Opdater perspektiv
+  const stage = document.getElementById("stage");
+  stage.style.perspective = "" + stage.style.width + "";
 
-	for(var i=0;i<Elements.length;i++){
-		UpdateElement(Elements[i]);
-		
-	}
-	Triggers.forEach(trigger => {
-    	if (trigger.when === "Update" && trigger.conditions()) {
-      		trigger.actions();
-    		}
-  	});	
+  // Opdater scener og elementer
+  for (let i = 0; i < Scenes.length; i++) {
+    UpdateElement(Scenes[i]);
+  }
 
+  for (let i = 0; i < Elements.length; i++) {
+    UpdateElement(Elements[i]);
+  }
 }
+
 
 function repeatOften(event) {
-	Update(
-		runTriggers("Update")
+  // Kør Update og triggere
+  Update(runTriggers("Update"));
 
-	);
+  // Opdater scener og elementer
+  for (let i = 0; i < Scenes.length; i++) {
+    UpdateElement(Scenes[i]);
+  }
 
-	for(var i=0;i<Scenes.length;i++){
-		UpdateElement(Scenes[i]);
-		
-	}
+  for (let i = 0; i < Elements.length; i++) {
+    UpdateElement(Elements[i]);
+  }
 
-	for(var i=0;i<Elements.length;i++){
-		UpdateElement(Elements[i]);
-		
-	}
-	Triggers.forEach(trigger => {
-    	if (trigger.event === "Update" && trigger.conditions()) {
-      		trigger.actions();
-    		}
-  	});	
-	
-	requestAnimationFrame(repeatOften);
+  // Loop videre
+  requestAnimationFrame(repeatOften);
 }
+
 
 function init(){
 	
@@ -919,6 +907,68 @@ function SceneStartTrigger() {
     }
   });
 }
+/*
+function runTriggers(eventName) {
+  if (!Array.isArray(Triggers)) return;
+
+  // Globalt state til at huske om en condition tidligere var sand
+  window.TriggerFlags = window.TriggerFlags || {};
+
+  for (const trigger of Triggers) {
+    if (trigger.event !== eventName) continue;
+
+    const fireMode = trigger.fireMode || "whiletrue"; // default
+    const triggerId = trigger.id || Triggers.indexOf(trigger);
+    const wasTrue = TriggerFlags[triggerId]?.wasTrue || false;
+
+    // --- Evaluer conditions ---
+    let conditionMet = true;
+    const conditions = trigger.conditions || ["true"];
+
+    for (let cond of conditions) {
+      if (!cond) continue;
+      const code = typeof cond === "string" ? cond : cond.code;
+      try {
+        if (!new Function("return (" + code + ")")()) {
+          conditionMet = false;
+          break;
+        }
+      } catch (err) {
+        console.warn("Trigger fejl:", err);
+        conditionMet = false;
+        break;
+      }
+    }
+
+    // --- Afgør om trigger skal affyres ---
+    let shouldFire = false;
+    if (fireMode === "once" && conditionMet && !wasTrue) {
+      shouldFire = true;
+    } else if (fireMode === "whiletrue" && conditionMet) {
+      shouldFire = true;
+    } else if (fireMode === "onceWhileTrue" && conditionMet && !wasTrue) {
+      shouldFire = true;
+    }
+
+    // --- Udfør actions hvis nødvendigt ---
+    if (shouldFire) {
+      const actions = trigger.actions || [];
+      for (const act of actions) {
+        const code = typeof act === "string" ? act : act.code;
+        if (!code) continue;
+        try {
+          new Function(code)();
+        } catch (err) {
+          console.warn("Trigger fejl i action:", err);
+        }
+      }
+    }
+
+    // --- Gem status til næste frame ---
+    TriggerFlags[triggerId] = { wasTrue: conditionMet };
+  }
+}
+*/
 
 function runTriggers(eventName) {
   if (!Array.isArray(Triggers)) return;
@@ -929,34 +979,63 @@ function runTriggers(eventName) {
     let conditionMet = true;
     const conditions = trigger.conditions || ["true"];
 
-   for (let cond of conditions) {
+    // Evaluer alle conditions
+    for (let cond of conditions) {
       if (!cond) continue;
- 	 const code = typeof cond === "string" ? cond : cond.code;
+      const code = typeof cond === "string" ? cond : cond.code;
       try {
         if (!new Function("return (" + code + ")")()) {
           conditionMet = false;
           break;
         }
       } catch (err) {
-        console.warn("Trigger fejl:", err); 
+        console.warn("Trigger fejl:", err);
         conditionMet = false;
         break;
       }
     }
+
+    // ✅ FireMode håndtering
+    trigger._hasFired = trigger._hasFired || false; // init flag
+
     if (conditionMet) {
-      const actions = trigger.actions || [];
-      actions.forEach(act => {
-        const code = typeof act === "string" ? act : act.code;
-        if (!code) return;
-        try {
-          new Function(code)();
-        } catch (err) {
-          console.warn("Trigger fejl i action:", err);
+      if (trigger.fireMode === "once") {
+        if (!trigger._hasFired) {
+          trigger.actions?.forEach(act => {
+            const code = typeof act === "string" ? act : act.code;
+            if (!code) return;
+            try { new Function(code)(); } 
+            catch (err) { console.warn("Trigger action fejl:", err); }
+          });
+          trigger._hasFired = true; // sat permanent
         }
-      });
+      } else if (trigger.fireMode === "onceWhileTrue") {
+        if (!trigger._hasFired) {
+          trigger.actions?.forEach(act => {
+            const code = typeof act === "string" ? act : act.code;
+            if (!code) return;
+            try { new Function(code)(); } 
+            catch (err) { console.warn("Trigger action fejl:", err); }
+          });
+          trigger._hasFired = true;
+        }
+      } else { // fx standard / while true
+        trigger.actions?.forEach(act => {
+          const code = typeof act === "string" ? act : act.code;
+          if (!code) return;
+          try { new Function(code)(); } 
+          catch (err) { console.warn("Trigger action fejl:", err); }
+        });
+      }
+    } else {
+      // nulstil kun onceWhileTrue, ikke once
+      if (trigger.fireMode === "onceWhileTrue") {
+        trigger._hasFired = false;
+      }
     }
   }
 }
+
 
 function MouseListener(){
   const container = document.getElementById("stage");
