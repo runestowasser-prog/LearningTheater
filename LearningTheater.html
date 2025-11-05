@@ -1589,40 +1589,48 @@ wrapper.appendChild(commentLabel);
 wrapper.appendChild(commentInput);
 
 
-    // 1️⃣ Event dropdown
-    const eventSelect = document.createElement("select");
-    eventTypes.forEach(type => {
-      const option = document.createElement("option");
-      option.value = type;
-      option.textContent = type;
-      if (type === trigger.event) option.selected = true;
-      eventSelect.appendChild(option);
-    });
-    wrapper.appendChild(eventSelect);
+// 1️⃣ Event dropdown
+const eventSelect = document.createElement("select");
+eventTypes.forEach(type => {
+  const option = document.createElement("option");
+  option.value = type;
+  option.textContent = type;
+  if (type === trigger.event) option.selected = true;
+  eventSelect.appendChild(option);
+});
+wrapper.appendChild(eventSelect);
 
-    // 2️⃣ Target dropdown (kun til MouseDown/MouseUp)
-    const targetSelect = document.createElement("select");
-    const emptyTargetOption = document.createElement("option");
-    emptyTargetOption.value = "";
-    emptyTargetOption.textContent = "(Vælg target)";
-    targetSelect.appendChild(emptyTargetOption);
+// 2️⃣ Target dropdown (kun til MouseDown/MouseUp)
+const targetSelect = document.createElement("select");
+const emptyTargetOption = document.createElement("option");
+emptyTargetOption.value = "";
+emptyTargetOption.textContent = "(Vælg target)";
+targetSelect.appendChild(emptyTargetOption);
 
-    AllActors.forEach(actor => {
-      const option = document.createElement("option");
-      option.value = actor.ID;
-      option.textContent = actor.ID;
-      if (actor.ID === trigger.target) option.selected = true;
-      targetSelect.appendChild(option);
-    });
+AllActors.forEach(actor => {
+  const option = document.createElement("option");
+  option.value = actor.ID;
+  option.textContent = actor.ID;
+  if (actor.ID === trigger.target) option.selected = true;
+  targetSelect.appendChild(option);
+});
 
-    targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
-    wrapper.appendChild(targetSelect);
+targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
+wrapper.appendChild(targetSelect);
+
 	
-	// 🔥 Fire Mode dropdown
+// 🔥 Fire Mode dropdown (kun for Update-triggers)
+// Container så vi kan show/hide den
+const fireModeContainer = document.createElement("div");
+fireModeContainer.style.display = (trigger.event === "Update") ? "inline-block" : "none";
+fireModeContainer.style.marginLeft = "10px";
+
+// Label
 const fireModeLabel = document.createElement("label");
 fireModeLabel.textContent = "Fire mode:";
-fireModeLabel.style.marginLeft = "10px";
+fireModeLabel.style.marginRight = "6px";
 
+// Select
 const fireModeSelect = document.createElement("select");
 [
   { value: "whiletrue", label: "While true (every frame)" },
@@ -1640,22 +1648,41 @@ fireModeSelect.onchange = () => {
   trigger.fireMode = fireModeSelect.value;
 };
 
-// Tilføj til wrapper
-wrapper.appendChild(fireModeLabel);
-wrapper.appendChild(fireModeSelect);
+fireModeContainer.appendChild(fireModeLabel);
+fireModeContainer.appendChild(fireModeSelect);
+wrapper.appendChild(fireModeContainer);
+
+
  
 
-    eventSelect.onchange = () => {
-      trigger.event = eventSelect.value;
-      targetSelect.style.display = eventsWithTarget.includes(trigger.event) ? "inline-block" : "none";
-      if (!eventsWithTarget.includes(trigger.event)) {
-        trigger.target = undefined;
-      }
-    };
+ eventSelect.onchange = () => {
+  trigger.event = eventSelect.value;
 
-    targetSelect.onchange = () => {
-      trigger.target = targetSelect.value;
-    };
+  // Show/hide target dropdown
+  const needsTarget = eventsWithTarget.includes(trigger.event);
+  targetSelect.style.display = needsTarget ? "inline-block" : "none";
+  if (!needsTarget) {
+    trigger.target = undefined;
+  }
+
+  // 🔥 Show/hide FireMode select (kun ved Update)
+  if (trigger.event === "Update") {
+    fireModeContainer.style.display = "inline-block";
+
+    // Hvis der ikke allerede findes en fireMode, giv default
+    if (!trigger.fireMode) trigger.fireMode = "whiletrue";
+
+    fireModeSelect.value = trigger.fireMode;
+  } else {
+    fireModeContainer.style.display = "none";
+    delete trigger.fireMode;
+  }
+};
+
+targetSelect.onchange = () => {
+  trigger.target = targetSelect.value;
+};
+
 
 // 🚀 MULTI-CONDITION DEL
 
@@ -2327,7 +2354,7 @@ function showPreview(){
   
 	
   
-    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n window.TriggerFlags = {}; parent.GeneratedTriggers=Triggers; "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){ initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\nparent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100; if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/"/*parent.GeneratedTriggers=Triggers;*/ parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
   SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
   
@@ -2336,6 +2363,14 @@ function showPreview(){
   
   frame.write(HTMLCode+jsCode);
   frame.close();
+  let previewFrame = elementId("PreviewWindow").contentWindow;
+
+previewFrame.addEventListener("scene-ready", () => {
+    // Nu ER Triggers garanteret loaded og udfyldt
+    parent.GeneratedTriggers = previewFrame.Triggers;
+    parent.renderTriggerEditor("triggerEditor");
+});
+
 	updateActorList();
 	allProps=getAllProperties();
 
@@ -2534,7 +2569,7 @@ function loadFileAsText()
 		
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
-	showPreview();
+	
 	/*SettingsGenerated='parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'*/
 	GeneralCode.execCommand('foldAll');
 	BuildCode.execCommand('foldAll');
@@ -3140,15 +3175,16 @@ ScriptOption8.Text="EVENT EDITOR"
 
 
 
-Actor("resizer","BUTTON");
+Actor("resizer","div");
 resizer.Parent="KeyframeOptions"
 resizer.Y=30
-resizer.Width=10
+resizer.Width=1
 resizer.Height=StageHeight-30
 resizer.X=KeyframeOptions.Width
 resizer.Active=false
-resizer.MouseDown="resizer.Active=true"
-resizer.MouseUp="resizer.Active=false"
+//resizer.MouseDown="resizer.Active=true"
+//resizer.MouseUp="resizer.Active=false"
+resizer.Opacity=0;
 
 Actor("FileMenu","button");
 thisActor.Text="File";
@@ -3181,8 +3217,8 @@ LoadHTML.Height=30
 
 Actor("RefSound","audio");
 Actor("LoadSound","div"); 
-thisActor.Text="Reference audio <input id=\"selSound\"  oninput=\"SetSource(RefSound,elementId(\'selSound\').value)\"></input>";
-thisActor.Height=50;
+thisActor.Text="Reference audio <input style=\"height:20px\" id=\"selSound\"  oninput=\"SetSource(RefSound,elementId(\'selSound\').value)\"></input>";
+thisActor.Height=20;
 thisActor.Width=300;
 thisActor.X=StageWidth-720;
 
@@ -3493,9 +3529,9 @@ if(resizer.Active==false){
     PreviewOverlay.Opacity=0
 }
 
-PreviewWindow.X=resizer.X+15
-PreviewWindow.Width=StageWidth-resizer.X-12
-PreviewOverlay.X=resizer.X+15
+//PreviewWindow.X=resizer.X+15
+PreviewWindow.Width=StageWidth-resizer.X
+//PreviewOverlay.X=resizer.X+15
 
 
 
@@ -3781,7 +3817,7 @@ resizer.Height=StageHeight-80
 SaveHTML.X=StageWidth-120
 
 LoadHTML.X=StageWidth-240
-LoadSound.X=StageWidth-800;
+LoadSound.X=StageWidth-600;
 //SeekBar.X=resizer.X+playBtn.Width;
 SeekBar.Width=StageWidth-600;
 SeekBar.Y=StageHeight-50;
