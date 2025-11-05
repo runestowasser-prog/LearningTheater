@@ -1279,7 +1279,7 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
 
   input.addEventListener("input", () => onChange(index, input.value));
 
-  // Tilføj højreklik-menu
+  // Tilfï¿½j hï¿½jreklik-menu
   attachHelperMenu(input, (val) => onChange(index, val));
   break;
 
@@ -1331,10 +1331,10 @@ case "ensemble": {
     }
   }
 
-  // Når brugeren ændrer selection — kald onChange med robust signatur
+  // Nï¿½r brugeren ï¿½ndrer selection ï¿½ kald onChange med robust signatur
   input.addEventListener("change", () => {
     const val = input.value;
-    // Primær signatur: onChange(index, value)
+    // Primï¿½r signatur: onChange(index, value)
     try {
       onChange(index, val);
       return;
@@ -1344,17 +1344,17 @@ case "ensemble": {
       onChange(argsValues[index], val);
       return;
     } catch (e) {}
-    // Anden fallback: sæt direkte i argsValues (sikre opdatering)
+    // Anden fallback: sï¿½t direkte i argsValues (sikre opdatering)
     try {
       argsValues[index] = val;
     } catch (e) {}
   });
 
-  // Opdatér lige inden dropdown åbner (så den afspejler preview live)
+  // Opdatï¿½r lige inden dropdown ï¿½bner (sï¿½ den afspejler preview live)
   input.addEventListener("mousedown", updateDropdown);
   input.addEventListener("focus", updateDropdown);
 
-  // Initial population + sæt value (samme stil som dine actor/scene-cases)
+  // Initial population + sï¿½t value (samme stil som dine actor/scene-cases)
   updateDropdown();
   input.value = argsValues[index] || "";
 
@@ -1572,7 +1572,7 @@ commentLabel.style.display = "block";
 commentLabel.style.marginTop = "5px";
 
 const commentInput = document.createElement("textarea");
-commentInput.placeholder = "Beskriv kort, hvad dette trigger gÃ¸r...";
+commentInput.placeholder = "Describe your Event here";
 commentInput.value = trigger.comment || "";
 commentInput.rows = 2;
 commentInput.style.width = "100%";
@@ -1625,17 +1625,17 @@ const fireModeContainer = document.createElement("div");
 fireModeContainer.style.display = (trigger.event === "Update") ? "inline-block" : "none";
 fireModeContainer.style.marginLeft = "10px";
 
-// Label
+/*// Label
 const fireModeLabel = document.createElement("label");
 fireModeLabel.textContent = "Fire mode:";
 fireModeLabel.style.marginRight = "6px";
-
+*/
 // Select
 const fireModeSelect = document.createElement("select");
 [
-  { value: "whiletrue", label: "While true (every frame)" },
-  { value: "once", label: "Once (first time condition is true)" },
-  { value: "onceWhileTrue", label: "Once while true (fires again after condition resets)" }
+  { value: "whiletrue", label: "While true" },
+  { value: "once", label: "Once" },
+  { value: "onceWhileTrue", label: "Once while true" }
 ].forEach(opt => {
   const option = document.createElement("option");
   option.value = opt.value;
@@ -1648,7 +1648,7 @@ fireModeSelect.onchange = () => {
   trigger.fireMode = fireModeSelect.value;
 };
 
-fireModeContainer.appendChild(fireModeLabel);
+//fireModeContainer.appendChild(fireModeLabel);
 fireModeContainer.appendChild(fireModeSelect);
 wrapper.appendChild(fireModeContainer);
 
@@ -4067,18 +4067,18 @@ details[open] > summary::before {
 <script>
 const GlobalSuggestions = [
   { label: "CurrentScene", info: "Aktiv scene" },
-  { label: "StageWidth", info: "Bredde på scenen i pixels" },
-  { label: "StageHeight", info: "Højde på scenen i pixels" },
+  { label: "StageWidth", info: "Bredde pï¿½ scenen i pixels" },
+  { label: "StageHeight", info: "Hï¿½jde pï¿½ scenen i pixels" },
   { label: "MouseX", info: "Musens X-position" },
   { label: "MouseY", info: "Musens Y-position" },
-  { label: "AllActors", info: "Array med alle aktører" },
+  { label: "AllActors", info: "Array med alle aktï¿½rer" },
   { label: "AllScenes", info: "Array med alle scener" }
 ];
 
 // Gem original JS hinter
 const defaultJsHint = CodeMirror.hint.javascript;
 
-// Registrér vores udvidede variant
+// Registrï¿½r vores udvidede variant
 CodeMirror.registerHelper("hint", "javascript", function (editor) {
   const cur = editor.getCursor();
   const token = editor.getTokenAt(cur);
@@ -4098,7 +4098,7 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
     .filter(s => s.label.toLowerCase().startsWith(currentWord.toLowerCase()))
     .map(s => ({
       text: s.label,
-      displayText: s.label + " — " + s.info,
+      displayText: s.label + " ï¿½ " + s.info,
     }));
 
   return {
