@@ -1,6 +1,10 @@
 // 🛠️ Funktionsdefinitioner til conditions
 const ConditionFunctions = {
  
+ 
+ 
+ 
+ 
  "GetVolume": {
     label: "Volume is",
 	category:"Media",
@@ -287,11 +291,41 @@ const ConditionFunctions = {
   
   
   
-  
-  
-  
-  
-  
+
+  "TimelineStateIs": {
+    label: "Timeline state is",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+      {
+        type: "dropdown",
+        label: "State",
+        options: ["playing", "paused", "completed"],
+        defaultValue: "playing"
+      }
+    ],
+    build: (args) => {
+      const scene = args[0];
+      const state = args[1];
+      if (state === "playing") return `!${scene}.Timeline.paused()`;
+      if (state === "paused") return `${scene}.Timeline.paused()`;
+      if (state === "completed") return `${scene}.Timeline.progress() >= 1`;
+      return "false";
+    }
+  },
+
+  "TimelineTimeCompare": {
+    label: "Timeline time is",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+      { type: "compare", label: "Compare", defaultValue: ">" },
+      { type: "raw", label: "Time (sec)", defaultValue: "1" }
+    ],
+    build: (args) => `${args[0]}.Timeline.time() ${args[1]} ${args[2]}`
+  },
+
+
   
   
   
@@ -674,10 +708,101 @@ const ActionFunctions = {
 
 
 
-  
-  
-  
+
+  // PLAY
+  "PlayTimeline": {
+    label: "Play timeline",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+      { type: "raw", label: "From time (optional)", defaultValue: "" }
+    ],
+    build: (args) => {
+      if (args[1] && args[1].trim() !== "")
+        return `${args[0]}.Timeline.play(${args[1]})`;
+      else
+        return `${args[0]}.Timeline.play()`;
+    }
+  },
+
+  // PAUSE
+  "PauseTimeline": {
+    label: "Pause timeline",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" }
+    ],
+    build: (args) => `${args[0]}.Timeline.pause()`
+  },
+
+  // TOGGLE
+  "ToggleTimeline": {
+    label: "Toggle play/pause",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" }
+    ],
+    build: (args) =>
+      `(${args[0]}.Timeline.paused() ? ${args[0]}.Timeline.play() : ${args[0]}.Timeline.pause())`
+  },
+
+  // SET TIME
+  "SetTimelineTime": {
+    label: "Set timeline time",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+      { type: "raw", label: "Time (sec)", defaultValue: "0" }
+    ],
+    build: (args) => `${args[0]}.Timeline.time(${args[1]})`
+  },
+
+  // PLAY RANGE
+  "PlayTimelinePart": {
+    label: "Play timeline part",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+      { type: "raw", label: "Start", defaultValue: "0" },
+      { type: "raw", label: "End", defaultValue: "2" }
+    ],
+    build: (args) =>
+      `${args[0]}.Timeline.pause(${args[1]}); ${args[0]}.Timeline.tweenTo(${args[2]})`
+  },
+
+  // RESTART
+  "RestartTimeline": {
+    label: "Restart timeline",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" }
+    ],
+    build: (args) => `${args[0]}.Timeline.restart()`
+  },
+
+  // REVERSE
+  "ReverseTimeline": {
+    label: "Reverse timeline",
+    category: "Timeline",
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" }
+    ],
+    build: (args) => `${args[0]}.Timeline.reverse()`
+  },
+
+
 
 
 
 };
+
+
+
+
+
+
+
+
+
+
+
