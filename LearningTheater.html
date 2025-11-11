@@ -1283,7 +1283,6 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   attachHelperMenu(input, (val) => onChange(index, val));
   break;
 
-
 case "ensemble": {
   input = document.createElement("select");
   input.className = "arg-input";
@@ -1295,18 +1294,20 @@ case "ensemble": {
     catch (e) { return window; }
   }
 
+  function findEnsembles(pw) {
+    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements"];
+    return Object.keys(pw || {}).filter(k => {
+      try {
+        const v = pw[k];
+        return Array.isArray(v) && !exclude.includes(k);
+      } catch (e) { return false; }
+    });
+  }
+
   function updateDropdown() {
     const pw = getPreviewWindow();
+    const candidates = findEnsembles(pw);
     input.innerHTML = "";
-
-    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements"];
-    const candidates = Object.keys(pw || {})
-      .filter(k => {
-        try {
-          const v = pw[k];
-          return Array.isArray(v) && !exclude.includes(k);
-        } catch (e) { return false; }
-      });
 
     if (candidates.length === 0) {
       const none = document.createElement("option");
@@ -1315,48 +1316,39 @@ case "ensemble": {
       input.appendChild(none);
     } else {
       candidates.forEach(name => {
-        let count = 0;
-        try { count = (pw[name] && pw[name].length) || 0; } catch(e){}
         const opt = document.createElement("option");
         opt.value = name;
-        opt.textContent = `${name} (${count})`;
+        opt.textContent = name; // fjernet tællingen
         input.appendChild(opt);
       });
     }
 
-    // restore previous value if present
-    if (argsValues[index]) {
-      const found = Array.from(input.options).some(o => o.value === argsValues[index]);
-      if (found) input.value = argsValues[index];
+    // Hvis kun én mulighed, vælg den
+    if (candidates.length === 1) {
+      input.value = candidates[0];
     }
+
+    // restore tidligere værdi
+    if (argsValues[index]) {
+      input.value = argsValues[index];
+    }
+
+    // Sikr at argsValues altid matcher input.value
+    argsValues[index] = input.value;
   }
 
-  // N�r brugeren �ndrer selection � kald onChange med robust signatur
+  // Når brugeren vælger noget manuelt
   input.addEventListener("change", () => {
-    const val = input.value;
-    // Prim�r signatur: onChange(index, value)
-    try {
-      onChange(index, val);
-      return;
-    } catch (e) {}
-    // Fallback signatur: onChange(oldValue, newValue)
-    try {
-      onChange(argsValues[index], val);
-      return;
-    } catch (e) {}
-    // Anden fallback: s�t direkte i argsValues (sikre opdatering)
-    try {
-      argsValues[index] = val;
-    } catch (e) {}
+    argsValues[index] = input.value;
+    try { onChange(index, input.value); } catch (e) {}
   });
 
-  // Opdat�r lige inden dropdown �bner (s� den afspejler preview live)
+  // Opdatér listen når dropdown’en åbnes/fokuseres
   input.addEventListener("mousedown", updateDropdown);
   input.addEventListener("focus", updateDropdown);
 
-  // Initial population + s�t value (samme stil som dine actor/scene-cases)
+  // Initial setup
   updateDropdown();
-  input.value = argsValues[index] || "";
 
   break;
 }
@@ -1442,6 +1434,8 @@ function attachHelperMenu(input, onChange) {
       { label: "StageHeight", value: "StageHeight" },
       { label: "MouseX", value: "MouseX" },
       { label: "MouseY", value: "MouseY" },
+      { label: "window.scrollY", value: "window.scrollY" },
+	  { label: "window.scrollX", value: "window.scrollX" },
       { label: "divider" },
       { label: "?? Calculations", header: true },
       { label: "% of total", value: "(value/total)*100" },
