@@ -868,6 +868,14 @@ function DeleteActor(a){
 }
 
 
+function ShuffleEnsembleProperty(ensemble, property) {
+  const values = ensemble.map(a => a[property]);
+  for (let i = values.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [values[i], values[j]] = [values[j], values[i]];
+  }
+  ensemble.forEach((a, i) => a[property] = values[i]);
+}
 
 
 

@@ -213,7 +213,7 @@ const ConditionFunctions = {
     if (left === true || left === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "left"`);
     if (right === true || right === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "right"`);
 
-    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})) && ${ensemble}.length>0)`;
+    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})) && ${ensemble}.length>0)`
   }
 },
 
@@ -503,6 +503,18 @@ const ActionFunctions = {
   ],
   build: (args) => `${args[0]}.forEach(a => a["${args[1]}"] ${args[2]} ${args[3]})`
   },
+
+  "ShuffleEnsembleProperty": {
+  label: "Shuffle property on Ensemble",
+  category: "Ensemble",
+  args: [
+    { type: "ensemble", label: "Ensemble name" },
+    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
+  ],
+  build: (args) => `ShuffleEnsembleProperty(${args[0]}, "${args[1]}")`
+  },
+
+
 
   "SetSource": {
    label: "Set a new source on actor",
