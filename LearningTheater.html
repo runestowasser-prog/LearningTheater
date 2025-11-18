@@ -1277,10 +1277,14 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
   input.value = argsValues[index] || "";
   input.style.width = "50%";
 
-  input.addEventListener("input", () => onChange(index, input.value));
-
+  //input.addEventListener("input", () => onChange(index, input.value));
+  input.addEventListener("input", () => {
+    		argsValues[index] = input.value || 0;
+		//onChange(); 
+  });
   // Tilf�j h�jreklik-menu
   attachHelperMenu(input, (val) => onChange(index, val));
+  //attachHelperMenu(input, (val));
   break;
 
 case "ensemble": {
@@ -1423,31 +1427,27 @@ case "ensemble": {
 }
 
 //universal helper function
-function attachHelperMenu(input, onChange) {
+function attachHelperMenu(input, onChange, argsValues) {
   input.addEventListener("contextmenu", (e) => {
     e.preventDefault();
 
     const menuItems = [
       { label: "?? Global variables", header: true },
-      { label: "CurrentScene", value: "CurrentScene" },
-      { label: "StageWidth", value: "StageWidth" },
-      { label: "StageHeight", value: "StageHeight" },
-      { label: "MouseX", value: "MouseX" },
-      { label: "MouseY", value: "MouseY" },
+      { label: "Current Scene", value: "CurrentScene" },
+      { label: "Stage Width", value: "StageWidth" },
+      { label: "Stage Height", value: "StageHeight" },
+      { label: "Mouse X", value: "MouseX" },
+      { label: "Mouse Y", value: "MouseY" },
       { label: "window.scrollY", value: "window.scrollY" },
 	  { label: "window.scrollX", value: "window.scrollX" },
-      { label: "divider" },
-      { label: "?? Calculations", header: true },
-      { label: "% of total", value: "(value/total)*100" },
-      { label: "Average (a,b)", value: "(a+b)/2" },
-      { label: "Random value", value: "Math.random()" },
-      { label: "Round", value: "Math.round(x)" },
-      { label: "Min/max", value: "Math.min(a,b)" },
+      { label: "window.innerWidth", value: "window.innerWidth" },
+      { label: "window.innerHeight", value: "window.innerHeight" },
+   	  
+   	  
 	  { label: "?? Functions", header: true },
-	  { label: "Get dom-element of actor", value: "elementId(Id)" },
+	  { label: "Get dom-element of actor", value: "elementId(actor)" },
 	  { label: "Get duration of video or audio", value: "GetDuration(actor)" },
 	  { label: "Get current time of video or audio", value: "GetCurrentTime(actor)" },
-	  { label: "Get volume of video or audio", value: "GetVolume(actor)" },
 	  { label: "Get volume of video or audio", value: "GetVolume(actor)" },
 	  
     ];
@@ -1458,7 +1458,9 @@ function attachHelperMenu(input, onChange) {
       const text = input.value;
       input.value = text.slice(0, start) + choice + text.slice(end);
       input.selectionStart = input.selectionEnd = start + choice.length;
-      if (onChange) onChange(input.value);
+      //if (onChange) onChange(input.value);
+      
+	  input.focus();
     });
   });
 }
@@ -2348,7 +2350,7 @@ function showPreview(){
   
 	
   
-    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+exportTriggersToCode()+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+    var jsCode = "<scri"+"pt>\n window.Ensembles = window.Ensembles || {}; var Move=gsap;\n"+exportTriggersToCode()+GeneralCode.getValue()+"\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
   SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
   
