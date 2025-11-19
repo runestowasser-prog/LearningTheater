@@ -2284,7 +2284,54 @@ function exportTriggersToCode() {
 
 
 
+function loadFullString(fullText) {
 
+    var splitCode = fullText.split("//✂✂✂");
+    var splitHTML = fullText.split("<!--- ✂✂✂ --->");
+
+    var generalCode = splitCode[1];
+    var buildCode   = splitCode[3];
+    var tweenCode   = splitCode[4];
+    var updateCode  = splitCode[6];
+    var scenestartCode = splitCode[8];
+    var resizeCode  = splitCode[10];
+    var headCode = splitHTML[1];
+
+    // direkte som i loadFileAsText()
+    GeneralCode.setValue(generalCode);
+    BuildCode.setValue(buildCode);
+    AllTweens = tweenCode.split("//Tween");
+    UpdateCode.setValue(updateCode);
+    ScenestartCode.setValue(scenestartCode);
+    ResizeCode.setValue(resizeCode);
+    HEADCode.setValue(headCode);
+
+    		SettingsGenerated = splitCode[2].substr(0,splitCode[2].length-18)+'parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'
+		//console.log(SettingsGenerated)
+        //document.getElementById("jsCode").value = textFromFileLoaded;
+    document.getElementById("generalCode").style.display="none";
+    document.getElementById("buildCode").style.display="none";
+    document.getElementById("updateCode").style.display="none";
+		document.getElementById("scenestartCode").style.display="none";
+		document.getElementById("resizeCode").style.display="none";
+		document.getElementById("HEAD").style.display="none";
+		
+    ShowSelectedScript(GeneralCode,'Select Script',generalCode)
+//    };
+//    fileReader.readAsText(fileToLoad, "UTF-8");
+	
+	var select=document.getElementById("Scenes");
+		option = document.createElement( 'option' );
+        option.text = "Play";
+		option.value = "Scenes[CurrentScene]";
+		option.setAttribute("selected","selected");
+		select.add(option);
+		
+		
+	setTimeout(function(){ showPreview(); }, 1000);
+    //showPreview();
+	//renderTriggerEditor();
+}
 
 
 
@@ -2369,7 +2416,7 @@ previewFrame.addEventListener("scene-ready", () => {
 
 	updateActorList();
 	allProps=getAllProperties();
-
+    autoSavePreview();
 }
 
 function PlayerOnOff(){
@@ -2422,6 +2469,28 @@ if(file_handle.name==undefined){
 	file_handle.name="Show.html"
 }
 
+function autoSavePreview() {
+    var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+	
+    try {
+        const previewString = HTMLCode + JsCode;
+        localStorage.setItem("LT_autosave", previewString);
+        localStorage.setItem("LT_autosave_time", Date.now());
+    } catch(e) {
+        console.warn("Autosave failed", e);
+    }
+}
+
+function tryRestoreAutosave() {
+    const saved = localStorage.getItem("LT_autosave");
+    if (!saved) return;
+
+    if (confirm("There's an autosaved project. Would you like to load it?")) {
+        loadFullString(saved);
+    }
+}
+
+
 function saveTextAsFile(){
 //	var AllTweensShort = AllTweens.filter(function(f) { return f !== " " });
 	
@@ -2471,6 +2540,8 @@ function saveTextAsFile(){
 	//saveAs(blob, "show.html");
     //writable.close();
 	handleSaveImg(event);
+	localStorage.removeItem("LT_autosave");
+	localStorage.removeItem("LT_autosave_time");
   
 }
 
@@ -3539,6 +3610,8 @@ elementId("myRange").value=SceneTimePosition*100;
 
 function SceneStart(){
 
+//tryRestoreAutosave();
+
 const previewWindow = document.getElementById("PreviewWindow").contentWindow;
 
 function getPreview() {
@@ -3563,7 +3636,7 @@ function getEnsembleList() {
 }
 
 
-
+//tryRestoreAutosave();
 
 
 
@@ -3778,7 +3851,9 @@ elementId("HEAD").oninput=function(){showPreview()}
 ShowSelectedScript(BuildSpecial,'Build GUI',BuildCode)
 BuildCode.focus();
 
-JsCode = "<scri"+"pt>\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+tryRestoreAutosave();
+
+var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 
 	var build=BuildCode.getValue();
   var GetSceneName = build.split('Scene("');
@@ -3792,10 +3867,13 @@ var select=document.getElementById("Scenes");
 		select.add(option);
 	
 document.getElementById("Scenes").onchange=function(){showPreview()};
-showPreview();
+//showPreview();
+
+//tryRestoreAutosave();
+//renderTriggerEditor("triggerEditor");
 
 
-renderTriggerEditor("triggerEditor");
+
 showPreview();
 } 
 //showPreview();
