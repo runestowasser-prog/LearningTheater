@@ -422,6 +422,7 @@ function GetVolume(video){
 	return elementId(video.ID).volume;
 }
 
+/*
 function SetSource(e,newSrc){
 	e.Source=newSrc;
 	elementId(e.ID).setAttribute("src", newSrc);
@@ -431,7 +432,66 @@ function SetSource(e,newSrc){
 				elementId(e.ID).style.backgroundSize="100% 100%";
 
 	}
+}*/
+
+function SetSource(e, newSrc) {
+    const x = elementId(e.ID);
+    e.Source = newSrc;
+    e.Loaded = false;
+
+    if (!newSrc) {
+        e.Loaded = true;
+        return;
+    }
+
+    // ---- IMG ---- //
+    if (e.Type === "img") {
+        x.onload = () => { e.Loaded = true; };
+        x.onerror = () => { e.Loaded = true; };
+        x.src = newSrc;
+    }
+
+    // ---- DIV ---- //
+    else if (e.Type === "div") {
+        const pre = new Image();
+        pre.onload = () => { e.Loaded = true; };
+        pre.onerror = () => { e.Loaded = true; };
+        pre.src = newSrc;
+
+        x.style.backgroundImage = `url(${newSrc})`;
+        x.style.backgroundRepeat = "no-repeat";
+        x.style.backgroundSize = "100% 100%";
+    }
+
+    // ---- VIDEO ---- //
+    else if (e.Type === "video") {
+        x.onloadeddata = () => { e.Loaded = true; };
+        x.onerror = () => { e.Loaded = true; };
+        x.src = newSrc;
+        x.load();
+    }
+
+    // ---- AUDIO ---- //
+    else if (e.Type === "audio") {
+        x.oncanplaythrough = () => { e.Loaded = true; };
+        x.onerror = () => { e.Loaded = true; };
+        x.src = newSrc;
+        x.load();
+    }
+
+    // ---- IFRAME ---- //
+    else if (e.Type === "iframe") {
+        x.onload = () => { e.Loaded = true; };
+        x.onerror = () => { e.Loaded = true; };
+        x.src = newSrc;
+    }
+
+    else {
+        // ukendt type = markér som loaded
+        e.Loaded = true;
+    }
 }
+
 			
 function UpdateElement(e){
 	//var StageScale=Math.min(window.innerWidth/StageWidth, window.innerHeight/StageHeight);
@@ -563,15 +623,64 @@ function GenerateElement(id){
 
 
 		
-		if(id.Source!=undefined){
-		x.setAttribute("src", id.Source);
-		x.onload=function(){id.Loaded=true};
-			if(id.Type=="div"){
-				x.style.backgroundImage="url("+id.Source+")";
-				x.style.backgroundRepeat="no-repeat";
-				x.style.backgroundSize="100% 100%";
-			}
-		}
+		if (id.Source) {
+
+    // ---- IMG ---- //
+    if (id.Type === "img") {
+        x.onload = () => { id.Loaded = true; };
+        x.onerror = () => { id.Loaded = true; };
+        x.src = id.Source;
+    }
+
+    // ---- DIV med background ---- //
+    else if (id.Type === "div") {
+        const pre = new Image();
+        pre.onload = () => { id.Loaded = true; };
+        pre.onerror = () => { id.Loaded = true; };
+        pre.src = id.Source;
+
+        x.style.backgroundImage = `url(${id.Source})`;
+        x.style.backgroundRepeat = "no-repeat";
+        x.style.backgroundSize = "100% 100%";
+    }
+
+    // ---- VIDEO ---- //
+    else if (id.Type === "video") {
+        // metadata loaded = vi kender videoens parametre
+        // loadeddata = første frame er klar
+        x.onloadeddata = () => { id.Loaded = true; };
+        x.onerror = () => { id.Loaded = true; };
+        x.src = id.Source;
+
+        // For video er dette vigtigt for Chrome:
+        x.load();
+    }
+
+    // ---- AUDIO ---- //
+    else if (id.Type === "audio") {
+        x.oncanplaythrough = () => { id.Loaded = true; };
+        x.onerror = () => { id.Loaded = true; };
+        x.src = id.Source;
+        x.load();
+    }
+
+    // ---- IFRAME (HTML-filer) ---- //
+    else if (id.Type === "iframe") {
+        x.onload = () => { id.Loaded = true; };
+        x.onerror = () => { id.Loaded = true; };
+        x.src = id.Source;
+    }
+
+    else {
+        // Ukendt type = fallback
+        id.Loaded = true;
+    }
+
+} else {
+    // Ingen kilde = instant loaded
+    id.Loaded = true;
+}
+
 		if(id.TransformOriginX!=undefined){
 		x.style.transformOrigin=""+id.TransformOriginX+"% "+id.TransformOriginY+"% ";
 		}
