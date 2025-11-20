@@ -326,25 +326,25 @@ summary.appendChild(makeBtn("📝", "Rename", () => {
   removeFromOriginalArray(item);
 
   // Opdater parent referencer for direkte children (og bevar dybere struktur)
-  for (const a of AllActors) {
+ /* for (const a of AllActors) {
     if (a.Parent === oldID) {
       a.Parent = newID;
     }
-  }
+  }*/
 
   // Hvis du også vil opdatere nested parents (søger rekursivt efter
   // actors hvis parent-kæde indeholder oldID), kan du bruge denne (valgfri):
-  // function isDescendant(actor, ancestorID) {
-  //   let p = actor.Parent;
-  //   while (p) {
-  //     if (p === ancestorID) return true;
-  //     const parentObj = findByID(p);
-  //     if (!parentObj) break;
-  //     p = parentObj.Parent;
-  //   }
-  //   return false;
-  // }
-  // AllActors.forEach(a => { if (isDescendant(a, oldID) && a.Parent === oldID) a.Parent = newID; });
+   function isDescendant(actor, ancestorID) {
+     let p = actor.Parent;
+     while (p) {
+       if (p === ancestorID) return true;
+       const parentObj = findByID(p);
+       if (!parentObj) break;
+       p = parentObj.Parent;
+     }
+     return false;
+   }
+   AllActors.forEach(a => { if (isDescendant(a, oldID) && a.Parent === oldID) a.Parent = newID; });
 
   // Opdater tweens (kode-strenge)
   if (Array.isArray(AllTweens)) {
@@ -384,8 +384,10 @@ summary.appendChild(makeBtn("📝", "Rename", () => {
   }
 
   // UI-opdateringer
+  
   updateActorList();
-  renderTriggerEditor?.("triggerEditor"); // opdater editor-visningen så den reflekterer ændringer
+  //renderTriggerEditor?.("triggerEditor"); // opdater editor-visningen så den reflekterer ændringer
+   BuildCode.setValue(exportToCode());
   showPreview();
   console.log(`Renamed ${item.__type} ${oldID} → ${newID}`);
 }));
