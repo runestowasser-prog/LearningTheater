@@ -796,7 +796,7 @@ function init(){
 	attachTriggerListener("stage", "MouseUp");
 
 	if (Scenes[0]!=undefined){
-		//Scenes[0].Opacity=100;
+		Scenes[0].Opacity=100;
 		elementId(""+Scenes[0].ID).style.display="block";
 		Scenes[0].Timeline.restart();
 		}
