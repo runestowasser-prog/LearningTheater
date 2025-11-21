@@ -662,6 +662,68 @@ const ActionFunctions = {
   build: (args) => `SetStatus("${args[0]}")`
 },
 
+"AnimateSVG": {
+  label: "Animate SVG element",
+  category: "SVG",
+
+  args: [
+    {
+      type: "raw",
+      label: "SVG selector",
+      defaultValue: "#myGroup" // CSS selector eller ID
+    },
+	 {
+      type: "dropdown",
+      label: "Direction",
+      options: ["to", "from", "set"],
+      defaultValue: "to"
+    },
+	
+    {
+      type: "dropdown",
+      label: "SVG property",
+      options: [
+        "x", "y",
+        "cx", "cy",
+        "r", "rx", "ry",
+        "width", "height",
+        "opacity",
+        "fill", "stroke", "strokeWidth",
+        "scale", "rotate",
+        "translateX", "translateY",
+        "skewX", "skewY"
+      ],
+      defaultValue: "x"
+    },
+    {
+      type: "raw",
+      label: "Value",
+      defaultValue: "100"
+    },
+    {
+      type: "easing",
+      label: "Easing",
+      defaultValue: "power1.out"
+    },
+    {
+      type: "raw",
+      label: "Duration",
+      defaultValue: "1"
+    },
+    {
+      type: "raw",
+      label: "Delay",
+      defaultValue: "0"
+    }
+  ],
+
+  build: (args) =>
+    `Move.${args[1]}("${args[0]}", { ${args[2]}: "${args[3]}", ease: "${args[4]}", duration: ${args[5]}, delay: ${args[6]} })`
+},
+
+
+
+
     "Set SCORM Location": {
   label: "Set SCORM location",
   category: "SCORM",
