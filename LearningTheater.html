@@ -603,7 +603,7 @@ const gridWrapper = document.createElement("div");
 gridWrapper.className = "editor-row";
 
 const gridLabel = document.createElement("label");
-gridLabel.textContent = "Grid (trinforskel)";
+gridLabel.textContent = "Grid";
 gridWrapper.appendChild(gridLabel);
 
 const gridInput = document.createElement("input");
@@ -2401,7 +2401,7 @@ function showPreview(){
   
     var jsCode = "<scri"+"pt>\n" +
 "window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };\n" +
-"window.Ensembles = window.Ensembles || {}; var Move=gsap;\n" +
+"var Move=gsap;\n" +
 exportTriggersToCode() +
 GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren();\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren();\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
@@ -2887,128 +2887,106 @@ function updateGeneratedActor(){
 	showPreview();
 }
 
+function numField(name,value){
+	if(value === "" || value == null) return "";
+	
+	value = value.replace(",",".");
+	
+	const num = parseFloat(value);
+	if(isNaN(num)) return"";
+	
+	return name +":" + num + ","
+}
+
 function updateGeneratedTween(){
 
 	var Current=CurrentlyEditingTween;
 	
 	//console.log("currentTween: "+CurrentlyEditingTween+" Other Current: "+Current);
 	var id="id: "+CurrentlyEditingTween+",";
-	var s=elementId("SceneId").value;
-	var a=elementId("ActorTween").value;
+	var s=elementId("SceneId").value || "Scenes[0]";
+	var a=elementId("ActorTween").value || "Actors[0]";
 	var st=elementId("startTime").value;
-	var d=elementId("duration").value;
+	let d = "";
+	  if(!duration.disabled){
+	   d = numField("duration", duration.value);
+	   }
+	   
+	//var d=elementId("duration").value;
 	var di=elementId("direction").value;
 	var e=elementId("easing").value;
-	var repeat=elementId("RepeatInput").value;
+	//var repeat=elementId("RepeatInput").value;
+	let repeat = "";
+	if(!RepeatInput.disabled){
+	   repeat = numField("repeat", RepeatInput.value);
+	   }
 	var yoyo=elementId("YoyoInput").checked;
 
 	
-	if(elementId("WidthInput2").disabled==false){
-		w="Width:"+WidthInput2.value+",";
-	}
-	if(elementId("WidthInput2").disabled==true){
-		w="";
-	}
-	
-	if(elementId("HeightInput2").disabled==false){
-		h="Height:"+HeightInput2.value+",";
-	}
-	if(elementId("HeightInput2").disabled==true){
-		h="";
-	}
-	
-	if(elementId("XInput2").disabled==false){
-		x="X:"+XInput2.value+",";
-	}
-	if(elementId("XInput2").disabled==true){
-		x="";
-	}
-	
-	if(elementId("YInput2").disabled==false){
-		y="Y:"+YInput2.value+",";
-	}
-	if(elementId("YInput2").disabled==true){
-		y="";
-	}
-	
-	if(elementId("ScaleInput2").disabled==false){
-		scale="Scale:"+ScaleInput2.value+",";
-	}
-	if(elementId("ScaleInput2").disabled==true){
-		scale="";
-	}
-	
-	if(elementId("OpacityInput2").disabled==false){
-		o="Opacity:"+OpacityInput2.value+",";
-	}
-	if(elementId("OpacityInput2").disabled==true){
-		o="";
-	}
 
-	if(elementId("AngleInput2").disabled==false){
-		ang="Angle:"+AngleInput2.value+",";
-	}
-	if(elementId("AngleInput2").disabled==true){
-		ang="";
-	}
+	let w = "";
+	if(!WidthInput2.disabled){
+	   w = numField("Width", WidthInput2.value);
+	   }
+	let h = "";
+	if(!HeightInput2.disabled){
+	   h = numField("Height", HeightInput2.value);
+	   }
+	let x = "";
+	if(!XInput2.disabled){
+	   x = numField("X", XInput2.value);
+	   }
+	let y = "";
+	if(!YInput2.disabled){
+	   y = numField("Y", YInput2.value);
+	   }
+	let scale = "";
+	if(!ScaleInput2.disabled){
+	   scale = numField("Scale", ScaleInput2.value);
+	   }
+	let o = "";
+	if(!OpacityInput2.disabled){
+	   o = numField("Opacity", OpacityInput2.value);
+	   }
+	let ang = "";
+	if(!AngleInput2.disabled){
+	   ang = numField("Angle", AngleInput2.value);
+	   }
+	let sx = "";
+	if(!SkewXInput2.disabled){
+	   sx = numField("SkewX", SkewXInput2.value);
+	   }
+	let sy = "";
+	if(!SkewYInput2.disabled){
+	   sy = numField("SkewY", SkewYInput2.value);
+	   }
+	let rx = "";
+	if(!RotateXInput2.disabled){
+	   rx = numField("RotateX", RotateXInput2.value);
+	   }
+	let ry = "";
+	if(!RotateYInput2.disabled){
+	   ry = numField("RotateY", RotateYInput2.value);
+	   }
+	let rz = "";
+	if(!RotateZInput2.disabled){
+	   rz = numField("RotateZ", RotateZInput2.value);
+	   }
+	let tx = "";
+	if(!TranslateXInput2.disabled){
+	   tx = numField("TranslateX", TranslateXInput2.value);
+	   }
+	let ty = "";
+	if(!TranslateYInput2.disabled){
+	   ty = numField("TranslateY", TranslateYInput2.value);
+	   }
+	let tz = "";
+	if(!TranslateZInput2.disabled){
+	   tz = numField("TranslateZ", TranslateZInput2.value);
+	   }
 	
-	if(elementId("SkewXInput2").disabled==false){
-		sx="SkewX:"+SkewXInput2.value+",";
-	}
-	if(elementId("SkewXInput2").disabled==true){
-		sx="";
-	}
-	
-	if(elementId("SkewYInput2").disabled==false){
-		sy="SkewY:"+SkewYInput2.value+",";
-	}
-	if(elementId("SkewYInput2").disabled==true){
-		sy="";
-	}
-	
-	if(elementId("RotateXInput2").disabled==false){
-		rx="RotateX:"+RotateXInput2.value+",";
-	}
-	if(elementId("RotateXInput2").disabled==true){
-		rx="";
-	}
-	
-	if(elementId("RotateYInput2").disabled==false){
-		ry="RotateY:"+RotateYInput2.value+",";
-	}
-	if(elementId("RotateYInput2").disabled==true){
-		ry="";
-	}
-	
-	if(elementId("RotateZInput2").disabled==false){
-		rz="RotateZ:"+RotateZInput2.value+",";
-	}
-	if(elementId("RotateZInput2").disabled==true){
-		rz="";
-	}
-	
-	if(elementId("TranslateXInput2").disabled==false){
-		tx="TranslateX:"+TranslateXInput2.value+",";
-	}
-	if(elementId("TranslateXInput2").disabled==true){
-		tx="";
-	}
-	
-	if(elementId("TranslateYInput2").disabled==false){
-		ty="TranslateY:"+TranslateYInput2.value+",";
-	}
-	if(elementId("TranslateYInput2").disabled==true){
-		ty="";
-	}
-	
-	if(elementId("TranslateZInput2").disabled==false){
-		tz="TranslateZ:"+TranslateZInput2.value+",";
-	}
-	if(elementId("TranslateZInput2").disabled==true){
-		tz="";
-	}
 	//arraymove(AllTweens, CurrentlyEditingTween, Current);
-	GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", duration:"+d+", repeat:"+repeat+",yoyo:"+yoyo+", data:\""+di+"\"},"+st+");";
+	GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", "+repeat+"yoyo:"+yoyo+", "+d+" data:\""+di+"\"},"+st+");";
 	AllTweens[CurrentlyEditingTween]=GeneratingTween;
 	//console.log(Current+AllTweens[Current]);
 	//elementId("PreviewWindow").contentWindow.GeneratingTween
