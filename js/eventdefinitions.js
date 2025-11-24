@@ -722,6 +722,241 @@ const ActionFunctions = {
 },
 
 
+"MultiDrawSVG": {
+  label: "Draw SVG paths",
+  category: "SVG",
+
+  args: [
+    { 
+	  type: "actor", 
+	  label: " Actor: ",
+	  defaultValue:"Actors[0]" 
+	  },
+    {
+      type: "dropdown",
+      label: "Mode",
+      options: ["all-together", "stagger", "sequence"],
+      defaultValue: "sequence"
+    },
+    {
+      type: "raw",
+      label: "Duration (per path)",
+      defaultValue: "1"
+    },
+    {
+      type: "raw",
+      label: "Delay",
+      defaultValue: "0"
+    }
+  ],
+
+  build: (args) => {
+    const selector = args[0];
+    const mode = args[1];
+    const duration = args[2];
+    const delay = args[3];
+
+    return `
+{
+  const container = document.querySelector("#${selector}");
+  if (!container) return;
+
+  const paths = container.querySelectorAll("path");
+
+  paths.forEach((p, i) => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = len;
+
+    let d = ${delay};
+
+    if ("${mode}" === "stagger") {
+      d += i * ( ${duration} / 4 );
+    }
+
+    if ("${mode}" === "sequence") {
+      d += i * ${duration};
+    }
+
+    Move.to(p, {
+      strokeDashoffset: 0,
+      duration: ${duration},
+      delay: d,
+      ease: "none"
+    });
+  });
+}
+`;
+  }
+},
+
+"MultiFillFadeSVG": {
+  label: "Fade in SVG fills",
+  category: "SVG",
+
+  args: [
+    {
+      type: "actor",
+      label: "SVG container",
+      defaultValue: "Actors[0]"
+    },
+    {
+      type: "dropdown",
+      label: "Mode",
+      options: ["all-together", "stagger", "sequence"],
+      defaultValue: "all-together"
+    },
+    {
+      type: "raw",
+      label: "Duration (per element)",
+      defaultValue: "1"
+    },
+    {
+      type: "raw",
+      label: "Delay",
+      defaultValue: "0"
+    }
+  ],
+
+  build: (args) => {
+    const actor = args[0];
+    const mode = args[1];
+    const duration = args[2];
+    const delay = args[3];
+
+    return `
+{
+  const container = document.querySelector("#${actor}");
+  if (!container) return;
+
+  const elements = Array.from(container.querySelectorAll("*"));
+
+  elements.forEach((el, i) => {
+    // computed fill (may be 'none' or a color)
+    const cs = getComputedStyle(el);
+    const fill = cs.fill;
+
+    // skip elements without a fill
+    if (!fill || fill === "none") return;
+
+    // determine original fill-opacity (computed style)
+    // parseFloat to convert "0.5" -> 0.5, fallback to 1
+    const origFillOpacity = parseFloat(cs.fillOpacity) || 1;
+
+    // store any inline value so we could restore if needed (optional)
+    const prevInline = el.style.fillOpacity;
+
+    // set starting state: hide fill only (don't touch stroke)
+    el.style.fillOpacity = 0;
+
+    // calculate delay per mode
+    let d = ${delay};
+
+    if ("${mode}" === "stagger") {
+      d += i * (${duration} / 4);
+    } else if ("${mode}" === "sequence") {
+      d += i * ${duration};
+    }
+
+    // Animate only fillOpacity -> preserves stroke visibility
+    Move.to(el, {
+      fillOpacity: origFillOpacity,
+      duration: ${duration},
+      delay: d,
+      ease: "power1.out"
+    });
+  });
+}
+`;
+  }
+},
+
+"EraseSVGLine": {
+  label: "Erase SVG lines",
+  category: "SVG",
+
+  args: [
+    { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
+    { type: "dropdown", label: "Mode", options: ["all-together","stagger","sequence"], defaultValue: "sequence" },
+    { type: "raw", label: "Duration (per path)", defaultValue: "1" },
+    { type: "raw", label: "Delay", defaultValue: "0" }
+  ],
+
+  build: (args) => {
+    return `
+{
+  const container = document.querySelector("#${args[0]}");
+  if (!container) return;
+
+  const paths = container.querySelectorAll("path");
+
+  paths.forEach((p, i) => {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = len;
+    p.style.strokeDashoffset = 0;
+
+    let d = ${args[3]};
+    if ("${args[1]}" === "stagger") d += i * (${args[2]} / 4);
+    if ("${args[1]}" === "sequence") d += i * ${args[2]};
+
+    Move.to(p, {
+      strokeDashoffset: len,
+      duration: ${args[2]},
+      delay: d,
+      ease: "none"
+    });
+  });
+}
+`;
+  }
+},
+
+"FadeOutSVGFill": {
+  label: "Fade out SVG fills",
+  category: "SVG",
+
+  args: [
+    { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
+    { type: "dropdown", label: "Mode", options: ["all-together","stagger","sequence"], defaultValue: "all-together" },
+    { type: "raw", label: "Duration (per element)", defaultValue: "1" },
+    { type: "raw", label: "Delay", defaultValue: "0" }
+  ],
+
+  build: (args) => {
+    return `
+{
+  const container = document.querySelector("#${args[0]}");
+  if (!container) return;
+
+  const elements = container.querySelectorAll("*");
+
+  elements.forEach((el, i) => {
+    const cs = getComputedStyle(el);
+    const fill = cs.fill;
+    if (!fill || fill === "none") return;
+
+    const origFillOpacity = parseFloat(cs.fillOpacity) || 1;
+    el.style.fillOpacity = origFillOpacity;
+
+    let d = ${args[3]};
+    if ("${args[1]}" === "stagger") d += i * (${args[2]} / 4);
+    if ("${args[1]}" === "sequence") d += i * ${args[2]};
+
+    Move.to(el, {
+      fillOpacity: 0,
+      duration: ${args[2]},
+      delay: d,
+      ease: "power1.in"
+    });
+  });
+}
+`;
+  }
+},
+
+
+
+
 
 
     "Set SCORM Location": {
