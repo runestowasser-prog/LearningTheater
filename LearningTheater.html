@@ -213,54 +213,7 @@ if (item.__type === "Actor") {
   summary.appendChild(makeBtn("✏️", "Edit", () => openPropertyEditor(item)));
 }
 
-/*
-// 📝 Rename (fungerer for både actors og scener)
-summary.appendChild(makeBtn("📝", "Rename", () => {
-  const oldID = item.ID;
-  const newID = prompt("Enter new ID:", item.ID);
-  if (!newID || newID === item.ID) return;
 
-  // check if ID already exists
-  if (AllActors.some(a => a.ID === newID) || AllScenes.some(s => s.ID === newID)) {
-    alert("An Actor or Scene with that ID already exists.");
-    return;
-  }
-
-  // Lav en kopi, men bevar __type og andre interne felter
-  const clone = cloneWithoutRuntime(item);
-  clone.ID = newID;
-
-  // Tilføj til den korrekte liste
-  if (item.__type === "Scene") {
-    AllScenes.push(clone);
-  } else {
-    AllActors.push(clone);
-  }
-
-  // Fjern den gamle fra den rigtige liste
-  removeFromOriginalArray(item);
-  
-  // 🔍 Opdater tweens (kode-strenge) så de peger på det nye ID
-  if (Array.isArray(AllTweens)) {
-    for (let i = 0; i < AllTweens.length; i++) {
-      AllTweens[i] = AllTweens[i].replaceAll(oldID, newID);
-    }
-  }
-  // 🔁 Opdater parent references i Actors
-	for (const actor of AllActors) {
-	if (actor.Parent === oldID) {
-		actor.Parent = newID;
-	}
-}
-
-
-  // Opdater UI
-  updateActorList();
-  showPreview();
-
-  console.log(`Renamed ${item.__type} ${item.ID} → ${newID}`);
-}));
-*/
 
 // Helper: klon uden runtime-felter/funktioner
 function cloneWithoutRuntime(obj) {
@@ -1284,7 +1237,7 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
     		argsValues[index] = input.value || 0;
 		//onChange(); 
   });
-  // Tilf�j h�jreklik-menu
+  // Tilf j h jreklik-menu
   attachHelperMenu(input, (val) => onChange(index, val));
   //attachHelperMenu(input, (val));
   break;
@@ -2469,7 +2422,7 @@ function ShowSelectedScript(Selected,Head,Current){
   CurrentScript=Current;
 }
 
-var file_handle='documents';
+//var file_handle='documents';
 var file_name='show.html';
 if(file_handle.name==undefined){
 	file_handle.name="Show.html"
@@ -2577,7 +2530,7 @@ function loadFileAsText()
 	[fileHandle] = await window.showOpenFilePicker({
 		//startIn: file_handle,
 		id:'startId',
-		//startIn: file-handle,
+		startIn: file-handle,
 		types: [{
 		description: 'Html',
 		accept: {
@@ -3087,7 +3040,7 @@ Overflow="visible";
 Actor("KeyframeOptions","DIV");
 KeyframeOptions.Width=400;
 
-Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=200;thisActor.Y=30;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="Fit" oninput="showPreview()"><option>Fit</option><option>None</option><option>Width</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
+Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="Fit" oninput="showPreview()"><option>Fit</option><option>None</option><option>Width</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
 thisActor.Opacity=0;
 thisActor.Z=1;
 
@@ -3176,54 +3129,62 @@ ScriptMenu.Y=30
 ScriptMenu.Opacity=0
 
 Actor("ScriptOption1","button");
-ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General',GeneralCode)"
+ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
 ScriptOption1.Height=30
-ScriptOption1.Y=0
+ScriptOption1.Y=90
 ScriptOption1.Parent="ScriptMenu"
-ScriptOption1.Text="General"
+ScriptOption1.Text="General (code)"
 Actor("ScriptOption2","button"); 
-ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build',BuildCode)"
+ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
 ScriptOption2.Height=30
-ScriptOption2.Y=30
+ScriptOption2.Y=180
 ScriptOption2.Parent="ScriptMenu"
-ScriptOption2.Text="Build"
+ScriptOption2.Text="Build (code)"
 Actor("ScriptOption3","button"); 
-ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update',UpdateCode)"
+ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
 ScriptOption3.Height=30
-ScriptOption3.Y=60
+ScriptOption3.Y=150
 ScriptOption3.Parent="ScriptMenu"
-ScriptOption3.Text="Update"
+ScriptOption3.Text="Update (code)"
 Actor("ScriptOption4","button");
-ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start',ScenestartCode)"
+ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
 ScriptOption4.Height=30
-ScriptOption4.Y=90
+ScriptOption4.Y=120
 ScriptOption4.Parent="ScriptMenu"
-ScriptOption4.Text="Scene Start"
+ScriptOption4.Text="Scene Start (code)"
 Actor("ScriptOption5","button"); 
 ScriptOption5.MouseUp="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
 ScriptOption5.Height=30
 ScriptOption5.Y=120
 ScriptOption5.Parent="ScriptMenu"
 ScriptOption5.Text="Resize"
+ScriptOption5.Opacity=0
 Actor("ScriptOption6","button"); 
 ScriptOption6.MouseUp="ShowSelectedScript(HEAD,'HEAD',HEAD)"
 ScriptOption6.Height=30
-ScriptOption6.Y=150
+ScriptOption6.Y=60
 ScriptOption6.Parent="ScriptMenu"
 ScriptOption6.Text="HEAD"
 Actor("ScriptOption7","button"); 
-ScriptOption7.MouseUp="ShowSelectedScript(BuildSpecial,'BUILD GUI',BuildSpecial)"
+ScriptOption7.MouseUp="ShowSelectedScript(BuildSpecial,'ACTORS',BuildSpecial)"
 ScriptOption7.Height=30
-ScriptOption7.Y=180
+ScriptOption7.Y=0
 ScriptOption7.Parent="ScriptMenu"
-ScriptOption7.Text="BUILD GUI"
+ScriptOption7.Text="ACTORS"
 Actor("ScriptOption8","button"); 
-ScriptOption8.MouseUp="ShowSelectedScript(EventEditor,'EVENT EDITOR',EventEditor)"
+ScriptOption8.MouseUp="ShowSelectedScript(EventEditor,'EVENTS',EventEditor)"
 ScriptOption8.Height=30
-ScriptOption8.Y=210
+ScriptOption8.Y=30
 ScriptOption8.Parent="ScriptMenu"
-ScriptOption8.Text="EVENT EDITOR"
+ScriptOption8.Text="EVENTS"
 
+Actor('settingsBtn','button')
+thisActor.Text="Settings ⚙"
+//thisActor.Width=142
+thisActor.Height=30
+thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false"
+thisActor.Parent="ScriptMenu"
+thisActor.Y=210
 
 
 Actor("resizer","div");
@@ -3284,14 +3245,14 @@ UpdateBtn.MouseUp="showPreview();"
 UpdateBtn.Width=30
 UpdateBtn.Height=30
 UpdateBtn.X=400
-
+/*
 Actor('settingsBtn','button')
 thisActor.Text="Settings ⚙"
 thisActor.Width=142
 thisActor.Height=30
 thisActor.MouseUp="SettingsWindow.Opacity=100"
 thisActor.X=430
-
+*/
 
 Actor("ActorWindow","div")
 ActorWindow.Opacity=0;
@@ -3398,11 +3359,11 @@ ActorOptions.Text="Grid: <input id=\"grid\" type=\"number\" value=\"1\" onchange
 
 Actor("TweenOptions","DIV");
 thisActor.Opacity=0;
-thisActor.Y=200
+thisActor.Y=0;
 thisActor.Color="lightgrey"
-thisActor.Height=StageHeight-200
+thisActor.Height=StageHeight;
 thisActor.Width=400
-thisActor.Overflow="scroll" 
+thisActor.Overflow="auto" 
 thisActor.Generated=""
 
 thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id=\"ActorTween\" oninput=\"updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
@@ -3789,7 +3750,7 @@ HEADCode=CodeMirror(elementId("HEAD"), {
   value: `<style>
 	html{
 	font-family:arial;
-	//bacgkround-color:black;
+	//background-color:black;
 	overflow:hidden;
     //overflow-y:auto;
 	}
@@ -3892,7 +3853,7 @@ NewTweenBtn.Y=StageHeight-30;
 TimelineVisual.Y=StageHeight-TimelineVisual.Height-50;
 TimelineVisual.Width=StageWidth-400;
 ActorOptions.Height=StageHeight-60;
-TweenOptions.Height=StageHeight-200;
+TweenOptions.Height=StageHeight;
 
 buildCode.Height=StageHeight
 generalCode.Height=StageHeight
@@ -4131,19 +4092,19 @@ details[open] > summary::before {
 </style>
 <script>
 const GlobalSuggestions = [
-  { label: "CurrentScene", info: "Aktiv scene" },
-  { label: "StageWidth", info: "Bredde p� scenen i pixels" },
-  { label: "StageHeight", info: "H�jde p� scenen i pixels" },
+  { label: "CurrentScene", info: "Active scene" },
+  { label: "StageWidth", info: "Width of the stage" },
+  { label: "StageHeight", info: "H jde p  scenen i pixels" },
   { label: "MouseX", info: "Musens X-position" },
   { label: "MouseY", info: "Musens Y-position" },
-  { label: "AllActors", info: "Array med alle akt�rer" },
+  { label: "AllActors", info: "Array med alle akt rer" },
   { label: "AllScenes", info: "Array med alle scener" }
 ];
 
 // Gem original JS hinter
 const defaultJsHint = CodeMirror.hint.javascript;
 
-// Registr�r vores udvidede variant
+// Registr r vores udvidede variant
 CodeMirror.registerHelper("hint", "javascript", function (editor) {
   const cur = editor.getCursor();
   const token = editor.getTokenAt(cur);
@@ -4163,7 +4124,7 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
     .filter(s => s.label.toLowerCase().startsWith(currentWord.toLowerCase()))
     .map(s => ({
       text: s.label,
-      displayText: s.label + " � " + s.info,
+      displayText: s.label + "   " + s.info,
     }));
 
   return {
@@ -4172,13 +4133,7 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
     to: CodeMirror.Pos(cur.line, end)
   };
 });
-/*
-var PreviewWindow=elementId("PreviewWindow");
-function syncEnsemblesFromPreview() {
-  if (window.PreviewWindow && window.PreviewWindow.Ensembles) {
-    window.Ensembles = structuredClone(window.PreviewWindow.Ensembles);
-  }
-}*/
+
 </script>
 </head>
 <body onload="init(); OnResize();" onresize="OnResize();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
@@ -4187,16 +4142,17 @@ function syncEnsemblesFromPreview() {
 <div id="propertyEditor" style="
   display:none;
   position:absolute;
-  top:20px;
+  top:0px;
   left:0px;
-  width:360px;
-  background:white;
-  border:1px solid #ccc;
-  box-shadow:0 2px 10px rgba(0,0,0,0.2);
-  border-radius:8px;
+  width:369px;
+  background:lightgray;
+  //border:1px solid #ccc;
+  //box-shadow:0 2px 10px rgba(0,0,0,0.2);
+  //border-radius:8px;
   z-index:1000;
   padding:15px;
-  max-height:80vh;
+  //max-height:80vh;
+  height:96%;
   overflow:auto;
 ">
   <h3 style="margin-top:0;">Rediger objekt</h3>
