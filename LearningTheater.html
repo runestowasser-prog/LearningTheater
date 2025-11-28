@@ -627,8 +627,8 @@ editor.appendChild(gridWrapper);
     if (prop === "Parent") {
       input = document.createElement("select");
       const noneOption = document.createElement("option");
-      noneOption.value = "";
-      noneOption.textContent = "(none)";
+      noneOption.value = "stage";
+      noneOption.textContent = "stage";
       input.appendChild(noneOption);
 
       parentOptions.forEach(opt => {
