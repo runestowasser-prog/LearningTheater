@@ -1642,7 +1642,8 @@ wrapper.appendChild(conditionList);
 
 // Render en enkelt condition editor
 function renderConditionRow(conditionValue, conditionIndex) {
-  let conditionObj = typeof conditionValue === "object"
+
+let conditionObj = typeof conditionValue === "object"
   ? conditionValue
   : { fn: "", args: [], code: conditionValue };
 
@@ -1741,6 +1742,7 @@ conditionFnSelect.onchange = () => {
 
  const conditionInput = document.createElement("input");
 conditionInput.type = "text";
+conditionInput.style="width:230px";
 conditionInput.placeholder = "Condition (fx Ball.X > 100)";
 conditionWrapper.appendChild(conditionInput);
 
@@ -1751,6 +1753,7 @@ conditionInput.oninput = () => {
     code: conditionInput.value
   };
 };
+
 // 👉 Forudfyld values:
 if (conditionObj.fn && ConditionFunctions[conditionObj.fn]) {
   conditionFnSelect.value = conditionObj.fn;
@@ -1761,19 +1764,10 @@ if (conditionObj.fn && ConditionFunctions[conditionObj.fn]) {
 }
 
 
-  // Delete condition knap
-  const deleteConditionBtn = document.createElement("button");
-  deleteConditionBtn.textContent = "❌";
-  deleteConditionBtn.className = "icon-btn";
-  deleteConditionBtn.onclick = () => {
-    trigger.conditions.splice(conditionIndex, 1);
-    renderTriggerEditor(containerId);
-  };
-  conditionWrapper.appendChild(deleteConditionBtn);
-
+  
 // Move up button
 const moveUpBtn = document.createElement("button");
-moveUpBtn.textContent = "⬆️";
+moveUpBtn.textContent = "▴";
 moveUpBtn.className = "icon-btn";
 moveUpBtn.onclick = () => {
   if (conditionIndex > 0) {
@@ -1787,7 +1781,7 @@ conditionWrapper.appendChild(moveUpBtn);
 
 // Move down button
 const moveDownBtn = document.createElement("button");
-moveDownBtn.textContent = "⬇️";
+moveDownBtn.textContent = "▾";
 moveDownBtn.className = "icon-btn";
 moveDownBtn.onclick = () => {
   if (conditionIndex < trigger.conditions.length - 1) {
@@ -1800,6 +1794,16 @@ moveDownBtn.onclick = () => {
 conditionWrapper.appendChild(moveDownBtn);
 
 
+// Delete condition knap
+  const deleteConditionBtn = document.createElement("button");
+  deleteConditionBtn.textContent = "❌";
+  deleteConditionBtn.style="display:content";
+  deleteConditionBtn.className = "icon-btn";
+  deleteConditionBtn.onclick = () => {
+    trigger.conditions.splice(conditionIndex, 1);
+    renderTriggerEditor(containerId);
+  };
+  conditionWrapper.appendChild(deleteConditionBtn);
 
 
 
@@ -2021,6 +2025,7 @@ actionWrapper.appendChild(actionFnSelect);
     // Custom code input
     const actionInput = document.createElement("input");
     actionInput.type = "text";
+	actionInput.style="width:230px";
     actionInput.placeholder = "Action kode";
     actionInput.value = actionObj.code || "";
     actionInput.oninput = () => {
@@ -2030,15 +2035,7 @@ actionWrapper.appendChild(actionFnSelect);
     };
     actionWrapper.appendChild(actionInput);
 
-    // Fjern-knap for action
-const deleteActionBtn = document.createElement("button");
-deleteActionBtn.textContent = "❌";
-deleteActionBtn.className = "icon-btn";
-deleteActionBtn.onclick = () => {
-  trigger.actions.splice(actionIndex, 1);
-  renderActions();
-};
-actionWrapper.appendChild(deleteActionBtn);
+ 
 
 // Flyt op-knap
 const moveUpBtn = document.createElement("button");
@@ -2067,6 +2064,19 @@ moveDownBtn.onclick = () => {
   }
 };
 actionWrapper.appendChild(moveDownBtn);
+
+
+   // Fjern-knap for action
+const deleteActionBtn = document.createElement("button");
+deleteActionBtn.textContent = "❌";
+deleteActionBtn.className = "icon-btn";
+deleteActionBtn.onclick = () => {
+  trigger.actions.splice(actionIndex, 1);
+  renderActions();
+};
+actionWrapper.appendChild(deleteActionBtn);
+
+
 
 actionsContainer.appendChild(actionWrapper);
 
@@ -3923,9 +3933,12 @@ border-style:solid;
 }
 
 button {
-  background-color: white;
-  color: black;
-  border: 2px solid #555555;
+      /* background-color: #f1f1f1; */
+    color: black;
+    border: 2px solid #00000054;
+    transition-duration: 0.1s;
+    border-radius: 6px;
+    
   transition-duration: 0.1s;
 }
 
@@ -3981,13 +3994,18 @@ margin:1em;
 background-color:lightgray;
 }
 .condition-row{
-margin:1em;
-text-align:left;
+    padding: 1em;
+    text-align: left;
+    background-color: #ffff002b;
+    border-radius: 0em;
 }
+
 .action-row{
-margin:1em;
-text-align:left;
+	padding: 1em;
+    text-align: left;
+    background-color: #00800026;
 }
+	
 summary{
 font-size:smaller;
 }
@@ -4160,6 +4178,5 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
   <button id="closeEditor" onclick="document.getElementById("propertyEditor").style.display = "none"">Luk</button>
 </div>
 </body>
-
 
 </html>
