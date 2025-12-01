@@ -57,12 +57,13 @@ function setCheckboxValue(checkbox,value) {
 }
 
 var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length; i++){"+
+
 "Actor(\"TimelineTween\"+i,\"div\");thisActor.Parent=\"TimelineBox\";"+
 "thisActor.Color='#f7f7f7';"+
 "thisActor.Resizing=false;"+
-"thisActor.Style='filter:drop-shadow(0.5em 0.5em 0.5em); cursor:grab;';"+
+"thisActor.Style='filter:drop-shadow(0.1em 0.1em 0.1em); cursor:grab;';"+
 "thisActor.Draggable=true;"+
-"thisActor.MouseUp=\" parent.elementId('startTime').value=\"+thisActor.ID+\".X/100; parent.elementId('startTime').dispatchEvent(new Event('input'));startX=\"+thisActor.ID+\".X;\";"+
+"thisActor.MouseUp=\" let ax=\"+thisActor.ID+\".X; ax=Math.round(ax/10)*10; \"+thisActor.ID+\".X=ax; parent.elementId('startTime').value=ax/100; parent.elementId('startTime').dispatchEvent(new Event('input')); startX=ax;\";"+
 "thisActor.MouseDown=\"parent.TweenOptions.Opacity=100; parent.CurrentlyEditingTween=parent.AllSceneTweens[\"+i+\"].vars.id;"+
 "parent.SceneId.value=parent.elementId(\'PreviewWindow\').contentWindow.GetScene().ID; "+
 "parent.ActorTween.value=parent.AllSceneTweens[\"+i+\"]._targets[0].ID;"+
@@ -70,12 +71,10 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "parent.duration.value=parent.AllSceneTweens[\"+i+\"].vars.duration;"+
 "parent.RepeatInput.value=parent.AllSceneTweens[\"+i+\"]._repeat;"+
 "parent.YoyoInput.checked=parent.AllSceneTweens[\"+i+\"]._yoyo;"+
-//"if(parent.AllSceneTweens[\"+i+\"]._to==true){parent.direction.value=\'to\';}"+
-//"if(parent.AllSceneTweens[\"+i+\"]._from==true){parent.direction.value=\'from\';}"+
-//"if(parent.AllSceneTweens[\"+i+\"]._set==true){parent.direction.value=\'set\';}"+
+"parent.RepeatDelay.value=parent.AllSceneTweens[\"+i+\"]._rDelay;"+
 "parent.direction.value=parent.AllSceneTweens[\"+i+\"].vars.data;"+
 "parent.easing.value=parent.AllSceneTweens[\"+i+\"].vars.ease;"+
-"if(parent.AllSceneTweens[\"+i+\"].vars.Width!=undefined){parent.WidthInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Width+10;  parent.WidthInput2.disabled=false;parent.WidthOnT.checked=true;}else{parent.WidthInput2.disabled=true;parent.WidthOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.Width!=undefined){parent.WidthInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Width;  parent.WidthInput2.disabled=false;parent.WidthOnT.checked=true;}else{parent.WidthInput2.disabled=true;parent.WidthOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.Height!=undefined){parent.HeightInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Height;  parent.HeightInput2.disabled=false;parent.HeightOnT.checked=true;}else{parent.HeightInput2.disabled=true;parent.HeightOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.X!=undefined){parent.XInput2.value=parent.AllSceneTweens[\"+i+\"].vars.X;  parent.XInput2.disabled=false; parent.XOnT.checked=true;}else{parent.XInput2.disabled=true;parent.XOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.Y!=undefined){parent.YInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Y;  parent.YInput2.disabled=false;parent.YOnT.checked=true;}else{parent.YInput2.disabled=true;parent.YOnT.checked=false;}"+
@@ -92,10 +91,12 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "if(parent.AllSceneTweens[\"+i+\"].vars.TranslateZ!=undefined){parent.TranslateZInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TranslateZ;  parent.TranslateZInput2.disabled=false;parent.TranslateZOnT.checked=true;}else{parent.TranslateZInput2.disabled=true;parent.TranslateZOnT.checked=false;} \";"+
 "thisActor.Y=30;thisActor.Height=15;thisActor.Width=(AllTweens[i].duration()*100)+0;thisActor.X=AllTweens[i].startTime()*100;thisActor.FontSize=10;"+
 "if(parent.AllSceneTweens[i].vars.data==\"from\" || parent.AllSceneTweens[i].vars.data==\"to\"){"+
-"thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; \"+thisActor.ID+\".Width=(MouseX+20)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft;}});' onmouseup='clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
+"thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".Draggable=false;\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft; \"+thisActor.ID+\".Width=Math.round(w/10)*10; }});' onmouseup='\"+thisActor.ID+\".Draggable=true; clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
 "if(parent.AllSceneTweens[i].vars.data==\"set\"){thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"\"}"+
-"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){thisActor.Y=AllTweensY[i-1]+15;} AllTweensY.push(thisActor.Y);}}";
-
+"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){thisActor.Y=AllTweensY[i-1]+15;} AllTweensY.push(thisActor.Y);"+
+"Actor('TweenGhost'+i,'div');thisActor.Parent=\"TimelineBox\";thisActor.Color='white';thisActor.Opacity=40;thisActor.Y=AllTweensY[i]; thisActor.Height=13;thisActor.Z=-1;thisActor.X=AllTweensX[i];let d=AllTweens[i].duration()*100;let r=AllTweens[i]._repeat;let rd=AllTweens[i]._rDelay*100;thisActor.Width=d+(r*(d+rd)); thisActor.Text=\"<div style='position:absolute; background-color:white; width:'+d+'px; x:AllTweensX[i]+r+'px'></div>\" "
++
+"}}";
 
 	
 
@@ -2540,7 +2541,7 @@ function loadFileAsText()
 	[fileHandle] = await window.showOpenFilePicker({
 		//startIn: file_handle,
 		id:'startId',
-		startIn: file-handle,
+		startIn: file_handle,
 		types: [{
 		description: 'Html',
 		accept: {
@@ -2884,7 +2885,11 @@ function updateGeneratedTween(){
 	   repeat = numField("repeat", RepeatInput.value);
 	   }
 	var yoyo=elementId("YoyoInput").checked;
-
+	
+	let repeatDelay = "";
+	if(!RepeatDelay.disabled){
+	   repeatDelay = numField("repeatDelay", RepeatDelay.value);
+	   }
 	
 
 	let w = "";
@@ -2949,7 +2954,7 @@ function updateGeneratedTween(){
 	   }
 	
 	//arraymove(AllTweens, CurrentlyEditingTween, Current);
-	GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", "+repeat+"yoyo:"+yoyo+", "+d+" data:\""+di+"\"},"+st+");";
+	GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", "+repeat+"yoyo:"+yoyo+", "+repeatDelay+d+" data:\""+di+"\"},"+st+");";
 	AllTweens[CurrentlyEditingTween]=GeneratingTween;
 	//console.log(Current+AllTweens[Current]);
 	//elementId("PreviewWindow").contentWindow.GeneratingTween
@@ -3378,7 +3383,8 @@ thisActor.Generated=""
 
 thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id=\"ActorTween\" oninput=\"updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
 "Repeat<input id=\"RepeatInput\" type=\"number\" value=\"0\" min=\"-1\" label=\"Repeat\" oninput=\"updateGeneratedTween()\">"+
-"	Yoyo<input type=\"checkbox\" id=\"YoyoInput\" oninput=\"updateGeneratedTween()\"></p>"
+"	Yoyo<input type=\"checkbox\" id=\"YoyoInput\" oninput=\"updateGeneratedTween()\"><br>"+
+"Repeat delay<input id=\"RepeatDelay\" type=\"number\" value=\"0\" min=\"0\" label=\"RepeatDelay\" oninput=\"updateGeneratedTween()\"></p>"
 thisActor.Line5="<input type=\"checkbox\" id=\"WidthOnT\" onclick=\"enableField('WidthInput2'); updateGeneratedTween();\">Width </button>"
 thisActor.Line5_1="<input id=\"WidthInput2\" type=\"number\" value=\"200\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
 thisActor.Line6="<input type=\"checkbox\" id=\"HeightOnT\" onclick=\"enableField('HeightInput2'); updateGeneratedTween(); \">Height </button>"
