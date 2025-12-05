@@ -852,7 +852,8 @@ function Loop() {
     DeltaRatio = gsap.ticker.deltaRatio(),
     FrameRatio = gsap.ticker.deltaRatio(),
     FollowSLPlayer(),
-    runTriggers("Update") // <-- eneste sted, hvor Update-triggers køres
+    runTriggers("Update"), // <-- eneste sted, hvor Update-triggers køres
+	OnResize()
   );
 
   // Opdater perspektiv
