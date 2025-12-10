@@ -222,7 +222,7 @@ function OnResize(){
 
 //	Div1.style.width=StageWidth*StageScale+"px";
 //	Div1.style.height=StageHeight*StageScale+"px";
-	Resize();
+	//Resize();
 }
 
 function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX,RotateY,RotateZ, TranslateX, TranslateY, TranslateZ, MouseDown, MouseUp, BackgroundImage, Style){
