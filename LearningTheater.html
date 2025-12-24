@@ -2303,8 +2303,8 @@ function loadFullString(fullText) {
 			GeneratedTriggers = structuredClone(savedTriggers);
 		}
 */
-
-
+	
+	showPreview();
 
 }
 
@@ -2492,6 +2492,11 @@ function tryRestoreAutosave() {
     // 3) Tegn trigger-editoren én gang
     // (må IKKE trigge showPreview)
     renderTriggerEditor("triggerEditor");
+	setTimeout(function(){
+	updateActorList();
+	allProps=getAllProperties();
+	},1000);
+	
 }
 
 
