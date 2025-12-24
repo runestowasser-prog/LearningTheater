@@ -1042,7 +1042,7 @@ function createNewTrigger(eventType = "Update") {
     event: eventType,
     target: hasTarget ? (AllActors[0]?.ID || null) : null,  // Hvis der er Actors, vælg første, ellers null
     comment: "",        // 👈 nyt felt: gemmer brugerens fritekst-kommentar
-    conditions: ["true"],
+    conditions: [],
     actions: []
   };
 }
@@ -2295,10 +2295,17 @@ function loadFullString(fullText) {
 		option.setAttribute("selected","selected");
 		select.add(option);
 		
+		//parent.__loadingFromFile = true;
 		
-	setTimeout(function(){ showPreview(); }, 1000);
-    //showPreview();
-	//renderTriggerEditor();
+/*		const savedTriggers = JSON.parse(localStorage.getItem("LT_Triggers"));
+
+		if (Array.isArray(savedTriggers)) {
+			GeneratedTriggers = structuredClone(savedTriggers);
+		}
+*/
+
+
+
 }
 
 
@@ -2382,7 +2389,7 @@ GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = 
 
 previewFrame.addEventListener("scene-ready", () => {
     // Nu ER Triggers garanteret loaded og udfyldt
-    parent.GeneratedTriggers = previewFrame.Triggers;
+    //parent.GeneratedTriggers = previewFrame.Triggers;
     parent.renderTriggerEditor("triggerEditor");
 });
 
@@ -2448,19 +2455,45 @@ function autoSavePreview() {
         const previewString = HTMLCode + JsCode;
         localStorage.setItem("LT_autosave", previewString);
         localStorage.setItem("LT_autosave_time", Date.now());
+		localStorage.setItem(
+		"LT_autosave_triggers",
+		JSON.stringify(parent.GeneratedTriggers)
+		);
     } catch(e) {
         console.warn("Autosave failed", e);
     }
 }
 
 function tryRestoreAutosave() {
+
     const saved = localStorage.getItem("LT_autosave");
     if (!saved) return;
 
-    if (confirm("There's an autosaved project. Would you like to load it?")) {
-        loadFullString(saved);
+    if (!confirm("There's an autosaved project. Would you like to load it?")) {
+        return;
     }
+
+    // 1) Gendan triggers direkte fra editor-state
+    const triggerData = localStorage.getItem("LT_autosave_triggers");
+    if (triggerData) {
+        try {
+            parent.GeneratedTriggers = JSON.parse(triggerData);
+        } catch (e) {
+            console.warn("Could not restore triggers from autosave", e);
+            parent.GeneratedTriggers = [];
+        }
+    } else {
+        parent.GeneratedTriggers = [];
+    }
+
+    // 2) Gendan resten af projektet (kode, head, settings)
+    loadFullString(saved);
+
+    // 3) Tegn trigger-editoren én gang
+    // (må IKKE trigge showPreview)
+    renderTriggerEditor("triggerEditor");
 }
+
 
 
 function saveTextAsFile(){
@@ -2529,6 +2562,8 @@ window.addEventListener('keydown', e => {
 function loadFileAsText()
 {
 	var content=null;
+	
+	parent.__loadingFromFile = true;
 	
 	
 //    var fileToLoad = document.getElementById("fileToLoad").files[0];
@@ -2608,6 +2643,17 @@ function loadFileAsText()
 		
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
+	
+	const previewWin = elementId("PreviewWindow").contentWindow;
+
+    previewWin.addEventListener("scene-ready", function onReady(){
+        previewWin.removeEventListener("scene-ready", onReady);
+
+        parent.GeneratedTriggers = structuredClone(previewWin.Triggers);
+        parent.renderTriggerEditor("triggerEditor");
+
+        parent.__loadingFromFile = false;
+    });
 	
 	/*SettingsGenerated='parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'*/
 	GeneralCode.execCommand('foldAll');
