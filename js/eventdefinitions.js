@@ -43,7 +43,7 @@ const ConditionFunctions = {
 
  
 
-
+/*
  "ActorPosition": {
     label: "Actor position is",
 	category:"Actor",
@@ -57,7 +57,7 @@ const ConditionFunctions = {
     ],
     build: (args) => `${args[0]}.${args[1]} ${args[2]} ${args[3]}`
   },
-
+*/
 
   "GetProperty": {
     label: "Actor property is",
@@ -74,7 +74,7 @@ const ConditionFunctions = {
 
 "Collision": {
   label: "Collision between two actors",
-  category: "Actor",
+  category: ["Actor","Gamification"],
   args: [
     { type: "actor", label: "Actor 1" },
     { type: "actor", label: "Actor 2" },
@@ -153,7 +153,7 @@ const ConditionFunctions = {
 
 
 
-
+/*
  "ActorEnsembleCollision": {
   label: "Actor collides with any in Ensemble",
   category: "Ensemble",
@@ -184,7 +184,7 @@ const ConditionFunctions = {
     return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a, ${modX}, ${modY}) && (${checks.join(" || ")}))`;
   }
 },
-
+*/
 
 "EnsemblesCollide": {
   label: "Ensembles collide",
@@ -435,7 +435,7 @@ const ActionFunctions = {
   },
     "Fade Out": {
     label: "Fade out actor",
-	category:"Actor",
+	category:["Actor","Animation"],
 
     args: [
       { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
