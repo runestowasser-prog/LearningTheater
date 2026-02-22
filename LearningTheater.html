@@ -1662,40 +1662,63 @@ if (typeof conditionValue === "string") {
   };
 
 }
+// 🔹 Category selector
+const conditionCategorySelect = document.createElement("select");
+conditionCategorySelect.className = "condition-category-select";
 
+conditionCategorySelect.appendChild(new Option("— kategori —", ""));
 
-// Condition dropdown
+const conditionCategories = Array.from(
+  new Set(
+	Object.values(ConditionFunctions).flatMap(def => {
+  if (Array.isArray(def.category)) return def.category;
+  return [def.category || "Other"];
+})
+  )
+).sort();
+
+conditionCategories.forEach(cat => {
+  conditionCategorySelect.appendChild(new Option(cat, cat));
+});
+
+conditionWrapper.appendChild(conditionCategorySelect);
+
+// 🔹 Condition selector (filtreres af kategori)
 const conditionFnSelect = document.createElement("select");
 conditionFnSelect.appendChild(new Option("(Custom)", ""));
+conditionWrapper.appendChild(conditionFnSelect);
 
-// 1️⃣ Grupering af conditions efter kategori
-const grouped = {};
-Object.entries(ConditionFunctions).forEach(([key, def]) => {
-  const category = def.category || "Other";
-  if (!grouped[category]) grouped[category] = [];
-  grouped[category].push({ key, label: def.label });
-});
+function rebuildConditionSelect(category) {
+  conditionFnSelect.innerHTML = "";
+  conditionFnSelect.appendChild(new Option("(Custom)", ""));
 
-// 2️⃣ Sortér kategorier alfabetisk (kan droppes hvis du vil)
-const sortedGrouped = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  Object.entries(ConditionFunctions).forEach(([key, def]) => {
+    const categories = Array.isArray(def.category)
+  ? def.category
+  : [def.category || "Other"];
 
-// 3️⃣ Byg dropdown med optgroups
-sortedGrouped.forEach(([category, conditions]) => {
-  const optgroup = document.createElement("optgroup");
-  optgroup.label = category;
+if (!category || !categories.includes(category)) return;
 
-  conditions.forEach(({ key, label }) => {
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = label;
+    option.textContent = def.label;
     conditionFnSelect.appendChild(option);
-    optgroup.appendChild(option);
   });
+}
+let isRehydrating = false;
+conditionCategorySelect.onchange = () => {
+	if (isRehydrating) return;
+  rebuildConditionSelect(conditionCategorySelect.value);
 
-  conditionFnSelect.appendChild(optgroup);
-});
+  conditionFnSelect.value = "";
+  conditionArgsContainer.innerHTML = "";
 
-conditionWrapper.appendChild(conditionFnSelect);
+  trigger.conditions[conditionIndex] = {
+    fn: "",
+    args: [],
+    code: conditionInput.value
+  };
+};
 
 const conditionArgsContainer = document.createElement("div");
 conditionWrapper.appendChild(conditionArgsContainer);
@@ -1759,10 +1782,20 @@ conditionInput.oninput = () => {
 
 // 👉 Forudfyld values:
 if (conditionObj.fn && ConditionFunctions[conditionObj.fn]) {
+  const def = ConditionFunctions[conditionObj.fn];
+  const category = Array.isArray(def.category)
+    ? def.category[0]
+    : def.category || "Other";
+
+  isRehydrating = true;
+
+  conditionCategorySelect.value = category;
+  rebuildConditionSelect(category);
+
   conditionFnSelect.value = conditionObj.fn;
-  conditionFnSelect.dispatchEvent(new Event("change")); // ← kalder onchange uden brugerinput
+  conditionFnSelect.dispatchEvent(new Event("change"));
+  isRehydrating=false
 } else {
-  // fallback til custom
   conditionInput.value = conditionObj.code || "";
 }
 
@@ -1909,59 +1942,67 @@ function generateTriggerSummary(trigger, conditionDefs, actionDefs) {
 
 function renderActions() {
   actionsContainer.innerHTML = "";
+  
+  // Find alle kategorier fra ActionFunctions
+const actionCategories = Array.from(
+  new Set(
+    Object.values(ActionFunctions).flatMap(def => {
+  if (Array.isArray(def.category)) return def.category;
+  return [def.category || "Other"];
+})
+  )
+).sort();
 
   trigger.actions.forEach((actionObj, actionIndex) => {
     const actionWrapper = document.createElement("div");
+	// 🔹 Category selector
+const categorySelect = document.createElement("select");
+categorySelect.className = "action-category-select";
+
+categorySelect.appendChild(new Option("— kategori —", ""));
+
+actionCategories.forEach(cat => {
+  categorySelect.appendChild(new Option(cat, cat));
+});
+
+actionWrapper.appendChild(categorySelect);
     actionWrapper.className = "action-row";
 
-    // Dropdown til action-funktioner
-/*
-    const actionFnSelect = document.createElement("select");
-    actionFnSelect.appendChild(new Option("(Custom)", ""));
-    Object.keys(ActionFunctions).forEach(key => {
-      const option = document.createElement("option");
-      option.value = key;
-      option.textContent = ActionFunctions[key].label;
-      if (actionObj.fn === key) option.selected = true;
-      actionFnSelect.appendChild(option);
-    });
-    actionWrapper.appendChild(actionFnSelect);
-*/
-
-
-// Dropdown til action-funktioner
-
+// 🔹 Action selector (filtreres af kategori)
 const actionFnSelect = document.createElement("select");
 actionFnSelect.appendChild(new Option("(Custom)", ""));
+actionWrapper.appendChild(actionFnSelect);
 
-// 1️⃣ Grupering af actions efter kategori
-const grouped = {};
-Object.entries(ActionFunctions).forEach(([key, def]) => {
-  const category = def.category || "Other";
-  if (!grouped[category]) grouped[category] = [];
-  grouped[category].push({ key, label: def.label });
-});
+// Hjælpefunktion: genopbyg action-dropdown baseret på kategori
+function rebuildActionSelect(category) {
+  actionFnSelect.innerHTML = "";
+  actionFnSelect.appendChild(new Option("(Custom)", ""));
 
-// 2️⃣ Sortér kategorier alfabetisk (kan droppes hvis du vil)
-const sortedGrouped = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  Object.entries(ActionFunctions).forEach(([key, def]) => {
+    const categories = Array.isArray(def.category)
+  ? def.category
+  : [def.category || "Other"];
 
-// 3️⃣ Byg dropdown med optgroups
-sortedGrouped.forEach(([category, actions]) => {
-  const optgroup = document.createElement("optgroup");
-  optgroup.label = category;
+if (!category || !categories.includes(category)) return;
 
-  actions.forEach(({ key, label }) => {
     const option = document.createElement("option");
     option.value = key;
-    option.textContent = label;
+    option.textContent = def.label;
     actionFnSelect.appendChild(option);
-    optgroup.appendChild(option);
   });
+}
+let isRehydrating = false;
+categorySelect.onchange = () => {
+  if (isRehydrating) return;
 
-  actionFnSelect.appendChild(optgroup);
-});
+  rebuildActionSelect(categorySelect.value);
 
-actionWrapper.appendChild(actionFnSelect);
+  actionFnSelect.value = "";
+  actionObj.fn = "";
+  actionObj.args = [];
+  actionArgsContainer.innerHTML = "";
+  actionInput.value = "";
+};
 
 
 
@@ -1971,28 +2012,24 @@ actionWrapper.appendChild(actionFnSelect);
     const actionArgsContainer = document.createElement("div");
     actionWrapper.appendChild(actionArgsContainer);
 
- function updateActionCode() { 
-  if (actionObj.fn) {
-    const def = ActionFunctions[actionObj.fn];
-    
-    // Initialize args hvis nødvendigt
-    if (!actionObj.args) actionObj.args = [];
-    def.args.forEach((arg, i) => {
-      if (actionObj.args[i] === undefined) {
-        if (arg.type === "propertyMatch") {
-          actionObj.args[i] = ["", ""];
-        } else {
-          actionObj.args[i] = "";
-        }
-      }
-    });
+ function updateActionCode() {
+  if (!actionObj.fn) return;
 
-    const code = def.build(actionObj.args);
-    actionObj.code = code;
-    actionInput.value = code;
-  }
+  const def = ActionFunctions[actionObj.fn];
+
+  // Init args hvis nødvendigt
+  if (!actionObj.args) actionObj.args = [];
+  def.args.forEach((arg, i) => {
+    if (actionObj.args[i] === undefined) {
+      actionObj.args[i] =
+        arg.type === "propertyMatch" ? ["", ""] : "";
+    }
+  });
+
+  const code = def.build(actionObj.args);
+  actionObj.code = code;
+  actionInput.value = code;
 }
-
 
     actionFnSelect.onchange = () => {
       const selectedFn = actionFnSelect.value;
@@ -2084,9 +2121,22 @@ actionWrapper.appendChild(deleteActionBtn);
 actionsContainer.appendChild(actionWrapper);
 
 
-    if (actionObj.fn) {
+if (actionObj.fn) {
+  const def = ActionFunctions[actionObj.fn];
+
+  const category = Array.isArray(def.category)
+    ? def.category[0]
+    : def.category || "Other";
+
+  isRehydrating = true;
+
+  categorySelect.value = category;
+  rebuildActionSelect(category);
+
   actionFnSelect.value = actionObj.fn;
   actionFnSelect.dispatchEvent(new Event("change"));
+
+  isRehydrating = false;
 } else {
   actionInput.value = actionObj.code || "";
 }
