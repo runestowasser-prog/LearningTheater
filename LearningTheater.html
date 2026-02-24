@@ -627,6 +627,96 @@ editor.appendChild(gridWrapper);
     wrapper.appendChild(label);
 
     let input;
+	
+			// 🧠 Initialisér Quill EFTER input er i DOM
+	if (prop === "Text") {
+
+	  // --- Toolbar ---
+	  const editorToolbar = document.createElement("div");
+	  editorToolbar.className = "editor-toolbar";
+
+	  const htmlToggleBtn = document.createElement("button");
+	  htmlToggleBtn.textContent = "</>";
+	  htmlToggleBtn.title = "HTML view";
+
+	  editorToolbar.appendChild(htmlToggleBtn);
+	  wrapper.appendChild(editorToolbar);
+
+	  // --- Quill container ---
+	  input = document.createElement("div");
+	  input.className = "quill-editor";
+	  input.style.minHeight = "80px";
+	  input.style.backgroundColor = "white";
+
+	  // --- HTML textarea ---
+	  const htmlTextarea = document.createElement("textarea");
+	  htmlTextarea.style.display = "none";
+	  htmlTextarea.rows = 6;
+
+	  wrapper.appendChild(input);
+	  wrapper.appendChild(htmlTextarea);
+	  editor.appendChild(wrapper);
+
+	  // --- Init Quill ---
+	  const quill = new Quill(input, {
+		theme: "snow",
+		modules: {
+		  toolbar: [
+			["bold", "italic", "underline"],
+			[{ header: [1, 2, false] }],
+			[{ align: [] }],
+			[{ list: "ordered" }, { list: "bullet" }],
+			["link"],
+			["clean"]
+		  ]
+		}
+	  });
+
+	  quill.root.innerHTML = value || "";
+	  
+	  // ✍️ Når der skrives i Quill (WYSIWYG)
+		quill.on("text-change", () => {
+		  if (htmlMode) return; // sikkerhed – ignorér mens HTML-view er aktiv
+
+		  const html = quill.root.innerHTML;
+		  original[prop] = html;
+		  item[prop] = html;
+		  updateOriginalArray(item, { [prop]: html });
+		});
+
+	  let htmlMode = false;
+
+	  htmlToggleBtn.onclick = () => {
+		htmlMode = !htmlMode;
+
+		if (htmlMode) {
+		  htmlTextarea.value = quill.root.innerHTML;
+		  input.style.display = "none";
+		  htmlTextarea.style.display = "block";
+		  htmlToggleBtn.classList.add("active");
+		} else {
+		  quill.root.innerHTML = htmlTextarea.value;
+		  input.style.display = "block";
+		  htmlTextarea.style.display = "none";
+		  htmlToggleBtn.classList.remove("active");
+
+		  const html = quill.root.innerHTML;
+		  original[prop] = html;
+		  item[prop] = html;
+		  updateOriginalArray(item, { [prop]: html });
+		}
+	  };
+
+	  htmlTextarea.addEventListener("input", () => {
+		if (!htmlMode) return;
+		const html = htmlTextarea.value;
+		original[prop] = html;
+		item[prop] = html;
+		updateOriginalArray(item, { [prop]: html });
+	  });
+
+	  return; // 🔥 MEGET VIGTIGT – stop resten af loopet
+	}
 
     // Dropdown for Parent
     if (prop === "Parent") {
@@ -760,95 +850,7 @@ editor.appendChild(gridWrapper);
 
 
 
-		// 🧠 Initialisér Quill EFTER input er i DOM
-	if (prop === "Text") {
 
-	  // --- Toolbar ---
-	  const editorToolbar = document.createElement("div");
-	  editorToolbar.className = "editor-toolbar";
-
-	  const htmlToggleBtn = document.createElement("button");
-	  htmlToggleBtn.textContent = "</>";
-	  htmlToggleBtn.title = "HTML view";
-
-	  editorToolbar.appendChild(htmlToggleBtn);
-	  wrapper.appendChild(editorToolbar);
-
-	  // --- Quill container ---
-	  input = document.createElement("div");
-	  input.className = "quill-editor";
-	  input.style.minHeight = "80px";
-	  input.style.backgroundColor = "white";
-
-	  // --- HTML textarea ---
-	  const htmlTextarea = document.createElement("textarea");
-	  htmlTextarea.style.display = "none";
-	  htmlTextarea.rows = 6;
-
-	  wrapper.appendChild(input);
-	  wrapper.appendChild(htmlTextarea);
-	  editor.appendChild(wrapper);
-
-	  // --- Init Quill ---
-	  const quill = new Quill(input, {
-		theme: "snow",
-		modules: {
-		  toolbar: [
-			["bold", "italic", "underline"],
-			[{ header: [1, 2, false] }],
-			[{ align: [] }],
-			[{ list: "ordered" }, { list: "bullet" }],
-			["link"],
-			["clean"]
-		  ]
-		}
-	  });
-
-	  quill.root.innerHTML = value || "";
-	  
-	  // ✍️ Når der skrives i Quill (WYSIWYG)
-		quill.on("text-change", () => {
-		  if (htmlMode) return; // sikkerhed – ignorér mens HTML-view er aktiv
-
-		  const html = quill.root.innerHTML;
-		  original[prop] = html;
-		  item[prop] = html;
-		  updateOriginalArray(item, { [prop]: html });
-		});
-
-	  let htmlMode = false;
-
-	  htmlToggleBtn.onclick = () => {
-		htmlMode = !htmlMode;
-
-		if (htmlMode) {
-		  htmlTextarea.value = quill.root.innerHTML;
-		  input.style.display = "none";
-		  htmlTextarea.style.display = "block";
-		  htmlToggleBtn.classList.add("active");
-		} else {
-		  quill.root.innerHTML = htmlTextarea.value;
-		  input.style.display = "block";
-		  htmlTextarea.style.display = "none";
-		  htmlToggleBtn.classList.remove("active");
-
-		  const html = quill.root.innerHTML;
-		  original[prop] = html;
-		  item[prop] = html;
-		  updateOriginalArray(item, { [prop]: html });
-		}
-	  };
-
-	  htmlTextarea.addEventListener("input", () => {
-		if (!htmlMode) return;
-		const html = htmlTextarea.value;
-		original[prop] = html;
-		item[prop] = html;
-		updateOriginalArray(item, { [prop]: html });
-	  });
-
-	  return; // 🔥 MEGET VIGTIGT – stop resten af loopet
-	}
 		// 🧪 Almindelig textarea – kode / styles
 	 else if (["MouseDown", "MouseUp", "Style"].includes(prop)) {
 
