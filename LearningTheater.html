@@ -685,27 +685,52 @@ editor.appendChild(gridWrapper);
 		});
 
 	  let htmlMode = false;
-
-	  htmlToggleBtn.onclick = () => {
-		htmlMode = !htmlMode;
-
-		if (htmlMode) {
-		  htmlTextarea.value = quill.root.innerHTML;
-		  input.style.display = "none";
-		  htmlTextarea.style.display = "block";
-		  htmlToggleBtn.classList.add("active");
-		} else {
-		  quill.root.innerHTML = htmlTextarea.value;
-		  input.style.display = "block";
-		  htmlTextarea.style.display = "none";
-		  htmlToggleBtn.classList.remove("active");
-
-		  const html = quill.root.innerHTML;
-		  original[prop] = html;
-		  item[prop] = html;
-		  updateOriginalArray(item, { [prop]: html });
+	  
+	  
+		function containsQuillUnsafeHTML(html) {
+		  return /<(svg|input|form|button|select|textarea)/i.test(html);
 		}
-	  };
+	  
+	  
+	  
+
+	 htmlToggleBtn.onclick = () => {
+
+  // ⛔ HTML → Quill (potentielt farligt)
+		  if (htmlMode) {
+			const html = htmlTextarea.value;
+
+			if (containsQuillUnsafeHTML(html)) {
+			  const ok = confirm(
+				"Denne tekst indeholder SVG eller HTML-elementer, som Quill ikke understøtter.\n\n" +
+				"De kan blive fjernet eller ændret, hvis du skifter til WYSIWYG.\n\n" +
+				"Vil du fortsætte?"
+			  );
+
+			  if (!ok) return; // 🔥 BLIV i HTML-mode
+			}
+		  }
+
+		  // --- normal toggle ---
+		  htmlMode = !htmlMode;
+
+		  if (htmlMode) {
+			htmlTextarea.value = quill.root.innerHTML;
+			input.style.display = "none";
+			htmlTextarea.style.display = "block";
+			htmlToggleBtn.classList.add("active");
+		  } else {
+			quill.root.innerHTML = htmlTextarea.value;
+			input.style.display = "block";
+			htmlTextarea.style.display = "none";
+			htmlToggleBtn.classList.remove("active");
+
+			const html = quill.root.innerHTML;
+			original[prop] = html;
+			item[prop] = html;
+			updateOriginalArray(item, { [prop]: html });
+		  }
+		};
 
 	  htmlTextarea.addEventListener("input", () => {
 		if (!htmlMode) return;
