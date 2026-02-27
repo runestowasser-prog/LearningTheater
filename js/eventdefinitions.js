@@ -349,6 +349,18 @@ const ActionFunctions = {
     ],
     build: (args) => `SetText(${args[0]},"${args[1]}")`
   },
+  
+   "ReplaceText": {
+    label: "Replace text",
+	category:"Actor",
+
+    args: [
+      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
+      { type: "string", label: "find" },
+	  { type: "raw", label: "and replace with" },
+    ],
+    build: (args) => `ReplaceText(${args[0]},"${args[1]}","${args[2]}")`
+  },
 
   "Play": {
     label: "Play media",
