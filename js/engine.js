@@ -218,11 +218,7 @@ function OnResize(){
 	Div1.style.width=StageWidth*StageScale+"px";
 	Div1.style.height=StageHeight*StageScale+"px";
 	}
-	//var StageScale=Math.min(window.innerWidth/StageWidth, window.innerHeight/StageHeight);
 
-//	Div1.style.width=StageWidth*StageScale+"px";
-//	Div1.style.height=StageHeight*StageScale+"px";
-	//Resize();
 }
 
 function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX,RotateY,RotateZ, TranslateX, TranslateY, TranslateZ, MouseDown, MouseUp, BackgroundImage, Style){
@@ -383,13 +379,23 @@ e.Text=txt;
 var x=elementId(e.ID);
 x.innerHTML = e.Text;
 
-}function SetText(e,txt){
+}
+
+function SetText(e,txt){
 e.Text=txt;
 var x=elementId(e.ID);
 x.innerHTML = e.Text;
 
 }
 
+function ReplaceText(e, find, replace){
+  if (!e || !e.Text || !find) return;
+
+  e.Text = e.Text.split(find).join(replace);
+
+  var x = elementId(e.ID);
+  if (x) x.innerHTML = e.Text;
+}
 
 function Play(video){
 	elementId(video.ID).play();
