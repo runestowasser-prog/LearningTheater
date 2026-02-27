@@ -657,6 +657,21 @@ editor.appendChild(gridWrapper);
 	  wrapper.appendChild(htmlTextarea);
 	  editor.appendChild(wrapper);
 
+
+		function convertHTMLToQuillFormat(html) {
+		  if (!html) return html;
+
+		  // <ul> → <ol>
+		  html = html.replace(/<ul>/g, "<ol>");
+		  html = html.replace(/<\/ul>/g, "</ol>");
+
+		  // Tilføj data-list="bullet" på li hvis det ikke findes
+		  html = html.replace(/<li(?![^>]*data-list)/g, '<li data-list="bullet"');
+
+		  return html;
+		}
+
+
 	  // --- Init Quill ---
 	  const quill = new Quill(input, {
 		theme: "snow",
@@ -664,13 +679,29 @@ editor.appendChild(gridWrapper);
 		  toolbar: [
 			["bold", "italic", "underline"],
 			[{ header: [1, 2, false] }],
-			[{'color': [] }, { align: [] }],
+			[{ align: [] }],
 			[{ list: "ordered" }, { list: "bullet" }],
 			["link"],
 			["clean"]
 		  ]
 		}
 	  });
+	  
+	  const quillToolbar = quill.getModule("toolbar").container;
+
+		const colorInput = document.createElement("input");
+		colorInput.type = "color";
+		colorInput.title = "Text color";
+
+		quillToolbar.appendChild(colorInput);
+		
+		colorInput.addEventListener("input", () => {
+		  const range = quill.getSelection(true);
+		  if (!range) return;
+		  quill.format("color", colorInput.value);
+		});
+		
+		
 		
 		function containsQuillUnsafeHTML(html) {
 		  return /<(svg|input|form|button|select|textarea)/i.test(html);
@@ -682,13 +713,25 @@ editor.appendChild(gridWrapper);
 		quill.on("text-change", () => {
 		  if (htmlMode) return; // sikkerhed – ignorér mens HTML-view er aktiv
 
-		  const html = quill.root.innerHTML;
+		  let html = quill.root.innerHTML;
+/*		    html = html.replace(
+				/<ol>([\s\S]*?<li[^>]*data-list="bullet"[\s\S]*?)<\/ol>/g,
+				"<ul>$1</ul>"
+			  );
+*/
 		  original[prop] = html;
 		  item[prop] = html;
 		  updateOriginalArray(item, { [prop]: html });
 		});
+		
+		quill.on("selection-change", () => {
+		  const format = quill.getFormat();
+		  if (format.color) {
+			colorInput.value = format.color;
+		  }
+		});
 
-		const quillToolbar=quill.getModule("toolbar").container;
+		//const quillToolbar=quill.getModule("toolbar").container;
 		if (htmlMode) {
 			htmlTextarea.value = value || "";
 			input.style.display = "none";
@@ -696,7 +739,12 @@ editor.appendChild(gridWrapper);
 			htmlTextarea.style.display = "block";
 			htmlToggleBtn.classList.add("active");
 		  } else {
-		  quill.root.innerHTML = value || "";
+		  //quill.root.innerHTML = value || "";
+		  let editorValue = item.Text;
+
+			editorValue = convertHTMLToQuillFormat(editorValue);
+
+			quill.root.innerHTML = editorValue;
 		  }
 	  
 	  
@@ -1025,7 +1073,23 @@ valueInput.addEventListener("input", () => {
 
 
 
+function normalizeQuillHTMLForExport(html) {
+  if (!html) return html;
 
+  // Bullet lists → ul
+  html = html.replace(
+    /<ol>([\s\S]*?<li[^>]*data-list="bullet"[\s\S]*?)<\/ol>/g,
+    "<ul>$1</ul>"
+  );
+
+  // Fjern data-list attribut
+  html = html.replace(/ data-list="bullet"/g, "");
+
+  // Fjern Quill UI spans
+  html = html.replace(/<span class="ql-ui"[^>]*><\/span>/g, "");
+
+  return html;
+}
 
 
 
@@ -1080,6 +1144,9 @@ function generateActorCode(actor) {
   keysToInclude.forEach(key => {
     if (actor[key] !== undefined && actor[key] !== null) {
       let val = actor[key];
+	  if (key === "Text" && typeof val === "string") {
+		  val = normalizeQuillHTMLForExport(val);
+		}
       if (typeof val === "string") {
         if (val.includes("\n") || val.includes(";") || val.includes('"') || val.includes("'")) {
           val = val.replace(/`/g, "\\`");
