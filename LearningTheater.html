@@ -696,7 +696,7 @@ editor.appendChild(gridWrapper);
 		quillToolbar.appendChild(colorInput);
 		
 		colorInput.addEventListener("input", () => {
-		  const range = quill.getSelection(true);
+		  const range = quill.getSelection();
 		  if (!range) return;
 		  quill.format("color", colorInput.value);
 		});
@@ -1064,6 +1064,8 @@ valueInput.addEventListener("input", () => {
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "🗙";
   closeBtn.onclick = () => editor.style.display="none";
+  quill = null;
+	//input.innerHTML = "";
   editor.appendChild(closeBtn);
 
   editor.classList.remove("hidden");
@@ -2504,7 +2506,32 @@ function exportTriggersToCode() {
   }).join("\n");
 }
 
+function extractSettingsFromCode(code) {
 
+    function getNumber(name) {
+        const match = code.match(new RegExp(name + "\\s*=\\s*(\\d+)", "i"));
+        return match ? parseInt(match[1]) : null;
+    }
+
+    function getString(name) {
+        const match = code.match(new RegExp(name + "\\s*=\\s*['\"]([^'\"]+)['\"]", "i"));
+        return match ? match[1] : null;
+    }
+
+    function getBoolean(name) {
+        const match = code.match(new RegExp(name + "\\s*=\\s*(true|false)", "i"));
+        return match ? match[1].toLowerCase() === "true" : null;
+    }
+
+    return {
+        StageWidth: getNumber("StageWidth"),
+        StageHeight: getNumber("StageHeight"),
+        Scaling: getString("Scaling"),
+        Overflow: getString("Overflow"),
+        SCORMTracking: getBoolean("SCORMTracking"),
+        FollowSL: getBoolean("FollowSL")
+    };
+}
 
 function loadFullString(fullText) {
 
@@ -2521,6 +2548,27 @@ function loadFullString(fullText) {
 
     // direkte som i loadFileAsText()
     GeneralCode.setValue(generalCode);
+	const settings = extractSettingsFromCode(fullText);
+
+	if (settings.StageWidth !== null)
+		document.getElementById("StageWidthInput").value = settings.StageWidth;
+
+	if (settings.StageHeight !== null)
+		document.getElementById("StageHeightInput").value = settings.StageHeight;
+
+	if (settings.Scaling !== null)
+		document.getElementById("ScalingInput").value = settings.Scaling;
+
+	if (settings.Overflow !== null)
+		document.getElementById("OverflowInput").value = settings.Overflow;
+
+	if (settings.SCORMTracking !== null)
+		document.getElementById("ScormInput").checked = settings.SCORMTracking;
+
+	if (settings.FollowSL !== null)
+		document.getElementById("SLInput").checked = settings.FollowSL;
+		console.log(settings);
+	
     BuildCode.setValue(buildCode);
     AllTweens = tweenCode.split("//Tween");
     UpdateCode.setValue(updateCode);
@@ -2528,7 +2576,8 @@ function loadFullString(fullText) {
     ResizeCode.setValue(resizeCode);
     HEADCode.setValue(headCode);
 
-    		SettingsGenerated = splitCode[2].substr(0,splitCode[2].length-18)+'parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'
+    		
+			
 		//console.log(SettingsGenerated)
         //document.getElementById("jsCode").value = textFromFileLoaded;
     document.getElementById("generalCode").style.display="none";
@@ -2623,7 +2672,7 @@ function showPreview(){
   
   document.getElementById("Scenes").value=currentSelect;
 	
-  
+   SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
   
     var jsCode = "<scri"+"pt>\n" +
@@ -2632,7 +2681,7 @@ function showPreview(){
 exportTriggersToCode() +
 GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
-  SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n '
+
   
   frame.open();
   frame.innerHTML="";
@@ -2703,7 +2752,12 @@ if(file_handle.name==undefined){
 }
 
 function autoSavePreview() {
-    var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+
+	SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
+
+
+
+    var JsCode = "<scri"+"pt>\n var Move=gsap;\n"+exportTriggersToCode()+" //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
     try {
         const previewString = HTMLCode + JsCode;
@@ -2762,8 +2816,10 @@ function saveTextAsFile(){
 		var splitId=AllTweens[i].split("id:");
 		AllTweens[i]=splitId[0]+i+splitId[1];
 	}*/
+SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
-	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+	
+	var JsCode = "<scri"+"pt>\n var Move=gsap;\n"+exportTriggersToCode()+" //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
   
 	var blob = new Blob([HTMLCode+JsCode], {type: "text/plain;charset=utf-8"});
     //saveAs(blob, "show.html");
@@ -2863,6 +2919,28 @@ function loadFileAsText()
 		var splitCode = textFromFileLoaded.split("//✂✂✂");
 		var splitHTML = textFromFileLoaded.split("<!--- ✂✂✂ ---"+">");
 		var generalCode = splitCode[1]
+		const settings = extractSettingsFromCode(textFromFileLoaded);
+
+	if (settings.StageWidth !== null)
+		document.getElementById("StageWidthInput").value = settings.StageWidth;
+
+	if (settings.StageHeight !== null)
+		document.getElementById("StageHeightInput").value = settings.StageHeight;
+
+	if (settings.Scaling !== null)
+		document.getElementById("ScalingInput").value = settings.Scaling;
+
+	if (settings.Overflow !== null)
+		document.getElementById("OverflowInput").value = settings.Overflow;
+
+	if (settings.SCORMTracking !== null)
+		document.getElementById("ScormInput").checked = settings.SCORMTracking;
+
+	if (settings.FollowSL !== null)
+		document.getElementById("SLInput").checked = settings.FollowSL;
+		console.log(settings);
+		
+		
 		var buildCode = splitCode[3]
 		var tweenCode = splitCode[4]
 		var updateCode = splitCode[6]
@@ -2878,8 +2956,7 @@ function loadFileAsText()
 		ResizeCode.setValue(resizeCode);
 		HEADCode.setValue(headCode);
 		
-		SettingsGenerated = splitCode[2].substr(0,splitCode[2].length-18)+'parent.elementId("ScormInput").checked=SCORMTracking;parent.elementId("SLInput").checked=FollowSL;parent.elementId("StageWidthInput").value=StageWidth; parent.elementId("StageHeightInput").value=StageHeight;parent.elementId("ScalingInput").value=Scaling;parent.elementId("OverflowInput").value=Overflow;'
-		//console.log(SettingsGenerated)
+		
         //document.getElementById("jsCode").value = textFromFileLoaded;
     document.getElementById("generalCode").style.display="none";
     document.getElementById("buildCode").style.display="none";
@@ -3356,14 +3433,14 @@ var Window=getElementsByClassName("cm-s-default")[0];
 
 function Build(){SCORMTracking=false;
 StageWidth=window.innerWidth, StageHeight=window.innerHeight;
-Scaling="Fit";
+Scaling="FitTop";
 Overflow="visible"; 
 
 
 Actor("KeyframeOptions","DIV");
 KeyframeOptions.Width=400;
 
-Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="Fit" oninput="showPreview()"><option>Fit</option><option>None</option><option>Width</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
+Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="FitTop" oninput="showPreview()"><option>FitTop</option><option>FitCenter</option><option>None</option><option>Width</option><option>WidthVerticalScroll</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
 thisActor.Opacity=0;
 thisActor.Z=1;
 
