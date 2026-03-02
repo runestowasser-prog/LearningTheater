@@ -18,15 +18,34 @@ Ensemble2 = [];
 var StageWidth=640,StageHeight=360;
 var Scene;
 Elements = new Array();
-var Scaling="Fit";
+var Scaling="FitTop";
+var StageScale=1;
 
 
-if(Scaling=="Fit"){
+if(Scaling=="FitTop" || Scaling=="Fit"){
 	StageScale=Math.min(window.innerWidth/StageWidth, window.innerHeight/StageHeight);
+}
+
+if(Scaling=="FitCenter"){
+	StageScale=Math.min(window.innerWidth/StageWidth, window.innerHeight/StageHeight);
+	let stage = document.getElementById("stage");
+
+	stage.style.position = "absolute";
+	stage.style.top = "50%";
+	stage.style.transform = "translateY(-50%)";
+	//stage.style="top:50%; transform:translateY(-50%);";
 }
 
 if(Scaling=="Width"){
 	StageScale=window.innerWidth/StageWidth;
+}
+
+if (Scaling == "WidthVerticalScroll") {
+
+    StageScale = window.innerWidth / StageWidth;
+
+    document.documentElement.style.overflowY = "auto";   // eller "scroll"
+    document.documentElement.style.overflowX = "hidden";
 }
 
 if(Scaling=="Height"){
@@ -195,16 +214,26 @@ function elementId(Id) {
 
 function OnResize(){
 	var Div1=document.getElementById("stage");
-	if(Scaling=="Fit"){
+	if(Scaling=="FitTop" || Scaling=="FitCenter"){
 	StageScale=Math.min(window.innerWidth/StageWidth, window.innerHeight/StageHeight);
 	Div1.style.width=StageWidth*StageScale+"px";
 	Div1.style.height=StageHeight*StageScale+"px";
 	}
+	if(Scaling=="FitCenter"){
+		
+	Div1.style.top = "50%";
+	Div1.style.transform = "translateY(-50%)";
+	}
 
-	if(Scaling=="Width"){
+	if(Scaling=="Width" || Scaling=="WidthVerticalScroll"){
 	StageScale=(window.innerWidth)/StageWidth;
 	Div1.style.width=StageWidth*StageScale+"px";
 	Div1.style.height=StageHeight*StageScale+"px";
+	}
+	
+	if(Scaling=="WidthVerticalScroll"){
+	document.documentElement.style.overflowY = "auto";   // eller "scroll"
+    document.documentElement.style.overflowX = "hidden";
 	}
 	
 	if(Scaling=="Height"){
@@ -231,7 +260,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
     S.Opacity = 100;
     S.SkewX = SkewX;
     S.SkewY = SkewY;
-    S.Text = Text;
+    S.Text = (typeof Text === "string") ? Text : "";
 	S.FontSize = 16;
     S.Type = Type;
     S.ID = ID;
@@ -264,6 +293,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.ShowOrigin=false;
 	S.InputType=undefined;
     return S;
+	
 }
 
 var Scenes=new Array();
@@ -366,9 +396,10 @@ function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,S
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,null,16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
+	//console.log(thisActor.Text)
 	
 }
 
