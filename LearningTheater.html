@@ -725,11 +725,23 @@ editor.appendChild(gridWrapper);
 		  updateOriginalArray(item, { [prop]: html });
 		});
 		
-		quill.on("selection-change", () => {
+/*		quill.on("selection-change", () => {
 		  const format = quill.getFormat();
 		  if (format.color) {
 			colorInput.value = format.color;
 		  }
+		});
+		*/
+		quill.on("selection-change", (range) => {
+
+		  if (!range) return;  // 👈 meget vigtigt
+
+		  const format = quill.getFormat(range);
+
+		  if (format.color) {
+			colorInput.value = format.color;
+		  }
+
 		});
 
 		//const quillToolbar=quill.getModule("toolbar").container;
