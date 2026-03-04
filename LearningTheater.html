@@ -2792,8 +2792,7 @@ function loadFullString(fullText) {
 		document.getElementById("HEAD").style.display="none";
 		
     ShowSelectedScript(GeneralCode,'Select Script',generalCode)
-//    };
-//    fileReader.readAsText(fileToLoad, "UTF-8");
+
 	
 	var select=document.getElementById("Scenes");
 		option = document.createElement( 'option' );
@@ -2802,17 +2801,11 @@ function loadFullString(fullText) {
 		option.setAttribute("selected","selected");
 		select.add(option);
 		
-		//parent.__loadingFromFile = true;
-		
-/*		const savedTriggers = JSON.parse(localStorage.getItem("LT_Triggers"));
 
-		if (Array.isArray(savedTriggers)) {
-			GeneratedTriggers = structuredClone(savedTriggers);
-		}
-*/
 	parent.GeneratedTriggers = extractTriggersFromHTML(fullText);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
-	parent.renderTriggerEditor("triggerEditor");
+parent.renderTriggerEditor("triggerEditor");	
+	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
 	
 
@@ -3012,12 +3005,17 @@ function autoSavePreview() {
 
 	SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 
+	const triggerJSON = JSON.stringify(parent.GeneratedTriggers);
 
+const triggerBlock =
+`<!-- LT_TRIGGERS_START
+${triggerJSON}
+LT_TRIGGERS_END -->\n`;
 
     var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
     try {
-        const previewString = HTMLCode + JsCode;
+        const previewString = HTMLCode + triggerBlock + JsCode;
         localStorage.setItem("LT_autosave", previewString);
         localStorage.setItem("LT_autosave_time", Date.now());
 		localStorage.setItem(
@@ -3058,7 +3056,7 @@ function tryRestoreAutosave() {
     }
 
     // 1) Gendan triggers direkte fra editor-state
-    const triggerData = localStorage.getItem("LT_autosave_triggers");
+ /*   const triggerData = localStorage.getItem("LT_autosave_triggers");
     if (triggerData) {
         try {
             parent.GeneratedTriggers = JSON.parse(triggerData);
@@ -3071,7 +3069,7 @@ function tryRestoreAutosave() {
     }
 
     // 2) Gendan resten af projektet (kode, head, settings)
-  
+  */
 	loadFullString(saved);
 	
 	
@@ -3079,12 +3077,12 @@ function tryRestoreAutosave() {
 
     // 3) Tegn trigger-editoren én gang
     // (må IKKE trigge showPreview)
-    renderTriggerEditor("triggerEditor");
+ /*   renderTriggerEditor("triggerEditor");
 	setTimeout(function(){
 	updateActorList();
 	allProps=getAllProperties();
 	},1000);
-	
+	*/
 }
 
 
@@ -3625,17 +3623,13 @@ function loadProjectFromHtmlString(content) {
 
 	ShowSelectedScript(GeneralCode,'Select Script',generalCode);
 
+	parent.GeneratedTriggers = extractTriggersFromHTML(content);
+	console.log("Loaded triggers:", parent.GeneratedTriggers);
+parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
 
-	const previewWin = elementId("PreviewWindow").contentWindow;
-
-	/*previewWin.addEventListener("scene-ready", function onReady(){
-		previewWin.removeEventListener("scene-ready", onReady);
-		parent.GeneratedTriggers = structuredClone(previewWin.Triggers);
-		parent.renderTriggerEditor("triggerEditor");
-		parent.__loadingFromFile = false;
-	});*/
+	
 }
  
 var NewActors=new Array
