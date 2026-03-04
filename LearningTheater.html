@@ -7,8 +7,14 @@
 
 <script src="js/SCORM_API_wrapper.js"></script>
 <script src="js/eventdefinitions.js"></script>
+<script src="js/eventdefinitionsSTRING.js"></script>
+<script src="js/gsapSTRING.js"></script>
+<script src="js/engineSTRING.js"></script>
+<script src="js/SCORM_API_wrapperSTRING.js"></script>
+
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script type="text/javascript" src="js/zip.min.js"></script>
 
 
 
@@ -221,6 +227,7 @@ if (item.__type === "Actor") {
 
 
 // Helper: klon uden runtime-felter/funktioner
+/*
 function cloneWithoutRuntime(obj) {
   const cache = new WeakMap();
   function cloneRecursive(o) {
@@ -239,7 +246,7 @@ function cloneWithoutRuntime(obj) {
   }
   return cloneRecursive(obj);
 }
-
+*/
 // Hjælpefunktion: find actor/scene efter ID
 function findByID(id) {
   const a = (AllActors || []).find(x => x.ID === id);
@@ -546,7 +553,154 @@ function moveItem(item, direction) {
 }
 
 
+/*function createSourceSelect(actor) {
 
+    const select = document.createElement("select");
+
+    // Tom mulighed
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = "-- none --";
+    select.appendChild(empty);
+
+    // Assets fra Project
+    if (window.Project && Project.assets) {
+        Object.keys(Project.assets).forEach(filename => {
+            const opt = document.createElement("option");
+            opt.value = filename;
+            opt.textContent = filename;
+            select.appendChild(opt);
+        });
+    }
+
+    select.value = actor.Source || "";
+
+    select.onchange = () => {
+		const value = select.value;
+
+		actor.Source = value;
+
+		if (actor._original) {
+			actor._original.Source = value;
+		}
+
+		updateOriginalArray(actor, { Source: value });
+
+		showPreview();
+	};
+
+    return select;
+}
+*/
+
+function createSourceSelect(actor) {
+
+	const wrapper = document.createElement("div");
+	wrapper.className = "source-select-wrapper";
+
+	// 🔹 Mode select (Library / Custom)
+	const modeSelect = document.createElement("select");
+
+	const optLibrary = document.createElement("option");
+	optLibrary.value = "library";
+	optLibrary.textContent = "Library";
+
+	const optCustom = document.createElement("option");
+	optCustom.value = "custom";
+	optCustom.textContent = "Custom URL";
+
+	modeSelect.appendChild(optLibrary);
+	modeSelect.appendChild(optCustom);
+
+	// 🔹 Library select
+	const librarySelect = document.createElement("select");
+
+	const empty = document.createElement("option");
+	empty.value = "";
+	empty.textContent = "-- none --";
+	librarySelect.appendChild(empty);
+
+	if (window.Project && Project.assets) {
+		Object.keys(Project.assets).forEach(filename => {
+			const opt = document.createElement("option");
+			opt.value = filename;
+			opt.textContent = filename;
+			librarySelect.appendChild(opt);
+		});
+	}
+
+	// 🔹 Custom input
+	const customInput = document.createElement("input");
+	customInput.type = "text";
+	customInput.placeholder = "Enter URL or path...";
+	customInput.style.display = "none";
+
+	// 🔹 Initial state
+	const currentValue = actor.Source || "";
+
+	const isLibraryAsset =
+		window.Project &&
+		Project.assets &&
+		Project.assets[currentValue];
+
+	if (isLibraryAsset) {
+		modeSelect.value = "library";
+		librarySelect.value = currentValue;
+		customInput.value = "";
+		customInput.style.display = "none";
+		librarySelect.style.display = "inline-block";
+	} else {
+		modeSelect.value = "custom";
+		customInput.value = currentValue;
+		librarySelect.style.display = "none";
+		customInput.style.display = "inline-block";
+	}
+
+	// 🔹 Update function (samlet ét sted)
+	function applySource(value) {
+
+		actor.Source = value;
+
+		if (actor._original) {
+			actor._original.Source = value;
+		}
+
+		updateOriginalArray(actor, { Source: value });
+
+		showPreview();
+	}
+
+	// 🔹 Mode change
+	modeSelect.onchange = () => {
+
+		if (modeSelect.value === "library") {
+			librarySelect.style.display = "inline-block";
+			customInput.style.display = "none";
+			applySource(librarySelect.value);
+		} else {
+			librarySelect.style.display = "none";
+			customInput.style.display = "inline-block";
+			applySource(customInput.value.trim());
+		}
+	};
+
+	// 🔹 Library change
+	librarySelect.onchange = () => {
+		applySource(librarySelect.value);
+	};
+
+	// 🔹 Custom input change
+	customInput.oninput = () => {
+		applySource(customInput.value.trim());
+	};
+
+	// Struktur
+	wrapper.appendChild(modeSelect);
+	wrapper.appendChild(librarySelect);
+	wrapper.appendChild(customInput);
+
+	return wrapper;
+}
 
 
 function openPropertyEditor(item) {
@@ -586,9 +740,9 @@ editor.appendChild(gridWrapper);
 		//Scene: ["Parent", "Draggable", "Shape", "Source", "Controls"],
 		div: ["Controls","InputType"],
 		img: ["Text", "Controls", "FontSize", "Color","InputType"],
-		video: ["Text",,"InputType"],
-		audio: ["Text",,"InputType"],
-		iframe: ["Controls",,"InputType"],
+		video: ["Text","InputType"],
+		audio: ["Text","InputType"],
+		iframe: ["Controls","InputType"],
 		canvas: ["Text","Controls","InputType"],
 		audio: ["Text", "FontSize","InputType"],
 		video: ["Text", "FontSize", "Color","InputType"],
@@ -629,6 +783,13 @@ editor.appendChild(gridWrapper);
 
     let input;
 	
+	if (prop === "Source") {
+    wrapper.appendChild(createSourceSelect(item));
+    editor.appendChild(wrapper);
+	//updateOriginalArray(item, { [prop]: item[prop] });
+    return; // 🔥 VIGTIGT – stop her!
+	}
+	
 			// 🧠 Initialisér Quill EFTER input er i DOM
 	if (prop === "Text") {
 
@@ -642,6 +803,8 @@ editor.appendChild(gridWrapper);
 
 	  editorToolbar.appendChild(htmlToggleBtn);
 	  wrapper.appendChild(editorToolbar);
+	  
+	  
 
 	  // --- Quill container ---
 	  input = document.createElement("div");
@@ -847,8 +1010,9 @@ editor.appendChild(gridWrapper);
         if (tag === value) option.selected = true;
         input.appendChild(option);
       });
-	
-	} else if (prop === "InputType") {
+	  
+	  
+	}  else if (prop === "InputType") {
       input = document.createElement("select");
       inputTypeOptions.forEach(tag => {
         const option = document.createElement("option");
@@ -877,13 +1041,16 @@ editor.appendChild(gridWrapper);
         if (Shape === value) option.selected = true;
         input.appendChild(option);
       });
-
+		
+		
 
     // Boolean toggles
     } else if (["ShowOrigin", "Controls", "Draggable"].includes(prop)) {
       input = document.createElement("input");
       input.type = "checkbox";
       input.checked = !!value;
+	  
+	  
 
     // Color picker
     } else if (prop === "Color") {
@@ -945,7 +1112,6 @@ editor.appendChild(gridWrapper);
   return; // <-- vigtigt! spring resten over for denne property
 
 	}
-
 
 
 
@@ -2628,7 +2794,6 @@ function loadFullString(fullText) {
 
 
 
-
 	
 function showPreview(){
 	
@@ -2687,12 +2852,54 @@ function showPreview(){
 	
    SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
+	var injectResolver=`// Patch ActorProps i preview only
+if (!window.__LT_ASSET_PATCHED__) {
+
+    window.__LT_ASSET_PATCHED__ = true;
+
+    const __originalActorProps = ActorProps;
+
+    ActorProps = function(target, props) {
+
+        if (!props || typeof props !== "object") {
+            return __originalActorProps(target, props);
+        }
+
+        const safeProps = { ...props };
+
+        function resolveAsset(value) {
+
+            if (!value) return value;
+
+            if (value.startsWith("http://") || value.startsWith("https://")) {
+                return value;
+            }
+
+            // 🔥 Hent assets fra parent (editor)
+            if (parent.Project && parent.Project.assets && parent.Project.assets[value]) {
+                return parent.Project.assets[value].url;
+            }
+
+            return value;
+        }
+
+        if (safeProps.Source) {
+            safeProps.Source = resolveAsset(safeProps.Source);
+        }
+
+        if (safeProps.BackgroundImage) {
+            safeProps.BackgroundImage = resolveAsset(safeProps.BackgroundImage);
+        }
+
+        return __originalActorProps(target, safeProps);
+    };
+}`
   
     var jsCode = "<scri"+"pt>\n" +
 "window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };\n" +
-"var Move=gsap;\n" +
+"var Move=gsap;\n"+
 exportTriggersToCode() +
-GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
 
   
@@ -2750,6 +2957,7 @@ function ShowSelectedScript(Selected,Head,Current){
   HEAD.Opacity=0  
   BuildSpecial.Opacity=0
   EventEditor.Opacity=0
+  Library.Opacity=0
   Selected.Opacity=100
   ScriptMenu.Opacity=0
   ScriptMenuVisible=false
@@ -2763,6 +2971,23 @@ var file_name='show.html';
 if(file_handle.name==undefined){
 	file_handle.name="Show.html"
 }
+
+
+
+function blobToBase64(blob) {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			const base64 = reader.result.split(",")[1];
+			resolve(base64);
+		};
+		reader.onerror = reject;
+		reader.readAsDataURL(blob);
+	});
+}
+
+
+
 
 function autoSavePreview() {
 
@@ -2780,17 +3005,36 @@ function autoSavePreview() {
 		"LT_autosave_triggers",
 		JSON.stringify(parent.GeneratedTriggers)
 		);
+		
     } catch(e) {
         console.warn("Autosave failed", e);
     }
 }
+
+
+
+
+
+function base64ToBlob(base64, type) {
+
+	const binary = atob(base64);
+	const len = binary.length;
+	const bytes = new Uint8Array(len);
+
+	for (let i = 0; i < len; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+
+	return new Blob([bytes], { type: type });
+}
+
 
 function tryRestoreAutosave() {
 
     const saved = localStorage.getItem("LT_autosave");
     if (!saved) return;
 
-    if (!confirm("There's an autosaved project. Would you like to load it?")) {
+    if (!confirm("An autosaved project was found. Code, triggers and settings will be restored. The Library is not included in autosave. You will need to re-add media files. Would you like to load it?")) {
         return;
     }
 
@@ -2808,7 +3052,11 @@ function tryRestoreAutosave() {
     }
 
     // 2) Gendan resten af projektet (kode, head, settings)
-    loadFullString(saved);
+  
+	loadFullString(saved);
+	
+	
+
 
     // 3) Tegn trigger-editoren én gang
     // (må IKKE trigge showPreview)
@@ -2823,12 +3071,7 @@ function tryRestoreAutosave() {
 
 
 function saveTextAsFile(){
-//	var AllTweensShort = AllTweens.filter(function(f) { return f !== " " });
-	
-/*	for  (let i = 1; i < AllTweens.length; i++) {
-		var splitId=AllTweens[i].split("id:");
-		AllTweens[i]=splitId[0]+i+splitId[1];
-	}*/
+
 SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
 	
@@ -2877,6 +3120,139 @@ SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL=
 	localStorage.removeItem("LT_autosave_time");
   
 }
+
+
+// Helper: klon uden runtime-felter/funktioner
+function cloneWithoutRuntime(obj) {
+  const cache = new WeakMap();
+  function cloneRecursive(o) {
+    if (o === null || typeof o !== "object") return o;
+    if (cache.has(o)) return cache.get(o);
+    const result = Array.isArray(o) ? [] : {};
+    cache.set(o, result);
+    for (const key in o) {
+      const val = o[key];
+      // spring funktioner og runtime-felter over
+      if (typeof val === "function") continue;
+      if (["Timeline", "_next", "_prev", "__runtimeOnly"].includes(key)) continue;
+      result[key] = cloneRecursive(val);
+    }
+    return result;
+  }
+  return cloneRecursive(obj);
+}
+
+async function saveProjectAsZip() {
+
+  SettingsGenerated =
+    'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
+    'FollowSL=' + elementId("SLInput").checked + ';\n' +
+    'StageWidth=' + elementId("StageWidthInput").value +
+    ', StageHeight=' + elementId("StageHeightInput").value + ';\n' +
+    'Scaling="' + elementId("ScalingInput").value + '";\n' +
+    'Overflow="' + elementId("OverflowInput").value + '";\n';
+
+  var JsCode =
+    "<scri" + "pt>\n var Move=gsap;\n" +
+    exportTriggersToCode() +
+    " //✂✂✂\n" +
+    GeneralCode.getValue() +
+    "\n//✂✂✂ \n" +
+    SettingsGenerated +
+    "\nfunction Build(){\n//✂✂✂\n" +
+    BuildCode.getValue() +
+    "\n//✂✂✂" +
+    AllTweens.join("\n//Tween\n") +
+    "//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n" +
+    StoryLinePlayer +
+    UpdateCode.getValue() +
+    "//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n" +
+    ScenestartCode.getValue() +
+    "\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n" +
+    ResizeCode.getValue() +
+    "\n//✂✂✂\n}</scri" + "pt>";
+
+  const finalHTML = HTMLCode + JsCode;
+
+  // 🔹 START ZIP
+  const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+
+  // 1️⃣ Tilføj HTML output (det rigtige produkt!)
+  await zipWriter.add("index.html", new zip.TextReader(finalHTML));
+
+  // 2️⃣ Tilføj project.json (editor metadata)
+  const projectJSON = {
+    actors: cloneWithoutRuntime(AllActors),
+    scenes: cloneWithoutRuntime(AllScenes),
+    tweens: cloneWithoutRuntime(AllTweens),
+    scripts: {
+      general: GeneralCode.getValue(),
+      build: BuildCode.getValue(),
+      update: UpdateCode.getValue(),
+      resize: ResizeCode.getValue(),
+      sceneStart: ScenestartCode.getValue()
+    },
+    settings: {
+      scorm: elementId("ScormInput").checked,
+      followSL: elementId("SLInput").checked,
+      stageWidth: elementId("StageWidthInput").value,
+      stageHeight: elementId("StageHeightInput").value,
+      scaling: elementId("ScalingInput").value,
+      overflow: elementId("OverflowInput").value
+    }
+  };
+
+  await zipWriter.add(
+    "project.json",
+    new zip.TextReader(JSON.stringify(projectJSON, null, 2))
+  );
+
+	await zipWriter.add("js/engine.js", new zip.TextReader(ENGINESTRING));
+	await zipWriter.add("js/eventdefinitions.js", new zip.TextReader(eventdefinitionsSTRING));
+	await zipWriter.add("js/gsap.min.js", new zip.TextReader(GSAPSTRING));
+	await zipWriter.add("js/SCORM_API_wrapper.js", new zip.TextReader(SCORMAPI));
+
+
+  // 3️⃣ Tilføj Library assets
+  if (window.Project && Project.assets) {
+    for (let fileName in Project.assets) {
+      const asset = Project.assets[fileName];
+      if (asset.blob) {
+        await zipWriter.add(
+          " " + fileName,
+          new zip.BlobReader(asset.blob)
+        );
+      }
+    }
+  }
+
+  const zipBlob = await zipWriter.close();
+
+  // 🔹 GEM
+  if (window.showSaveFilePicker) {
+    const handle = await showSaveFilePicker({
+      suggestedName: "LearningTheaterPackage.zip",
+      types: [{
+        description: "Learning Theater Package",
+        accept: { "application/zip": [".zip"] }
+      }]
+    });
+
+    const writable = await handle.createWritable();
+    await writable.write(zipBlob);
+    await writable.close();
+  } else {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(zipBlob);
+    a.download = "LearningTheaterPackage.zip";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  }
+
+  localStorage.removeItem("LT_autosave");
+  localStorage.removeItem("LT_autosave_time");
+}
+
 
 window.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
@@ -3014,6 +3390,232 @@ function loadFileAsText()
 	handleLoadImg(event);
 	BuildString=BuildCode.getValue();
 	
+}
+
+function isLibraryFile(entry) {
+
+	const name = entry.filename;
+
+	if (entry.directory) return false;
+
+	// Udeluk mapper
+	if (name.startsWith("js/")) return false;
+
+	// Udeluk systemfiler
+	if (name === "index.html") return false;
+	if (name === "project.json") return false;
+
+	// Udeluk skjulte filer
+	if (name.startsWith("__MACOSX")) return false;
+
+	return true;
+}
+
+function clearLibrary() {
+
+	for (const key in Project.assets) {
+		URL.revokeObjectURL(Project.assets[key].url);
+	}
+
+	Project.assets = {};
+	document.getElementById("Library").innerHTML = "";
+}
+
+async function rebuildLibraryFromZip(entries) {
+
+	//clearLibrary();
+
+	if (!window.Project) window.Project = {};
+	if (!Project.assets) Project.assets = {};
+
+	for (const entry of entries) {
+
+		if (!isLibraryFile(entry)) continue;
+
+		const blob = await entry.getData(new zip.BlobWriter());
+		const filename = entry.filename;
+
+		const url = URL.createObjectURL(blob);
+
+		Project.assets[filename] = {
+			name: filename,
+			blob: blob,
+			url: url
+		};
+
+		addAssetToLibraryUI(filename, url);
+	}
+}
+
+function addAssetToLibraryUI(filename, url) {
+
+	const library = document.getElementById("Library");
+
+	const item = document.createElement("div");
+	item.className = "library-item";
+	item.dataset.filename = filename;
+
+	// 🔹 Filnavn
+	const nameSpan = document.createElement("span");
+	nameSpan.className = "library-name";
+	nameSpan.textContent = filename;
+
+	nameSpan.onclick = function () {
+		console.log("Selected:", filename);
+	};
+
+	// 🔹 Delete-knap
+	const deleteBtn = document.createElement("button");
+	deleteBtn.className = "library-delete";
+	deleteBtn.textContent = "✕";
+
+	deleteBtn.onclick = function (e) {
+		e.stopPropagation(); // 🚨 vigtig!
+		deleteAsset(filename);
+	};
+
+	// Struktur
+	item.appendChild(nameSpan);
+	item.appendChild(deleteBtn);
+
+	library.appendChild(item);
+}
+
+function deleteAsset(filename) {
+
+	if (!Project.assets[filename]) return;
+
+	if (!confirm(`Delete "${filename}" from Library?`)) return;
+
+	// Memory cleanup
+	URL.revokeObjectURL(Project.assets[filename].url);
+
+	delete Project.assets[filename];
+
+	removeAssetFromLibraryUI(filename);
+
+	showPreview();
+}
+
+function removeAssetFromLibraryUI(filename) {
+
+	const items = document.querySelectorAll(".library-item");
+
+	items.forEach(item => {
+		if (item.dataset.filename === filename) {
+			item.remove();
+		}
+	});
+}
+
+async function loadProjectFromZip() {
+
+	parent.__loadingFromFile = true;
+
+	if (!window.showOpenFilePicker) {
+		alert("File System Access API not supported in this browser.");
+		return;
+	}
+
+	const [fileHandle] = await window.showOpenFilePicker({
+		id: 'openProjectZip',
+		types: [{
+			description: 'LearningTheater Project',
+			accept: { 'application/zip': ['.zip'] }
+		}]
+	});
+
+	const file = await fileHandle.getFile();
+
+	const zipReader = new zip.ZipReader(new zip.BlobReader(file));
+	const entries = await zipReader.getEntries();
+
+	// 🔍 Find første html-fil i zip
+	const htmlEntry = entries.find(e => e.filename.endsWith(".html"));
+
+	if (!htmlEntry) {
+		alert("No HTML file found in zip.");
+		await zipReader.close();
+		parent.__loadingFromFile = false;
+		return;
+	}
+
+	const content = await htmlEntry.getData(new zip.TextWriter());
+	await rebuildLibraryFromZip(entries);
+	await zipReader.close();
+
+	// 🔥 Her genbruger vi DIN eksisterende parsing
+	loadProjectFromHtmlString(content);
+}
+
+
+function loadProjectFromHtmlString(content) {
+
+	document.getElementById("generalCode").style.display="flex";
+	document.getElementById("buildCode").style.display="flex";
+	document.getElementById("updateCode").style.display="flex";
+	document.getElementById("scenestartCode").style.display="flex";
+	document.getElementById("resizeCode").style.display="flex";
+
+	var splitCode = content.split("//✂✂✂");
+	var splitHTML = content.split("<!--- ✂✂✂ --->");
+
+	var generalCode = splitCode[1];
+	var settings = extractSettingsFromCode(content);
+
+	if (settings.StageWidth !== null)
+		document.getElementById("StageWidthInput").value = settings.StageWidth;
+
+	if (settings.StageHeight !== null)
+		document.getElementById("StageHeightInput").value = settings.StageHeight;
+
+	if (settings.Scaling !== null)
+		document.getElementById("ScalingInput").value = settings.Scaling;
+
+	if (settings.Overflow !== null)
+		document.getElementById("OverflowInput").value = settings.Overflow;
+
+	if (settings.SCORMTracking !== null)
+		document.getElementById("ScormInput").checked = settings.SCORMTracking;
+
+	if (settings.FollowSL !== null)
+		document.getElementById("SLInput").checked = settings.FollowSL;
+
+	var buildCode = splitCode[3];
+	var tweenCode = splitCode[4];
+	var updateCode = splitCode[6];
+	var scenestartCode = splitCode[8];
+	var resizeCode = splitCode[10];
+	var headCode = splitHTML[1];
+
+	GeneralCode.setValue(generalCode);
+	BuildCode.setValue(buildCode);
+	AllTweens = tweenCode.split("//Tween");
+	UpdateCode.setValue(updateCode);
+	ScenestartCode.setValue(scenestartCode);
+	ResizeCode.setValue(resizeCode);
+	HEADCode.setValue(headCode);
+
+	document.getElementById("generalCode").style.display="none";
+	document.getElementById("buildCode").style.display="none";
+	document.getElementById("updateCode").style.display="none";
+	document.getElementById("scenestartCode").style.display="none";
+	document.getElementById("resizeCode").style.display="none";
+	document.getElementById("HEAD").style.display="none";
+
+	ShowSelectedScript(GeneralCode,'Select Script',generalCode);
+
+	setTimeout(function(){ showPreview(); }, 1000);
+	showPreview();
+
+	const previewWin = elementId("PreviewWindow").contentWindow;
+
+	previewWin.addEventListener("scene-ready", function onReady(){
+		previewWin.removeEventListener("scene-ready", onReady);
+		parent.GeneratedTriggers = structuredClone(previewWin.Triggers);
+		parent.renderTriggerEditor("triggerEditor");
+		parent.__loadingFromFile = false;
+	});
 }
  
 var NewActors=new Array
@@ -3444,6 +4046,51 @@ var Window=getElementsByClassName("cm-s-default")[0];
 }
 
 
+
+function addToLibrary(file) {
+
+    // Undgå dubletter
+    if (Project.assets[file.name]) {
+        alert("File already exists: " + file.name);
+        return;
+    }
+
+    const url = URL.createObjectURL(file);
+
+    Project.assets[file.name] = {
+        blob: file,
+        type: file.type,
+        url: url
+    };
+	addAssetToLibraryUI(file.name, url)
+    //renderLibrary();
+}
+
+function renderLibrary() {
+
+    const list = document.getElementById("libraryList");
+    list.innerHTML = "";
+
+    Object.keys(Project.assets).forEach(filename => {
+
+        const li = document.createElement("li");
+        li.textContent = filename;
+
+        li.onclick = () => {
+            console.log("Selected:", filename);
+        };
+
+        list.appendChild(li);
+    });
+}
+
+window.Project = {
+    assets: {} // key: filename, value: { blob, type, url }
+};
+
+
+
+
 function Build(){SCORMTracking=false;
 StageWidth=window.innerWidth, StageHeight=window.innerHeight;
 Scaling="FitTop";
@@ -3530,6 +4177,15 @@ thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="triggerEditor"></div>`;
 
+Actor("Library","div")
+thisActor.Y=30
+thisActor.Height=StageHeight
+thisActor.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.FontSize=12;
+thisActor.Text=`<div id="libraryDropzone">Drop files here</div> <ul id="libraryList"></ul>`;
+thisActor.Color="white"
 
 
 Actor("SelectScript","button")
@@ -3544,25 +4200,25 @@ ScriptMenu.Opacity=0
 Actor("ScriptOption1","button");
 ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
 ScriptOption1.Height=30
-ScriptOption1.Y=90
+ScriptOption1.Y=120
 ScriptOption1.Parent="ScriptMenu"
 ScriptOption1.Text="General (code)"
 Actor("ScriptOption2","button"); 
 ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
 ScriptOption2.Height=30
-ScriptOption2.Y=180
+ScriptOption2.Y=210
 ScriptOption2.Parent="ScriptMenu"
 ScriptOption2.Text="Build (code)"
 Actor("ScriptOption3","button"); 
 ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
 ScriptOption3.Height=30
-ScriptOption3.Y=150
+ScriptOption3.Y=180
 ScriptOption3.Parent="ScriptMenu"
 ScriptOption3.Text="Update (code)"
 Actor("ScriptOption4","button");
 ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
 ScriptOption4.Height=30
-ScriptOption4.Y=120
+ScriptOption4.Y=150
 ScriptOption4.Parent="ScriptMenu"
 ScriptOption4.Text="Scene Start (code)"
 Actor("ScriptOption5","button"); 
@@ -3575,7 +4231,7 @@ ScriptOption5.Opacity=0
 Actor("ScriptOption6","button"); 
 ScriptOption6.MouseUp="ShowSelectedScript(HEAD,'HEAD',HEAD)"
 ScriptOption6.Height=30
-ScriptOption6.Y=60
+ScriptOption6.Y=90
 ScriptOption6.Parent="ScriptMenu"
 ScriptOption6.Text="HEAD"
 Actor("ScriptOption7","button"); 
@@ -3590,6 +4246,12 @@ ScriptOption8.Height=30
 ScriptOption8.Y=30
 ScriptOption8.Parent="ScriptMenu"
 ScriptOption8.Text="EVENTS"
+Actor("ScriptOption9","button"); 
+ScriptOption9.MouseUp="ShowSelectedScript(Library,'LIBRARY',Library)"
+ScriptOption9.Height=30
+ScriptOption9.Y=60
+ScriptOption9.Parent="ScriptMenu"
+ScriptOption9.Text="LIBRARY"
 
 Actor('settingsBtn','button')
 thisActor.Text="Settings ⚙"
@@ -3597,7 +4259,7 @@ thisActor.Text="Settings ⚙"
 thisActor.Height=30
 thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false"
 thisActor.Parent="ScriptMenu"
-thisActor.Y=210
+thisActor.Y=240
 
 
 Actor("resizer","div");
@@ -3611,34 +4273,188 @@ resizer.Active=false
 //resizer.MouseUp="resizer.Active=false"
 resizer.Opacity=0;
 
-Actor("FileMenu","button");
-thisActor.Text="File";
-thisActor.Width=120;
-thisActor.Height=30;
-thisActor.X=StageWidth-120;
-thisActor.Opacity=0;
+Actor('fileBtn','button');
+ActorProps(thisActor, {
+  Parent: "stage",
+  Width: 120,
+  Height: 30,
+  X: StageWidth-120,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `if(fileMenu.Opacity==0){
+fileMenu.Opacity=100;
+}
+else{
+fileMenu.Opacity=0;
+}`,
+  Color: "",
+  Text: "File",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
 
-Actor("SaveHTML","button")
-SaveHTML.Text="Save HTML"
-SaveHTML.X=StageWidth-120
-SaveHTML.Height=30
-SaveHTML.Width=120
-SaveHTML.MouseUp="saveTextAsFile()"
+Actor('fileMenu','div');
+ActorProps(thisActor, {
+  Parent: "stage",
+  Width: 120,
+  Height: 120,
+  X: StageWidth-120,
+  Y: 30,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  Color: "",
+  Text: "",
+  FontSize: 16,
+  Opacity: 0,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
 
-Actor("SaveJS","button");
-thisActor.Text="Save JS"
-thisActor.X=StageWidth-240;
-thisActor.Height=30;
-thisActor.Width=120;
-thisActor.MouseUp="saveTextAsFile()"
-thisActor.Opacity=0;
+Actor('SaveHTMLBTN','button');
+ActorProps(thisActor, {
+  Parent: "fileMenu",
+  Width: 120,
+  Height: 30,
+  X: 0,
+  Y: 30,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `fileMenu.Opacity=0;
+saveTextAsFile();`,
+  Color: "",
+  Text: "Save HTML",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
 
-Actor("LoadHTML","button")
-thisActor.MouseUp="loadFileAsText()";
-thisActor.Width=120;
-LoadHTML.Text='Load HTML'
-LoadHTML.X=StageWidth-240
-LoadHTML.Height=30
+Actor('LoadHTML','button');
+ActorProps(thisActor, {
+  Parent: "fileMenu",
+  Width: 120,
+  Height: 30,
+  X: 0,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `fileMenu.Opacity=0;
+loadFileAsText();`,
+  Color: "",
+  Text: "Load HTML",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
+Actor('LoadPackageBtn','button');
+ActorProps(thisActor, {
+  Parent: "fileMenu",
+  Width: 120,
+  Height: 30,
+  X: 0,
+  Y: 60,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `fileMenu.Opacity=0;
+loadProjectFromZip();`,
+  Color: "",
+  Text: "Load ZIP",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
+Actor('SavePackageBtn','button');
+ActorProps(thisActor, {
+  Parent: "fileMenu",
+  Width: 120,
+  Height: 30,
+  X: 0,
+  Y: 90,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `fileMenu.Opacity=0;
+saveProjectAsZip();`,
+  Color: "",
+  Text: "Save ZIP",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
 
 Actor("RefSound","audio");
 Actor("LoadSound","div"); 
@@ -3936,9 +4752,9 @@ KeyframeOptions.Height=StageHeight-80
 PreviewWindow.Height=StageHeight-280
 resizer.Height=StageHeight-80
 
-SaveHTML.X=StageWidth-120
+fileMenu.X=StageWidth-120;
 
-LoadHTML.X=StageWidth-240
+fileBtn.X=StageWidth-120;
 LoadSound.X=StageWidth-600;
 //SeekBar.X=resizer.X+playBtn.Width;
 SeekBar.Width=StageWidth-600;
@@ -3959,6 +4775,7 @@ resizeCode.Height=StageHeight
 HEAD.Height=StageHeight
 BuildSpecial.Height=StageHeight-60;
 EventEditor.Height=StageHeight-60;
+Library.Height=StageHeight-60;
 	
 	
 
@@ -4265,7 +5082,24 @@ document.getElementById("Scenes").onchange=function(){showPreview()};
 
 //tryRestoreAutosave();
 //renderTriggerEditor("triggerEditor");
+const dropzone = document.getElementById("libraryDropzone");
 
+	dropzone.addEventListener("dragover", e => {
+		e.preventDefault();
+		dropzone.classList.add("dragover");
+	});
+
+	dropzone.addEventListener("dragleave", () => {
+		dropzone.classList.remove("dragover");
+	});
+
+	dropzone.addEventListener("drop", e => {
+		e.preventDefault();
+		dropzone.classList.remove("dragover");
+
+		const files = Array.from(e.dataTransfer.files);
+		files.forEach(addToLibrary);
+});
 
 
 showPreview();
@@ -4544,7 +5378,45 @@ details[open] > summary::before {
   line-height: 1.4;
 }
 
+#libraryDropzone {
+    border: 2px dashed #999;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 10px;
+}
 
+#libraryDropzone.dragover {
+    background: #eee;
+}
+
+#libraryList {
+    list-style: none;
+    padding: 0;
+}
+
+.library-item {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 4px 6px;
+	border-bottom: 1px solid #ddd;
+}
+
+.library-delete {
+	background: none;
+	border: none;
+	color: #c00;
+	cursor: pointer;
+	font-size: 14px;
+}
+
+.library-delete {
+	opacity: 0;
+}
+
+.library-item:hover .library-delete {
+	opacity: 1;
+}
 
 </style>
 <script>
