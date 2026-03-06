@@ -3166,7 +3166,46 @@ function cloneWithoutRuntime(obj) {
   return cloneRecursive(obj);
 }
 
+
+function generateManifest(projectTitle = "LearningTheater Project") {
+
+return `<?xml version="1.0" encoding="UTF-8"?>
+<manifest identifier="LT_MANIFEST"
+          version="1.0"
+          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="
+          http://www.imsproject.org/xsd/imscp_rootv1p1p2 
+          imscp_rootv1p1p2.xsd
+          http://www.adlnet.org/xsd/adlcp_rootv1p2
+          adlcp_rootv1p2.xsd">
+
+  <organizations default="LT_ORG">
+    <organization identifier="LT_ORG">
+      <title>${projectTitle}</title>
+      <item identifier="LT_ITEM" identifierref="LT_RESOURCE">
+        <title>${projectTitle}</title>
+      </item>
+    </organization>
+  </organizations>
+
+  <resources>
+    <resource identifier="LT_RESOURCE"
+              type="webcontent"
+              adlcp:scormtype="sco"
+              href="index.html">
+      <file href="index.html"/>
+    </resource>
+  </resources>
+
+</manifest>`;
+}
+
+
+
 async function saveProjectAsZip() {
+
 
   SettingsGenerated =
     'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
@@ -3241,6 +3280,7 @@ LT_TRIGGERS_END -->\n`;
 	await zipWriter.add("js/eventdefinitions.js", new zip.TextReader(eventdefinitionsSTRING));
 	await zipWriter.add("js/gsap.min.js", new zip.TextReader(GSAPSTRING));
 	await zipWriter.add("js/SCORM_API_wrapper.js", new zip.TextReader(SCORMAPI));
+	await zipWriter.add("imsmanifest.xml", new zip.TextReader(generateManifest()));
 
 
   // 3️⃣ Tilføj Library assets
