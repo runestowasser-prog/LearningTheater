@@ -587,6 +587,7 @@ function UpdateElement(e){
 		if(e.ShowOrigin==true){
 		var OriginMarker=`position: absolute; top: `+e.TransformOriginY*StageScale+`px; left: `+e.TransformOriginX*StageScale+`px; width: 5px; height: 5px; content: ''; background-color: #f0f; border-radius: 50%; transform: translate(-50%, -50%);`;
 		//CreateOrigin.style=OriginMarker;
+		e._originMarker.style=OriginMarker;
 		
 		}
 	
@@ -804,6 +805,20 @@ function GenerateElement(id){
   Div1.appendChild(x);
   x.style.position="absolute";
   x.style.transformStyle="preserve-3d";
+  
+  		if(id.TransformOriginX!=undefined){
+		x.style.transformOrigin=""+id.TransformOriginX*StageScale+"px "+id.TransformOriginY*StageScale+"px ";
+		}
+		if(id.ShowOrigin==true){
+			if(!id._originMarker){
+				
+		var OriginMarker=`position: absolute; top: `+id.TransformOriginY*StageScale+`px; left: `+id.TransformOriginX*StageScale+`px; width: 5px; height: 5px; content: ''; background-color: #f0f; border-radius: 50%; transform: translate(-50%, -50%);`;
+		
+		CreateOrigin.style=OriginMarker;
+		id._originMarker=CreateOrigin;
+		x.appendChild(CreateOrigin);
+		}
+		}
  
   
   UpdateElement(id);
