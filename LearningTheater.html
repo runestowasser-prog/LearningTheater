@@ -3168,6 +3168,22 @@ function cloneWithoutRuntime(obj) {
 
 async function saveProjectAsZip() {
 
+ let writable = null;
+
+// 🔹 GEM
+  if (window.showSaveFilePicker) {
+    const handle = await showSaveFilePicker({
+      suggestedName: "LearningTheaterPackage.zip",
+      types: [{
+        description: "Learning Theater Package",
+        accept: { "application/zip": [".zip"] }
+      }]
+    });
+	writable = await handle.createWritable();
+//	const zipWriter = new zip.zipWriter(new zip.BlobWriter("application/zip"));
+	
+//	await zipWriter.add("index.html", new zip.TextReader(finalHTML));
+
   SettingsGenerated =
     'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
     'FollowSL=' + elementId("SLInput").checked + ';\n' +
@@ -3278,7 +3294,7 @@ LT_TRIGGERS_END -->\n`;
       const asset = Project.assets[fileName];
       if (asset.blob) {
         await zipWriter.add(
-          " " + fileName,
+          "" + fileName,
           new zip.BlobReader(asset.blob)
         );
       }
@@ -3287,27 +3303,20 @@ LT_TRIGGERS_END -->\n`;
 
   const zipBlob = await zipWriter.close();
 
-  // 🔹 GEM
-  if (window.showSaveFilePicker) {
-    const handle = await showSaveFilePicker({
-      suggestedName: "LearningTheaterPackage.zip",
-      types: [{
-        description: "Learning Theater Package",
-        accept: { "application/zip": [".zip"] }
-      }]
-    });
+  
 
-    const writable = await handle.createWritable();
-    await writable.write(zipBlob);
+    //const writable = await handle.createWritable();
+    if(writable){
+	await writable.write(zipBlob);
     await writable.close();
   } else {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(zipBlob);
     a.download = "LearningTheaterPackage.zip";
     a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    
   }
-
+}
   localStorage.removeItem("LT_autosave");
   localStorage.removeItem("LT_autosave_time");
 }
