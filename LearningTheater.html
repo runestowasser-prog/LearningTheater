@@ -36,7 +36,7 @@ var SettingsGenerated='';
 var TestElements=undefined;
 var AllSceneTweens=null;
 var AllActors=new Array;
-var AllScenes=new Array;
+var AllScenes=[{ID:"Scene1"}];
 var BuildString="";
 
 var AllGeneratedTweens=new Array;
@@ -2791,7 +2791,7 @@ function loadFullString(fullText) {
 		document.getElementById("resizeCode").style.display="none";
 		document.getElementById("HEAD").style.display="none";
 		
-    ShowSelectedScript(GeneralCode,'Select Script',generalCode)
+    ShowSelectedScript(BuildSpecial,'Actors',BuildSpecial)
 
 	
 	var select=document.getElementById("Scenes");
@@ -3180,7 +3180,8 @@ async function saveProjectAsZip() {
       }]
     });
 	writable = await handle.createWritable();
-//	const zipWriter = new zip.zipWriter(new zip.BlobWriter("application/zip"));
+	// 🔹 START ZIP
+	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {level:0});
 	
 //	await zipWriter.add("index.html", new zip.TextReader(finalHTML));
 
@@ -3248,8 +3249,7 @@ LT_TRIGGERS_END -->\n`;
 
   const finalHTML = HTMLCode + triggerBlock+JsCode;
 
-  // 🔹 START ZIP
-  const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"));
+  
 
   // 1️⃣ Tilføj HTML output (det rigtige produkt!)
   await zipWriter.add("index.html", new zip.TextReader(finalHTML));
@@ -3416,7 +3416,7 @@ function loadFileAsText(){
 		document.getElementById("resizeCode").style.display="none";
 		document.getElementById("HEAD").style.display="none";
 		
-    ShowSelectedScript(GeneralCode,'Select Script',generalCode)
+    ShowSelectedScript(BuildSpecial,'Actors',BuildSpecial)
 
 	
 	var select=document.getElementById("Scenes");
@@ -3660,7 +3660,7 @@ function loadProjectFromHtmlString(content) {
 	document.getElementById("resizeCode").style.display="none";
 	document.getElementById("HEAD").style.display="none";
 
-	ShowSelectedScript(GeneralCode,'Select Script',generalCode);
+	ShowSelectedScript(BuildSpecial,'Actors',BuildSpecial);
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(content);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
@@ -4255,25 +4255,28 @@ ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General (code)',GeneralCo
 ScriptOption1.Height=30
 ScriptOption1.Y=120
 ScriptOption1.Parent="ScriptMenu"
-ScriptOption1.Text="General (code)"
+ScriptOption1.Text="Code"
 Actor("ScriptOption2","button"); 
 ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
 ScriptOption2.Height=30
 ScriptOption2.Y=210
 ScriptOption2.Parent="ScriptMenu"
 ScriptOption2.Text="Build (code)"
+ScriptOption2.Opacity=0
 Actor("ScriptOption3","button"); 
 ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
 ScriptOption3.Height=30
 ScriptOption3.Y=180
 ScriptOption3.Parent="ScriptMenu"
 ScriptOption3.Text="Update (code)"
+ScriptOption3.Opacity=0
 Actor("ScriptOption4","button");
 ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
 ScriptOption4.Height=30
 ScriptOption4.Y=150
 ScriptOption4.Parent="ScriptMenu"
 ScriptOption4.Text="Scene Start (code)"
+ScriptOption4.Opacity=0
 Actor("ScriptOption5","button"); 
 ScriptOption5.MouseUp="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
 ScriptOption5.Height=30
@@ -4312,7 +4315,7 @@ thisActor.Text="Settings ⚙"
 thisActor.Height=30
 thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false"
 thisActor.Parent="ScriptMenu"
-thisActor.Y=240
+thisActor.Y=150
 
 
 Actor("resizer","div");
@@ -5108,7 +5111,7 @@ var getCodeMirror=document.getElementsByClassName("CodeMirror")
 //elementId("resizeCode").oninput=function(){showPreview()}
 //elementId("HEAD").oninput=function(){showPreview()}
 
-ShowSelectedScript(BuildSpecial,'Build GUI',BuildCode)
+ShowSelectedScript(BuildSpecial,'Actors',BuildCode)
 BuildCode.focus();
 
 tryRestoreAutosave();
