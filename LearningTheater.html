@@ -1168,6 +1168,112 @@ editor.appendChild(gridWrapper);
 	
   });
 
+
+// 🔊 Volume Data tools (kun for audio actors)
+if (item.Type?.toLowerCase() === "audio") {
+
+  const volumeWrapper = document.createElement("div");
+  volumeWrapper.className = "editor-row";
+  volumeWrapper.style.marginTop = "10px";
+
+  const label = document.createElement("label");
+  label.textContent = "Volume Data";
+  volumeWrapper.appendChild(label);
+
+  const info = document.createElement("div");
+  info.style.fontSize = "12px";
+  info.style.opacity = "0.7";
+
+  if (item.VolumeData?.data?.length) {
+    info.textContent = `Generated (${item.VolumeData.data.length} frames @ ${item.VolumeData.fps} fps)`;
+  } else {
+    info.textContent = "Not generated";
+  }
+
+  volumeWrapper.appendChild(info);
+
+  const generateBtn = document.createElement("button");
+  generateBtn.textContent = item.VolumeData ? "Regenerate" : "Generate";
+  generateBtn.style.marginTop = "5px";
+
+  generateBtn.onclick = async () => {
+
+    if (!item.Source) {
+      alert("Audio actor has no source.");
+      return;
+    }
+
+    const asset = Project.assets?.[item.Source];
+
+    if (!asset?.blob) {
+      alert("Audio source not found in library.");
+      return;
+    }
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = "Analyzing...";
+
+    try {
+
+      const ctx = new AudioContext();
+      const arrayBuffer = await asset.blob.arrayBuffer();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+      const data = audioBuffer.getChannelData(0);
+      const fps = 30;
+      const samplesPerFrame = Math.floor(audioBuffer.sampleRate / fps);
+
+      const envelope = [];
+
+		let max = 0;
+
+		for (let i = 0; i < data.length; i += samplesPerFrame) {
+
+		  let sum = 0;
+
+		  for (let j = 0; j < samplesPerFrame; j++) {
+			sum += Math.abs(data[i + j] || 0);
+		  }
+
+		  let volume = sum / samplesPerFrame;
+
+		  if (volume > max) max = volume;
+
+		  envelope.push(volume);
+		}
+
+		// 🔥 Normaliser
+		if (max > 0) {
+		  for (let i = 0; i < envelope.length; i++) {
+			envelope[i] = envelope[i] / max;
+		  }
+		}
+
+      item.VolumeData = {
+        fps: fps,
+        data: envelope
+      };
+
+      updateOriginalArray(item, { VolumeData: item.VolumeData });
+
+      info.textContent = `Generated (${envelope.length} frames @ ${fps} fps)`;
+      generateBtn.textContent = "Regenerate";
+
+    } catch (err) {
+      console.error(err);
+      alert("Audio analysis failed.");
+      generateBtn.textContent = "Generate";
+    }
+
+    generateBtn.disabled = false;
+  };
+
+  volumeWrapper.appendChild(generateBtn);
+  editor.appendChild(volumeWrapper);
+}
+
+
+
 // Sørg for at initialisere CustomProps som array, hvis det mangler
 if (!item.CustomProps) item.CustomProps = [];
 
@@ -1319,7 +1425,7 @@ function generateActorCode(actor) {
     "ShowOrigin", "TransformOriginX", "TransformOriginY", "Draggable", "MouseDown", "MouseUp", "Click", "Style", "Color", 
     "Text", "TextColor", "FontSize", "Opacity", "TranslateX", "TranslateY", 
     "TranslateZ", "Scale", "SkewX", "SkewY", "Overflow", "BackgroundImage", "Source", "Shape", "Controls",
-    "Class", 
+    "Class", "VolumeData",
   ];
 
   keysToInclude.forEach(key => {
@@ -1328,6 +1434,13 @@ function generateActorCode(actor) {
 	  if (key === "Text" && typeof val === "string") {
 		  val = normalizeQuillHTMLForExport(val);
 		}
+		 // 🔥 Object handling (VolumeData m.fl.)
+		if (typeof val === "object") {
+		  val = JSON.stringify(val);
+		  code += `  ${key}: ${val},\n`;
+		  return;
+		}
+		
       if (typeof val === "string") {
         if (val.includes("\n") || val.includes(";") || val.includes('"') || val.includes("'")) {
           val = val.replace(/`/g, "\\`");
