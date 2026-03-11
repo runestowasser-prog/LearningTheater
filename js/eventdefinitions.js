@@ -1112,6 +1112,121 @@ const ActionFunctions = {
   },
 
 
+"AudioLipSync": {
+  label: "Audio LipSync",
+  category: "Media",
+
+  args: [
+    { label: "Audio Actor", type: "actor" },
+    { label: "Silent Actor", type: "actor" },
+    { label: "Talk 1", type: "actor" },
+    { label: "Talk 2", type: "actor" },
+    { label: "Talk 3", type: "actor" },
+    { label: "Talk 4", type: "actor" },
+	{ label: "Tempo", type: "raw", defaultValue:"1" }
+  ],
+
+  build: (args) => `
+if (${args[0]}.VolumeData) {
+
+  const audio = elementId("${args[0]}");
+  if (!audio) return;
+
+  const fps = ${args[0]}.VolumeData.fps;
+  const now = audio.currentTime;
+
+  // ?? Detect scrub / loop (time went backwards)
+  ${args[0]}._lipLastTime = ${args[0]}._lipLastTime ?? now;
+
+  if (now < ${args[0]}._lipLastTime) {
+    ${args[0]}._lipLastSwitch = 0;
+    ${args[0]}._lipLastState = 0;
+    ${args[0]}._lastVolume = 0;
+  }
+
+  ${args[0]}._lipLastTime = now;
+
+  const tempo = ${args[6] || 1};
+const frame = Math.floor(now * fps * tempo);
+  let volume = ${args[0]}.VolumeData.data[frame] || 0;
+
+  // ?? Simple smoothing
+  ${args[0]}._lastVolume = ${args[0]}._lastVolume ?? volume;
+  volume = (volume + ${args[0]}._lastVolume) * 0.5;
+  ${args[0]}._lastVolume = volume;
+
+  let newState = 0;
+
+  if (volume > 0.15) {
+    newState = 1 + Math.floor(Math.random() * 4);
+  }
+
+  ${args[0]}._lipLastSwitch = ${args[0]}._lipLastSwitch ?? 0;
+  ${args[0]}._lipLastState = ${args[0]}._lipLastState ?? 0;
+
+  // ?? Limit switching
+  if (now - ${args[0]}._lipLastSwitch > 0.08) {
+    ${args[0]}._lipLastState = newState;
+    ${args[0]}._lipLastSwitch = now;
+  }
+
+  const state = ${args[0]}._lipLastState;
+
+  ${args[1]}.Opacity = (state === 0) ? 100 : 0;
+  ${args[2]}.Opacity = (state === 1) ? 100 : 0;
+  ${args[3]}.Opacity = (state === 2) ? 100 : 0;
+  ${args[4]}.Opacity = (state === 3) ? 100 : 0;
+  ${args[5]}.Opacity = (state === 4) ? 100 : 0;
+
+}
+`
+},
+
+"AnimateFromVolume": {
+  label: "Animate Property From Volume",
+  category: "Audio",
+
+  args: [
+    { label: "Audio Actor", type: "actor" },
+    { label: "Target Actor", type: "actor" },
+    { label: "Property", type: "property" },
+    { label: "Min Value", type: "raw" },
+    { label: "Max Value", type: "raw" },
+    { label: "Min Volume (0-100)", type: "raw" },
+    { label: "Max Volume (0-100)", type: "raw" }
+  ],
+
+  build: (args) => `
+if (${args[0]}.VolumeData) {
+
+  const audio = elementId("${args[0]}");
+  if (!audio) return;
+
+  const fps = ${args[0]}.VolumeData.fps;
+  const frame = Math.floor(audio.currentTime * fps);
+  const rawVolume = ${args[0]}.VolumeData.data[frame] || 0;
+
+  const volume = rawVolume * 100;
+
+  const minVol = ${args[5]};
+  const maxVol = ${args[6]};
+
+  if (volume < minVol || volume > maxVol) return;
+
+  // ?? Map volume inside selected range
+  const t = (volume - minVol) / (maxVol - minVol);
+
+  const minVal = ${args[3]};
+  const maxVal = ${args[4]};
+
+  const value = minVal + (t * (maxVal - minVal));
+
+  ${args[1]}.${args[2]} = value;
+
+}
+`
+},
+
 "LipSyncV2": {
   label: "LipSync V2 (Pro)",
   category: "Audio",
@@ -1240,8 +1355,6 @@ const ActionFunctions = {
 })();
 `
 },
-
-
 
 };
 
