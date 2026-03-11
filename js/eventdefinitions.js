@@ -1112,118 +1112,132 @@ const ActionFunctions = {
   },
 
 
-"AudioLipSync": {
-  label: "Audio LipSync",
-  category: "Media",
-
-  args: [
-    { label: "Audio Actor", type: "actor" },
-    { label: "Silent Actor", type: "actor" },
-    { label: "Talk 1", type: "actor" },
-    { label: "Talk 2", type: "actor" },
-    { label: "Talk 3", type: "actor" },
-    { label: "Talk 4", type: "actor" },
-	{ label: "Tempo", type: "raw", defaultValue:"1" }
-  ],
-
-  build: (args) => `
-if (${args[0]}.VolumeData) {
-
-  const audio = elementId("${args[0]}");
-  if (!audio) return;
-
-  const fps = ${args[0]}.VolumeData.fps;
-  const now = audio.currentTime;
-
-  // ?? Detect scrub / loop (time went backwards)
-  ${args[0]}._lipLastTime = ${args[0]}._lipLastTime ?? now;
-
-  if (now < ${args[0]}._lipLastTime) {
-    ${args[0]}._lipLastSwitch = 0;
-    ${args[0]}._lipLastState = 0;
-    ${args[0]}._lastVolume = 0;
-  }
-
-  ${args[0]}._lipLastTime = now;
-
-  const tempo = ${args[6] || 1};
-  const frame = Math.floor(now * fps * tempo);
-  let volume = ${args[0]}.VolumeData.data[frame] || 0;
-
-  // ?? Simple smoothing
-  ${args[0]}._lastVolume = ${args[0]}._lastVolume ?? volume;
-  volume = (volume + ${args[0]}._lastVolume) * 0.5;
-  ${args[0]}._lastVolume = volume;
-
-  let newState = 0;
-
-  if (volume > 0.15) {
-    newState = 1 + Math.floor(Math.random() * 4);
-  }
-
-  ${args[0]}._lipLastSwitch = ${args[0]}._lipLastSwitch ?? 0;
-  ${args[0]}._lipLastState = ${args[0]}._lipLastState ?? 0;
-
-  // ?? Limit switching
-  if (now - ${args[0]}._lipLastSwitch > 0.08) {
-    ${args[0]}._lipLastState = newState;
-    ${args[0]}._lipLastSwitch = now;
-  }
-
-  const state = ${args[0]}._lipLastState;
-
-  ${args[1]}.Opacity = (state === 0) ? 100 : 0;
-  ${args[2]}.Opacity = (state === 1) ? 100 : 0;
-  ${args[3]}.Opacity = (state === 2) ? 100 : 0;
-  ${args[4]}.Opacity = (state === 3) ? 100 : 0;
-  ${args[5]}.Opacity = (state === 4) ? 100 : 0;
-
-}
-`
-},
-
-"AnimateFromVolume": {
-  label: "Animate Property From Volume",
+"LipSyncV2": {
+  label: "LipSync V2 (Pro)",
   category: "Audio",
 
   args: [
     { label: "Audio Actor", type: "actor" },
-    { label: "Target Actor", type: "actor" },
-    { label: "Property", type: "property" },
-    { label: "Min Value", type: "raw" },
-    { label: "Max Value", type: "raw" },
-    { label: "Min Volume (0-100)", type: "raw" },
-    { label: "Max Volume (0-100)", type: "raw" }
+
+    { label: "Silent Mouth Actor", type: "actor" },
+    { label: "Talking Mouth 1", type: "actor" },
+    { label: "Talking Mouth 2", type: "actor" },
+    { label: "Talking Mouth 3", type: "actor" },
+    { label: "Talking Mouth 4", type: "actor" },
+
+    { label: "Threshold (0-100)", type: "raw" },
+    { label: "Switch Speed (ms)", type: "raw" },
+    { label: "Fade Duration (seconds)", type: "raw" },
+
+    { label: "Start Time (optional)", type: "raw" },
+    { label: "End Time (optional)", type: "raw" }
   ],
 
   build: (args) => `
-if (${args[0]}.VolumeData) {
+(function(){
+
+  const audioActor = ${args[0]};
+  if (!audioActor.VolumeData) return;
 
   const audio = elementId("${args[0]}");
   if (!audio) return;
 
-  const fps = ${args[0]}.VolumeData.fps;
-  const frame = Math.floor(audio.currentTime * fps);
-  const rawVolume = ${args[0]}.VolumeData.data[frame] || 0;
+  const now = audio.currentTime;
 
+  const startTime = ${args[9] || 0};
+  const endTime = ${args[10] || 99999};
+
+  if (now < startTime || now > endTime) {
+    setSilent();
+    return;
+  }
+
+  const fps = audioActor.VolumeData.fps;
+  const frame = Math.floor(now * fps);
+
+  const rawVolume = audioActor.VolumeData.data[frame] || 0;
   const volume = rawVolume * 100;
 
-  const minVol = ${args[5]};
-  const maxVol = ${args[6]};
+  const threshold = ${args[6]};
+  const switchSpeed = ${args[7]};
+  const fadeDuration = ${args[8]};
 
-  if (volume < minVol || volume > maxVol) return;
+  const silent = ${args[1]};
+  const mouths = [
+    ${args[2]},
+    ${args[3]},
+    ${args[4]},
+    ${args[5]}
+  ];
 
-  // ?? Map volume inside selected range
-  const t = (volume - minVol) / (maxVol - minVol);
+  // --- init runtime state ---
+  if (!audioActor._lipState) {
+    audioActor._lipState = {
+      current: 0,
+      lastSwitch: 0
+    };
+  }
 
-  const minVal = ${args[3]};
-  const maxVal = ${args[4]};
+  const state = audioActor._lipState;
+  const nowMs = now * 1000;
 
-  const value = minVal + (t * (maxVal - minVal));
+  // --- if silent volume ---
+  if (volume < threshold) {
+    if (state.current !== 0) {
+      fadeTo(0);
+      state.current = 0;
+    }
+    return;
+  }
 
-  ${args[1]}.${args[2]} = value;
+  // --- switch control ---
+  if (nowMs - state.lastSwitch < switchSpeed) return;
 
-}
+  // --- pick random talking mouth ---
+  const randomIndex = Math.floor(Math.random() * mouths.length) + 1;
+
+  if (randomIndex !== state.current) {
+    fadeTo(randomIndex);
+    state.current = randomIndex;
+  }
+
+  state.lastSwitch = nowMs;
+
+  // ---------- helpers ----------
+
+  function setSilent(){
+    if (!audioActor._lipState) return;
+    if (audioActor._lipState.current !== 0) {
+      fadeTo(0);
+      audioActor._lipState.current = 0;
+    }
+  }
+
+  function fadeTo(index){
+
+    // kill old tweens to prevent stacking
+    Move.killTweensOf(silent);
+    mouths.forEach(m => Move.killTweensOf(m));
+
+    // silent visible?
+    if (index === 0) {
+      Move.to(silent, { Opacity: 100, duration: fadeDuration });
+      mouths.forEach(m => Move.to(m, { Opacity: 0, duration: fadeDuration }));
+      return;
+    }
+
+    // show selected mouth
+    Move.to(silent, { Opacity: 0, duration: fadeDuration });
+
+    mouths.forEach((m, i) => {
+      Move.to(m, {
+        Opacity: (i === index-1) ? 100 : 0,
+        duration: fadeDuration
+      });
+    });
+  }
+
+})();
 `
 },
 
