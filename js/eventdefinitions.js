@@ -1112,14 +1112,110 @@ const ActionFunctions = {
   },
 
 
+"AudioLipSync": {
+  label: "Audio LipSync",
+  category: "Media",
+
+  args: [
+    { label: "Audio Actor", type: "actor" },
+    { label: "Silent Actor", type: "actor" },
+    { label: "Talk 1", type: "actor" },
+    { label: "Talk 2", type: "actor" },
+    { label: "Talk 3", type: "actor" },
+    { label: "Talk 4", type: "actor" }
+  ],
+
+  build: (args) => `
+if (${args[0]}.VolumeData) {
+
+  const audio = elementId("${args[0]}");
+  if (!audio) return;
+
+  const fps = ${args[0]}.VolumeData.fps;
+  const now = audio.currentTime;
+
+  // ?? Detect scrub / loop (time went backwards)
+  ${args[0]}._lipLastTime = ${args[0]}._lipLastTime ?? now;
+
+  if (now < ${args[0]}._lipLastTime) {
+    ${args[0]}._lipLastSwitch = 0;
+    ${args[0]}._lipLastState = 0;
+    ${args[0]}._lastVolume = 0;
+  }
+
+  ${args[0]}._lipLastTime = now;
+
+  const frame = Math.floor(now * fps);
+  let volume = ${args[0]}.VolumeData.data[frame] || 0;
+
+  // ?? Simple smoothing
+  ${args[0]}._lastVolume = ${args[0]}._lastVolume ?? volume;
+  volume = (volume + ${args[0]}._lastVolume) * 0.5;
+  ${args[0]}._lastVolume = volume;
+
+  let newState = 0;
+
+  if (volume > 0.15) {
+    newState = 1 + Math.floor(Math.random() * 4);
+  }
+
+  ${args[0]}._lipLastSwitch = ${args[0]}._lipLastSwitch ?? 0;
+  ${args[0]}._lipLastState = ${args[0]}._lipLastState ?? 0;
+
+  // ?? Limit switching
+  if (now - ${args[0]}._lipLastSwitch > 0.08) {
+    ${args[0]}._lipLastState = newState;
+    ${args[0]}._lipLastSwitch = now;
+  }
+
+  const state = ${args[0]}._lipLastState;
+
+  ${args[1]}.Opacity = (state === 0) ? 100 : 0;
+  ${args[2]}.Opacity = (state === 1) ? 100 : 0;
+  ${args[3]}.Opacity = (state === 2) ? 100 : 0;
+  ${args[4]}.Opacity = (state === 3) ? 100 : 0;
+  ${args[5]}.Opacity = (state === 4) ? 100 : 0;
+
+}
+`
+},
+
+"AnimateFromVolume": {
+  label: "Animate Property From Volume",
+  category: "Media",
+
+  args: [
+    { label: "Audio Actor", type: "actor" },
+    { label: "Target Actor", type: "actor" },
+    { label: "Property", type: "property" },
+    { label: "Min Value", type: "raw" },
+    { label: "Max Value", type: "raw" }
+  ],
+
+  build: (args) => `
+if (${args[0]}.VolumeData) {
+
+  const audio = elementId("${args[0]}");
+  if (!audio) return;
+
+  const fps = ${args[0]}.VolumeData.fps;
+  const frame = Math.floor(audio.currentTime * fps);
+  const volume = ${args[0]}.VolumeData.data[frame] || 0;
+
+  const min = ${args[3]};
+  const max = ${args[4]};
+
+  const value = min + (volume * (max - min));
+
+  ${args[1]}.${args[2]} = value;
+
+}
+`
+},
 
 
 
 };
-
-
-
-
 
 
 
