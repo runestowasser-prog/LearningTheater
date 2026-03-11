@@ -1122,7 +1122,8 @@ const ActionFunctions = {
     { label: "Talk 1", type: "actor" },
     { label: "Talk 2", type: "actor" },
     { label: "Talk 3", type: "actor" },
-    { label: "Talk 4", type: "actor" }
+    { label: "Talk 4", type: "actor" },
+	{ label: "Tempo", type: "raw", defaultValue:"1" }
   ],
 
   build: (args) => `
@@ -1145,7 +1146,8 @@ if (${args[0]}.VolumeData) {
 
   ${args[0]}._lipLastTime = now;
 
-  const frame = Math.floor(now * fps);
+  const tempo = ${args[6] || 1};
+  const frame = Math.floor(now * fps * tempo);
   let volume = ${args[0]}.VolumeData.data[frame] || 0;
 
   // ?? Simple smoothing
@@ -1182,14 +1184,16 @@ if (${args[0]}.VolumeData) {
 
 "AnimateFromVolume": {
   label: "Animate Property From Volume",
-  category: "Media",
+  category: "Audio",
 
   args: [
     { label: "Audio Actor", type: "actor" },
     { label: "Target Actor", type: "actor" },
     { label: "Property", type: "property" },
     { label: "Min Value", type: "raw" },
-    { label: "Max Value", type: "raw" }
+    { label: "Max Value", type: "raw" },
+    { label: "Min Volume (0-100)", type: "raw" },
+    { label: "Max Volume (0-100)", type: "raw" }
   ],
 
   build: (args) => `
@@ -1200,12 +1204,22 @@ if (${args[0]}.VolumeData) {
 
   const fps = ${args[0]}.VolumeData.fps;
   const frame = Math.floor(audio.currentTime * fps);
-  const volume = ${args[0]}.VolumeData.data[frame] || 0;
+  const rawVolume = ${args[0]}.VolumeData.data[frame] || 0;
 
-  const min = ${args[3]};
-  const max = ${args[4]};
+  const volume = rawVolume * 100;
 
-  const value = min + (volume * (max - min));
+  const minVol = ${args[5]};
+  const maxVol = ${args[6]};
+
+  if (volume < minVol || volume > maxVol) return;
+
+  // ?? Map volume inside selected range
+  const t = (volume - minVol) / (maxVol - minVol);
+
+  const minVal = ${args[3]};
+  const maxVal = ${args[4]};
+
+  const value = minVal + (t * (maxVal - minVal));
 
   ${args[1]}.${args[2]} = value;
 
