@@ -1114,7 +1114,7 @@ const ActionFunctions = {
 
 "AudioLipSync": {
   label: "Audio LipSync",
-  category: "Media",
+  category: "Audio",
 
   args: [
     { label: "Audio Actor", type: "actor" },
@@ -1147,7 +1147,7 @@ if (${args[0]}.VolumeData) {
   ${args[0]}._lipLastTime = now;
 
   const tempo = ${args[6] || 1};
-const frame = Math.floor(now * fps * tempo);
+  const frame = Math.floor(now * fps * tempo);
   let volume = ${args[0]}.VolumeData.data[frame] || 0;
 
   // ?? Simple smoothing
@@ -1190,10 +1190,10 @@ const frame = Math.floor(now * fps * tempo);
     { label: "Audio Actor", type: "actor" },
     { label: "Target Actor", type: "actor" },
     { label: "Property", type: "property" },
-    { label: "Min Value", type: "raw" },
-    { label: "Max Value", type: "raw" },
-    { label: "Min Volume (0-100)", type: "raw" },
-    { label: "Max Volume (0-100)", type: "raw" }
+    { label: "Min Value", type: "raw", defaultValue:"0" },
+    { label: "Max Value", type: "raw", defaultValue:"100" },
+    { label: "Min Volume (0-100)", type: "raw", defaultValue:"0" },
+    { label: "Max Volume (0-100)", type: "raw", defaultValue:"100" }
   ],
 
   build: (args) => `
@@ -1240,9 +1240,9 @@ if (${args[0]}.VolumeData) {
     { label: "Talking Mouth 3", type: "actor" },
     { label: "Talking Mouth 4", type: "actor" },
 
-    { label: "Threshold (0-100)", type: "raw" },
-    { label: "Switch Speed (ms)", type: "raw" },
-    { label: "Fade Duration (seconds)", type: "raw" },
+    { label: "Threshold (0-100)", type: "raw", defaultValue:"10" },
+    { label: "Switch Speed (ms)", type: "raw", defaultValue:"100" },
+    { label: "Fade Duration (seconds)", type: "raw", defaultValue:"0" },
 
     { label: "Start Time (optional)", type: "raw" },
     { label: "End Time (optional)", type: "raw" }
@@ -1285,7 +1285,7 @@ if (${args[0]}.VolumeData) {
     ${args[5]}
   ];
 
-  // --- init runtime state ---
+  /* --- init runtime state --- */
   if (!audioActor._lipState) {
     audioActor._lipState = {
       current: 0,
@@ -1296,7 +1296,7 @@ if (${args[0]}.VolumeData) {
   const state = audioActor._lipState;
   const nowMs = now * 1000;
 
-  // --- if silent volume ---
+  /* --- if silent volume --- */
   if (volume < threshold) {
     if (state.current !== 0) {
       fadeTo(0);
@@ -1305,7 +1305,7 @@ if (${args[0]}.VolumeData) {
     return;
   }
 
-  // --- switch control ---
+  /* --- switch control --- */
   if (nowMs - state.lastSwitch < switchSpeed) return;
 
   // --- pick random talking mouth ---
@@ -1318,7 +1318,7 @@ if (${args[0]}.VolumeData) {
 
   state.lastSwitch = nowMs;
 
-  // ---------- helpers ----------
+  /* ---------- helpers ---------- */
 
   function setSilent(){
     if (!audioActor._lipState) return;
@@ -1330,18 +1330,18 @@ if (${args[0]}.VolumeData) {
 
   function fadeTo(index){
 
-    // kill old tweens to prevent stacking
+    /* kill old tweens to prevent stacking */
     Move.killTweensOf(silent);
     mouths.forEach(m => Move.killTweensOf(m));
 
-    // silent visible?
+    /* silent visible? */
     if (index === 0) {
       Move.to(silent, { Opacity: 100, duration: fadeDuration });
       mouths.forEach(m => Move.to(m, { Opacity: 0, duration: fadeDuration }));
       return;
     }
 
-    // show selected mouth
+    /* show selected mouth */
     Move.to(silent, { Opacity: 0, duration: fadeDuration });
 
     mouths.forEach((m, i) => {
