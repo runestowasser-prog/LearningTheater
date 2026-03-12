@@ -1113,68 +1113,6 @@ function SceneStartTrigger() {
     }
   });
 }
-/*
-function runTriggers(eventName) {
-  if (!Array.isArray(Triggers)) return;
-
-  // Globalt state til at huske om en condition tidligere var sand
-  window.TriggerFlags = window.TriggerFlags || {};
-
-  for (const trigger of Triggers) {
-    if (trigger.event !== eventName) continue;
-
-    const fireMode = trigger.fireMode || "whiletrue"; // default
-    const triggerId = trigger.id || Triggers.indexOf(trigger);
-    const wasTrue = TriggerFlags[triggerId]?.wasTrue || false;
-
-    // --- Evaluer conditions ---
-    let conditionMet = true;
-    const conditions = trigger.conditions || ["true"];
-
-    for (let cond of conditions) {
-      if (!cond) continue;
-      const code = typeof cond === "string" ? cond : cond.code;
-      try {
-        if (!new Function("return (" + code + ")")()) {
-          conditionMet = false;
-          break;
-        }
-      } catch (err) {
-        console.warn("Trigger fejl:", err);
-        conditionMet = false;
-        break;
-      }
-    }
-
-    // --- Afgør om trigger skal affyres ---
-    let shouldFire = false;
-    if (fireMode === "once" && conditionMet && !wasTrue) {
-      shouldFire = true;
-    } else if (fireMode === "whiletrue" && conditionMet) {
-      shouldFire = true;
-    } else if (fireMode === "onceWhileTrue" && conditionMet && !wasTrue) {
-      shouldFire = true;
-    }
-
-    // --- Udfør actions hvis nødvendigt ---
-    if (shouldFire) {
-      const actions = trigger.actions || [];
-      for (const act of actions) {
-        const code = typeof act === "string" ? act : act.code;
-        if (!code) continue;
-        try {
-          new Function(code)();
-        } catch (err) {
-          console.warn("Trigger fejl i action:", err);
-        }
-      }
-    }
-
-    // --- Gem status til næste frame ---
-    TriggerFlags[triggerId] = { wasTrue: conditionMet };
-  }
-}
-*/
 
 function runTriggers(eventName) {
   if (!Array.isArray(Triggers)) return;

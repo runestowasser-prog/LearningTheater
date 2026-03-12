@@ -1114,7 +1114,7 @@ const ActionFunctions = {
 
 "AudioLipSync": {
   label: "Audio LipSync",
-  category: "Audio",
+  category: ["Audio", "Media"],
 
   args: [
     { label: "Audio Actor", type: "actor" },
@@ -1184,7 +1184,7 @@ if (${args[0]}.VolumeData) {
 
 "AnimateFromVolume": {
   label: "Animate Property From Volume",
-  category: "Audio",
+  category: ["Audio", "Media"],
 
   args: [
     { label: "Audio Actor", type: "actor" },
@@ -1229,7 +1229,7 @@ if (${args[0]}.VolumeData) {
 
 "LipSyncV2": {
   label: "LipSync V2 (Pro)",
-  category: "Audio",
+  category: ["Audio", "Media"],
 
   args: [
     { label: "Audio Actor", type: "actor" },
@@ -1258,6 +1258,17 @@ if (${args[0]}.VolumeData) {
   if (!audio) return;
 
   const now = audio.currentTime;
+
+	// detect scrub / repeat
+	if (!audioActor._lipLastTime) {
+	  audioActor._lipLastTime = now;
+	}
+
+	if (now < audioActor._lipLastTime) {
+	  audioActor._lipState = null;
+	}
+
+	audioActor._lipLastTime = now;
 
   const startTime = ${args[9] || 0};
   const endTime = ${args[10] || 99999};
@@ -1350,6 +1361,63 @@ if (${args[0]}.VolumeData) {
         duration: fadeDuration
       });
     });
+  }
+
+})();
+`
+},
+
+"SyncAudioToSceneTimeline": {
+  label: "Sync Audio To Scene Timeline",
+  category: ["Media", "Audio", "Timeline"],
+
+  args: [
+    { label: "Audio Actor", type: "actor" },
+    { label: "Scene", type: "scene" },
+    { label: "Tolerance (seconds)", type: "raw", defaultValue: "0.1" },
+    { label: "Time Offset (seconds)", type: "raw", defaultValue: "0" }
+  ],
+
+  build: (args) => `
+(function(){
+
+  const audioActor = ${args[0]};
+  const audio = elementId("${args[0]}");
+  if (!audio) return;
+
+  const scene = ${args[1]};
+  if (!scene || !scene.Timeline) return;
+
+  const tl = scene.Timeline;
+
+  const tolerance = ${args[2]};
+  const offset = ${args[3]};
+
+  const timelineTime = tl.time();
+  const desiredAudioTime = timelineTime - offset;
+
+  // --- Clamp (audio can't go negative) ---
+  const targetTime = desiredAudioTime < 0 ? 0 : desiredAudioTime;
+
+  const drift = Math.abs(audio.currentTime - targetTime);
+
+  // --- Drift correction ---
+  if (drift > tolerance) {
+    audio.currentTime = targetTime;
+  }
+
+  // --- Pause / Play sync ---
+  if (tl.paused() && !audio.paused) {
+    audio.pause();
+  }
+
+  if (!tl.paused() && audio.paused) {
+
+    // only play if timeline has passed offset
+    if (timelineTime >= offset) {
+      audio.play();
+    }
+
   }
 
 })();
