@@ -553,45 +553,6 @@ function moveItem(item, direction) {
 }
 
 
-/*function createSourceSelect(actor) {
-
-    const select = document.createElement("select");
-
-    // Tom mulighed
-    const empty = document.createElement("option");
-    empty.value = "";
-    empty.textContent = "-- none --";
-    select.appendChild(empty);
-
-    // Assets fra Project
-    if (window.Project && Project.assets) {
-        Object.keys(Project.assets).forEach(filename => {
-            const opt = document.createElement("option");
-            opt.value = filename;
-            opt.textContent = filename;
-            select.appendChild(opt);
-        });
-    }
-
-    select.value = actor.Source || "";
-
-    select.onchange = () => {
-		const value = select.value;
-
-		actor.Source = value;
-
-		if (actor._original) {
-			actor._original.Source = value;
-		}
-
-		updateOriginalArray(actor, { Source: value });
-
-		showPreview();
-	};
-
-    return select;
-}
-*/
 
 function createSourceSelect(actor) {
 
@@ -755,8 +716,7 @@ editor.appendChild(gridWrapper);
   const allProperties = [
     "ID", "Type", "InputType", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
     "ShowOrigin", "Controls", "Width", "Height", "X", "Y", "Scale", "Opacity",
-    "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateX",
-    "TranslateY", "TranslateZ", "Text", "FontSize", "MouseDown", "MouseUp",
+    "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateZ", "Text", "FontSize",
     "Draggable", "Style", "Class",
   ];
 
@@ -4631,6 +4591,7 @@ thisActor.Text="Reference audio <input style=\"height:20px\" id=\"selSound\"  on
 thisActor.Height=20;
 thisActor.Width=300;
 thisActor.X=StageWidth-720;
+thisActor.Opacity=0;
 
 Actor("Scenes","select")
 Scenes.Height=30
