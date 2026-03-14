@@ -327,7 +327,27 @@ const ConditionFunctions = {
 
 
   
-  
+"MouseState": {
+  label: "Mouse State",
+  category: "Mouse",
+  args: [
+    { type: "dropdown", label: "State", options: ["MouseDown","MouseUp"] },
+    { type: "actor", label: "Actor", optional: true }
+  ],
+
+  build: (args) => {
+
+    const stateCheck = args[0] === "MouseDown"
+      ? `window._MouseState.isDown`
+      : `!window._MouseState.isDown`;
+
+    if(args[1]){
+      return `(${stateCheck} && window._MouseState.actor === "${args[1]}")`;
+    }
+
+    return stateCheck;
+  }
+}
   
   
   
@@ -1423,6 +1443,18 @@ if (${args[0]}.VolumeData) {
 })();
 `
 },
+
+  // EMBED
+  "EmbedScene": {
+    label: "Embed a Scene in an Actor",
+    category: ["Scene", "Animation"],
+    args: [
+      { type: "scene", label: "Scene", defaultValue: "Scene1" },
+	  { type: "actor", label: "Target Actor", defaultValue: "Actor[0]" },
+    ],
+    build: (args) => `elementId("${args[1]}").appendChild(elementId("${args[0]}")); ${args[0]}.Opacity=100; ${args[0]}.Timeline.play();
+	`
+  },
 
 };
 

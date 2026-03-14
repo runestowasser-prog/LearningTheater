@@ -962,6 +962,7 @@ function Loop() {
 function repeatOften(event) {
   // Kør Update og triggere
   Update(runTriggers("Update"));
+ 
 
   // Opdater scener og elementer
   for (let i = 0; i < Scenes.length; i++) {
@@ -983,6 +984,7 @@ function init(){
 		document.getElementById("stage").style.overflow=Overflow+"";
 //	elementId("stage").style.overflowX="clip";
 //	var SceneNumber=0;
+	MouseListener();
 	for(var i=0;i<Scenes.length;i++){
 	GenerateScene(Scenes[i]);
 	}
@@ -1058,6 +1060,92 @@ function duplicateActorRecursive(actor, newParentID) {
   return clone;
 }
 
+var duplicateCount=0;
+function DuplicateActor(baseID, count) {
+  const original = Elements.find(el => el.ID === baseID);
+  if (!original) {
+    console.warn(`Element med ID "${baseID}" blev ikke fundet.`);
+    return;
+  }
+
+  for (let i = 1; i <= count; i++) {
+    duplicateActorRecursive(original, null);
+  }
+}
+
+// Hjælpefunktion: dupliker actor + børn
+function duplicateActorRecursive(actor, newParentID) {
+  const clone = {};
+
+  // Kopiér værdier fra originalen
+  for (const key in actor) {
+    const value = actor[key];
+    if (typeof value !== "function" && key !== "CustomProps") {
+      clone[key] = Array.isArray(value)
+        ? [...value]
+        : (value && typeof value === "object")
+        ? { ...value }
+        : value;
+    }
+  }
+
+  // Unikt ID
+  duplicateCount++;
+  clone.ID = `${actor.ID}${duplicateCount}`;
+
+  // Hvis vi duplikerer et barn, skal det pege på den nye forælder
+  if (newParentID) clone.Parent = newParentID;
+
+  // Tilføj til Elements
+  Elements.push(clone);
+  GenerateElement(clone);
+
+  // Find børn af originalen
+  const children = Elements.filter(el => el.Parent === actor.ID);
+
+  // Dupliker børnene rekursivt, med deres nye parent = denne klones ID
+  for (const child of children) {
+    duplicateActorRecursive(child, clone.ID);
+  }
+
+  return clone;
+}
+
+
+var duplicateCount = 0;
+
+function DuplicateSceneAsActor(sceneID, options = {}) {
+  const originalScene = Scenes.find(s => s.ID === sceneID);
+  if (!originalScene) {
+    console.warn(`Scene med ID "${sceneID}" blev ikke fundet.`);
+    return;
+  }
+
+  // 1️⃣ Lav en “scene-actor” som container
+  const sceneClone = {
+    ...originalScene,
+    ID: options.newID || `${originalScene.ID}_copy${++duplicateCount}`,
+    Parent: options.parent || "stage", // default til stage
+	Opacity:100,
+    Children: [],
+  };
+
+  // 2️⃣ Tilføj scene-actor til Elements
+  //sceneClone.Opacity=100;
+  //Elements.push(sceneClone);
+  GenerateElement(sceneClone);
+  Elements.push(sceneClone);
+
+  // 3️⃣ Dupliker alle actors i scenen
+  const sceneActors = Elements.filter(a => a.Parent === sceneID); // actors i original scene
+  for (const actor of sceneActors) {
+    duplicateActorRecursive(actor, sceneClone.ID);
+  }
+
+  return sceneClone;
+  
+}
+
 
 
 function DeleteActor(a){
@@ -1115,6 +1203,7 @@ function SceneStartTrigger() {
 }
 
 function runTriggers(eventName) {
+	
   if (!Array.isArray(Triggers)) return;
 
   for (const trigger of Triggers) {
@@ -1180,61 +1269,48 @@ function runTriggers(eventName) {
   }
 }
 
+  // global state
+  window._MouseState = {
+    isDown: false,
+    actor: null
+  };
 
 function MouseListener(){
+
   const container = document.getElementById("stage");
-  container.addEventListener("mouseup", (e) => {
+
+  container.addEventListener("mousedown", (e) => {
     const targetEl = e.target.closest("[data-actor-id]");
     if (!targetEl) return;
 
     const actorId = targetEl.getAttribute("data-actor-id");
-    const actorObj = window[actorId];
 
-    if (actorObj && actorObj.MouseUp) {
-      const fn = new Function(actorObj.MouseUp);
-      try {
-        fn();
-      } catch (err) {
-        console.warn(`Fejl i MouseUp for ${actorId}:`, err);
-      }
+    window._MouseState.isDown = true;
+    window._MouseState.actor = actorId;
+
+    window.TriggerTarget = actorId;
+    runTriggers("MouseDown");
+    window.TriggerTarget = null;
+  });
+
+  // ⚠️ lyt på document, ikke kun container
+  document.addEventListener("mouseup", (e) => {
+
+    const targetEl = e.target.closest("[data-actor-id]");
+    const actorId = targetEl
+      ? targetEl.getAttribute("data-actor-id")
+      : window._MouseState.actor;
+
+    window._MouseState.isDown = false;
+    window._MouseState.actor = actorId;
+
+    if(actorId){
+      window.TriggerTarget = actorId;
+      runTriggers("MouseUp");
+      window.TriggerTarget = null;
     }
-
-    Triggers.forEach(trigger => {
-      if (trigger.event === "MouseUp" && trigger.target === actorId) {
-        let conditionMet = true;
-        const conditions = trigger.conditions || ["true"];
-
-        for (let cond of conditions) {
-          if (!cond) continue;
-          try {
-            if (!new Function("return (" + cond + ")")()) {
-              conditionMet = false;
-              break;
-            }
-          } catch (err) {
-            console.warn(`Fejl i trigger condition:`, err);
-            conditionMet = false;
-            break;
-          }
-        }
-
-        if (conditionMet) {
-          const actions = trigger.actions || [];
-          actions.forEach(act => {
-            const code = typeof act === "string" ? act : act.code;
-            if (!code) return;
-            try {
-              new Function(code)();
-            } catch (err) {
-              console.warn(`Fejl i trigger action:`, err);
-            }
-          });
-        }
-      }
-    });
   });
 }
-
 function attachTriggerListener(containerId, eventType) {
   const container = document.getElementById(containerId);
   if (!container) return;
