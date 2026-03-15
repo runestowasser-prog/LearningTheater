@@ -434,9 +434,20 @@ controlDiv.style.marginTop = "15px";
 
 const addSceneBtn = document.createElement("button");
 addSceneBtn.textContent = "➕ New Scene";
+
 addSceneBtn.addEventListener("click", () => {
-  const id = prompt("ID for new Scene:");
+
+  let id = prompt("ID for new Scene:");
   if (!id) return;
+
+  id = id.trim();
+
+  const validID = /^[A-Za-z][A-Za-z0-9_]*$/;
+
+  if (!validID.test(id)) {
+    alert("Invalid ID. Use letters, numbers, and underscore only, and start with a letter.");
+    return;
+  }
 
   if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
     alert("ID already exists!");
@@ -444,23 +455,46 @@ addSceneBtn.addEventListener("click", () => {
   }
 
   const newScene = { ID: id };
+
   AllScenes.push(newScene);
   updateActorList();
   BuildCode.setValue(exportToCode());
   showPreview();
+
 });
 
 const addActorBtn = document.createElement("button");
 addActorBtn.textContent = "➕ New Actor";
 addActorBtn.style.marginLeft = "10px";
+
 addActorBtn.addEventListener("click", () => {
-  const id = prompt("ID for new Actor:");
+
+  let id = prompt("ID for new Actor:");
   if (!id) return;
 
-  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
-    alert("ID'et findes allerede!");
+  id = id.trim();
+
+  const validID = /^[A-Za-z][A-Za-z0-9_]*$/;
+
+  if (!validID.test(id)) {
+    alert("Invalid ID. Use letters, numbers, and underscore only, and start with a letter.");
     return;
   }
+
+  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
+    alert("ID already exists!");
+    return;
+  }
+
+
+//addActorBtn.addEventListener("click", () => {
+//  const id = prompt("ID for new Actor:");
+//  if (!id) return;
+
+//  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
+//    alert("ID'et findes allerede!");
+//    return;
+//  }
 
   const newActor = {
     ID: id,
@@ -3239,6 +3273,29 @@ function cloneWithoutRuntime(obj) {
   return cloneRecursive(obj);
 }
 
+
+function safeStringify(obj) {
+  const seen = new WeakSet();
+
+  return JSON.stringify(obj, function (key, value) {
+
+    // Fjern kendte runtime properties
+    if (key === "_gsap") return undefined;
+    if (key === "element") return undefined;
+    if (key === "parent") return undefined;
+    if (key === "children") return undefined;
+
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return undefined; // stopper circular
+      }
+      seen.add(value);
+    }
+
+    return value;
+  }, 2);
+}
+
 async function saveProjectAsZip() {
 
  let writable = null;
@@ -3253,6 +3310,7 @@ async function saveProjectAsZip() {
       }]
     });
 	writable = await handle.createWritable();
+	SavingOverlay.Opacity=100;
 	// 🔹 START ZIP
 	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {level:0});
 	
@@ -3266,7 +3324,7 @@ async function saveProjectAsZip() {
     'Scaling="' + elementId("ScalingInput").value + '";\n' +
     'Overflow="' + elementId("OverflowInput").value + '";\n';
 	
-		const triggerJSON = JSON.stringify(parent.GeneratedTriggers);
+		const triggerJSON = safeStringify(parent.GeneratedTriggers);
 		const manifestScorm=`<?xml version="1.0"?>
 						<manifest identifier="Manifest_2004-4a" version="1.1"
 						          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2" 
@@ -3351,7 +3409,7 @@ LT_TRIGGERS_END -->\n`;
 
   await zipWriter.add(
     "project.json",
-    new zip.TextReader(JSON.stringify(projectJSON, null, 2))
+    new zip.TextReader(safeStringify(projectJSON))
   );
 
 	await zipWriter.add("js/engine.js", new zip.TextReader(ENGINESTRING));
@@ -3392,6 +3450,7 @@ LT_TRIGGERS_END -->\n`;
 }
   localStorage.removeItem("LT_autosave");
   localStorage.removeItem("LT_autosave_time");
+  SavingOverlay.Opacity=0;
 }
 
 
@@ -4773,6 +4832,13 @@ thisActor.X=400;
 thisActor.Width=StageWidth-400;
 thisActor.Color="lightgrey";
 thisActor.Overflow="hidden";
+
+Actor("SavingOverlay","div");
+thisActor.Color="Gray";
+thisActor.Width=StageWidth;
+thisActor.Height=StageHeight;
+thisActor.Text="Saving project. Do not leave this page until this text dissappeares!";
+thisActor.Opacity=0;
 
 var ColorVar='#000000';
 
