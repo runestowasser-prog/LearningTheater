@@ -344,18 +344,22 @@ function SceneTransition(Transition,Duration,direction,ThisScene,Next){
   console.log("transition triggered")
   if(Transition=="Slide"&&direction=="Left"){
 	gsap.to(thisScene, {duration: Duration, X: -StageWidth,ease:"power2.inOut"});
+	gsap.set(thisScene, {Opacity:0, delay:Duration});
 	gsap.fromTo(Scenes[next], {X:StageWidth,Opacity:100},{duration: Duration, X: 0,ease:"power2.inOut"});
   }
     if(Transition=="Slide"&&direction=="Right"){
 	gsap.to(thisScene, {duration: Duration, X: StageWidth});
+	gsap.set(thisScene, {Opacity:0, delay:Duration});
 	gsap.fromTo(Scenes[next], {X:-StageWidth,Opacity:100},{duration: Duration, X: 0});
   }
   if(Transition=="Slide"&&direction=="Up"){
 	gsap.to(thisScene, {duration: Duration, Y: -StageHeight,ease:"power2.inOut"});
+	gsap.set(thisScene, {Opacity:0, delay:Duration});
 	gsap.fromTo(Scenes[next], {Y:StageHeight,Opacity:100},{duration: Duration, Y: 0,ease:"power2.inOut"});
   }
   if(Transition=="Slide"&&direction=="Down"){
 	gsap.to(thisScene, {duration: Duration, Y: StageHeight,ease:"power2.inOut"});
+	gsap.set(thisScene, {Opacity:0, delay:Duration});
 	gsap.fromTo(Scenes[next], {Y:-StageHeight,Opacity:100},{duration: Duration, Y: 0,ease:"power2.inOut"});
   }
   
@@ -697,13 +701,17 @@ function GenerateElement(id){
 
 			let resolvedSource = id.Source;
 
-			if (window.parent &&
+			if (
+				window.parent &&
 				window.parent.Project &&
 				window.parent.Project.assets &&
-				window.parent.Project.assets[resolvedSource]) {
-
+				window.parent.Project.assets[resolvedSource]
+			) {
 				resolvedSource = window.parent.Project.assets[resolvedSource].url;
 			}
+
+			// encode path
+			resolvedSource = encodeURI(resolvedSource);
 
 			// ---- IMG ---- //
 			if (id.Type === "img") {
@@ -984,7 +992,7 @@ function init(){
 		document.getElementById("stage").style.overflow=Overflow+"";
 //	elementId("stage").style.overflowX="clip";
 //	var SceneNumber=0;
-	MouseListener();
+	//MouseListener();
 	for(var i=0;i<Scenes.length;i++){
 	GenerateScene(Scenes[i]);
 	}
@@ -1287,6 +1295,8 @@ function MouseListener(){
 
     window._MouseState.isDown = true;
     window._MouseState.actor = actorId;
+	
+	
 
     window.TriggerTarget = actorId;
     runTriggers("MouseDown");
@@ -1333,7 +1343,8 @@ function attachTriggerListener(containerId, eventType) {
 
     // Kør Triggers
     Triggers.forEach(trigger => {const eventHasTarget = actorId != null;
-	if (trigger.event === eventType && (!eventHasTarget || trigger.target === actorId)) {
+	//if (trigger.event === eventType && (!eventHasTarget || trigger.target === actorId)) {
+		if (trigger.event === eventType && trigger.target === actorId){
 	console.log("Trigger matched:", trigger);
 
         // ⭐ NY DEL: Evaluering af flere conditions
