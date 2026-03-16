@@ -3662,9 +3662,26 @@ function clearLibrary() {
 	document.getElementById("Library").innerHTML = "";
 }
 
-async function rebuildLibraryFromZip(entries) {
+function getMimeType(filename) {
 
-	//clearLibrary();
+	const ext = filename.split(".").pop().toLowerCase();
+
+	const map = {
+		svg: "image/svg+xml",
+		png: "image/png",
+		jpg: "image/jpeg",
+		jpeg: "image/jpeg",
+		gif: "image/gif",
+		webp: "image/webp",
+		mp4: "video/mp4",
+		mp3: "audio/mpeg",
+		wav: "audio/wav"
+	};
+
+	return map[ext] || "application/octet-stream";
+}
+
+async function rebuildLibraryFromZip(entries) {
 
 	if (!window.Project) window.Project = {};
 	if (!Project.assets) Project.assets = {};
@@ -3673,8 +3690,11 @@ async function rebuildLibraryFromZip(entries) {
 
 		if (!isLibraryFile(entry)) continue;
 
-		const blob = await entry.getData(new zip.BlobWriter());
+		const rawBlob = await entry.getData(new zip.BlobWriter());
 		const filename = entry.filename;
+
+		const mime = getMimeType(filename);
+		const blob = new Blob([rawBlob], { type: mime });
 
 		const url = URL.createObjectURL(blob);
 
