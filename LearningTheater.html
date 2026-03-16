@@ -1985,7 +1985,18 @@ function showContextMenu(x, y, items, onSelect) {
 
 
 
+function applyTriggerFilter(searchTerm) {
+  if (!triggerEditorContainer) return;
 
+  const triggers =
+    triggerEditorContainer.querySelectorAll(".trigger-item");
+
+  triggers.forEach(details => {
+    const blob = details.dataset.search || "";
+    details.style.display =
+      blob.includes(searchTerm) ? "" : "none";
+  });
+}
 
 let triggerFoldState = {};
 
@@ -1993,13 +2004,54 @@ let triggerFoldState = {};
 function renderTriggerEditor(containerId) {
   const container = document.getElementById(containerId);
   container.innerHTML = "";
+  triggerEditorContainer = container;
+  
+  // 🔍 Search input
+	const searchInput = document.createElement("input");
+	searchInput.type = "text";
+	searchInput.placeholder = "🔍 Filter events...";
+	searchInput.style.width = "100%";
+	searchInput.style.marginBottom = "10px";
+	searchInput.id = "triggerSearchInput";
+
+	container.appendChild(searchInput);
+	searchInput.addEventListener("input", () => {
+	  applyTriggerFilter(
+		searchInput.value.trim().toLowerCase()
+	  );
+	});
 
   const eventTypes = ["Update", "SceneStart", "MouseDown", "MouseUp"];
   const eventsWithTarget = ["MouseDown", "MouseUp"];
+  
+  function triggerMatchesSearch(trigger, searchTerm) {
+  if (!searchTerm) return true;
 
-  GeneratedTriggers.forEach((trigger, index) => {
+  const blob = (
+    (trigger.comment || "") + " " +
+    (trigger.event || "") + " " +
+    (trigger.target || "") + " " +
+    JSON.stringify(trigger.conditions || []) + " " +
+    JSON.stringify(trigger.actions || [])
+  ).toLowerCase();
+
+  return blob.includes(searchTerm);
+}
+
+  const searchTerm = searchInput.value?.trim().toLowerCase() || "";
+
+	GeneratedTriggers.forEach((trigger, index) => {
+	  if (!triggerMatchesSearch(trigger, searchTerm)) return;
     // 💡 NYT: Lav et details-tag til collapsing
     const details = document.createElement("details");
+	details.classList.add("trigger-item");
+	details.dataset.search = (
+	  (trigger.comment || "") + " " +
+	  (trigger.event || "") + " " +
+	  (trigger.target || "") + " " +
+	  JSON.stringify(trigger.conditions || []) + " " +
+	  JSON.stringify(trigger.actions || [])
+	).toLowerCase();
     details.open = triggerFoldState[index] ?? false; // behold tidligere fold state
     details.style.marginBottom = "10px";
 
