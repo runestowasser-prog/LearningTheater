@@ -14,7 +14,7 @@
 
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-<script type="text/javascript" src="js/zip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 
 
@@ -2010,7 +2010,7 @@ function renderTriggerEditor(containerId) {
 	const searchInput = document.createElement("input");
 	searchInput.type = "text";
 	searchInput.placeholder = "🔍 Filter events...";
-	searchInput.style.width = "100%";
+	searchInput.style.width = "80%";
 	searchInput.style.marginBottom = "10px";
 	searchInput.id = "triggerSearchInput";
 
@@ -3348,6 +3348,30 @@ function safeStringify(obj) {
   }, 2);
 }
 
+
+async function createScormSafeZip(files) {
+  const zip = new JSZip();
+
+  for (const file of files) {
+    if (file.blob) {
+      zip.file(file.name, file.blob, {
+        binary: true,
+        compression: "STORE"
+      });
+    } else {
+      zip.file(file.name, file.content, {
+        compression: "STORE"
+      });
+    }
+  }
+
+  return await zip.generateAsync({
+    type: "blob",
+    compression: "STORE",
+    platform: "DOS"
+  });
+}
+
 async function saveProjectAsZip() {
 
  let writable = null;
@@ -3364,7 +3388,7 @@ async function saveProjectAsZip() {
 	writable = await handle.createWritable();
 	SavingOverlay.Opacity=100;
 	// 🔹 START ZIP
-	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {level:0});
+/*	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {level:0, zip64:false});*/
 	
 //	await zipWriter.add("index.html", new zip.TextReader(finalHTML));
 
@@ -3377,34 +3401,37 @@ async function saveProjectAsZip() {
     'Overflow="' + elementId("OverflowInput").value + '";\n';
 	
 		const triggerJSON = safeStringify(parent.GeneratedTriggers);
-		const manifestScorm=`<?xml version="1.0"?>
-						<manifest identifier="Manifest_2004-4a" version="1.1"
-						          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2" 
-						          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
-						          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-						          xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd 
-						                              http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd 
-						                              http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">  <metadata>
-      <schema>ADL SCORM</schema>
-      <schemaversion>1.2</schemaversion>
-      <adlcp:location>courseMetadata.xml</adlcp:location>
-   </metadata>
-   <organizations default = "LINEAR">
-      <organization identifier = "LINEAR">
-         <title>htmlTool</title>
-         <item identifier ="ident001" identifierref ="ref001" isvisible = "true">
-              <title>htmlTool</title>
-         </item>
-      </organization>
-   </organizations>
-   <resources>
-      <resource identifier ="ref001" type = "webcontent" adlcp:scormtype ="sco" href="index.html">
+		const manifestScorm =
+'<?xml version="1.0" encoding="UTF-8"?>\n' +
+'<manifest identifier="MANIFEST_LT" version="1.1"\n' +
+' xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"\n' +
+' xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"\n' +
+' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n' +
+' xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd\n' +
+' http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">\n' +
+'  <metadata>\n' +
+'    <schema>ADL SCORM</schema>\n' +
+'    <schemaversion>1.2</schemaversion>\n' +
+'  </metadata>\n' +
+'  <organizations default="ORG1">\n' +
+'    <organization identifier="ORG1">\n' +
+'      <title>Learning Theater Test</title>\n' +
+'      <item identifier="ITEM1" identifierref="RES1">\n' +
+'        <title>Learning Theater Test</title>\n' +
+'      </item>\n' +
+'    </organization>\n' +
+'  </organizations>\n' +
+'  <resources>\n' +
+'    <resource identifier="RES1"\n' +
+'              type="webcontent"\n' +
+'              adlcp:scormtype="sco"\n' +
+'              href="index.html">\n' +
+'      <file href="index.html"/>\n' +
+'    </resource>\n' +
+'  </resources>\n' +
+'</manifest>';
 
 
-      </resource>
-   </resources>
-</manifest>
-`;
 
 const triggerBlock =
 `<!-- LT_TRIGGERS_START
@@ -3435,7 +3462,7 @@ LT_TRIGGERS_END -->\n`;
   
 
   // 1️⃣ Tilføj HTML output (det rigtige produkt!)
-  await zipWriter.add("index.html", new zip.TextReader(finalHTML));
+  //await zipWriter.add("index.html", new zip.TextReader(finalHTML));
 
   // 2️⃣ Tilføj project.json (editor metadata)
   const projectJSON = {
@@ -3459,7 +3486,7 @@ LT_TRIGGERS_END -->\n`;
     }
   };
 
-  await zipWriter.add(
+/*  await zipWriter.add(
     "project.json",
     new zip.TextReader(safeStringify(projectJSON))
   );
@@ -3485,7 +3512,48 @@ LT_TRIGGERS_END -->\n`;
   }
 
   const zipBlob = await zipWriter.close();
+*/
+  const files = [];
 
+	// HTML
+	files.push({
+	  name: "index.html",
+	  content: finalHTML
+	});
+
+	// project.json
+	files.push({
+	  name: "project.json",
+	  content: safeStringify(projectJSON)
+	});
+
+	// JS files
+	files.push({ name: "js/engine.js", content: ENGINESTRING });
+	files.push({ name: "js/eventdefinitions.js", content: eventdefinitionsSTRING });
+	files.push({ name: "js/gsap.min.js", content: GSAPSTRING });
+	files.push({ name: "js/SCORM_API_wrapper.js", content: SCORMAPI });
+
+	// manifest
+	files.push({
+	  name: "imsmanifest.xml",
+	  content: manifestScorm
+	});
+
+	// Assets
+	if (window.Project && Project.assets) {
+	  for (let fileName in Project.assets) {
+		const asset = Project.assets[fileName];
+		if (asset.blob) {
+		  files.push({
+			name: fileName,
+			blob: asset.blob
+		  });
+		}
+	  }
+	}
+
+	const zipBlob = await createScormSafeZip(files);
+  
   
 
     //const writable = await handle.createWritable();
