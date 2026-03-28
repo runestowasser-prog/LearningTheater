@@ -14,7 +14,7 @@
 
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
-<script type="text/javascript" src="js/zip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 
 
@@ -3349,161 +3349,153 @@ function safeStringify(obj) {
 }
 
 async function saveProjectAsZip() {
+  let writable = null;
 
- let writable = null;
+  try {
+    if (window.showSaveFilePicker) {
+      const handle = await showSaveFilePicker({
+        suggestedName: "LearningTheaterPackage.zip",
+        types: [{
+          description: "Learning Theater Package",
+          accept: { "application/zip": [".zip"] }
+        }]
+      });
+      writable = await handle.createWritable();
+    }
 
-// 🔹 GEM
-  if (window.showSaveFilePicker) {
-    const handle = await showSaveFilePicker({
-      suggestedName: "LearningTheaterPackage.zip",
-      types: [{
-        description: "Learning Theater Package",
-        accept: { "application/zip": [".zip"] }
-      }]
-    });
-	writable = await handle.createWritable();
-	SavingOverlay.Opacity=100;
-	// 🔹 START ZIP
-	const zipWriter = new zip.ZipWriter(new zip.BlobWriter("application/zip"), {level:0, zip64:false});
-	
+    SavingOverlay.Opacity = 100;
 
+    const zip = new JSZip();
 
-  SettingsGenerated =
-    'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
-    'FollowSL=' + elementId("SLInput").checked + ';\n' +
-    'StageWidth=' + elementId("StageWidthInput").value +
-    ', StageHeight=' + elementId("StageHeightInput").value + ';\n' +
-    'Scaling="' + elementId("ScalingInput").value + '";\n' +
-    'Overflow="' + elementId("OverflowInput").value + '";\n';
-	
-		const triggerJSON = safeStringify(parent.GeneratedTriggers);
-		const manifestScorm=`<?xml version="1.0"?>
-						<manifest identifier="Manifest_2004-4a" version="1.1"
-						          xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2" 
-						          xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
-						          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-						          xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd 
-						                              http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd 
-						                              http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">  <metadata>
-      <schema>ADL SCORM</schema>
-      <schemaversion>1.2</schemaversion>
-      <adlcp:location>courseMetadata.xml</adlcp:location>
-   </metadata>
-   <organizations default = "LINEAR">
-      <organization identifier = "LINEAR">
-         <title>htmlTool</title>
-         <item identifier ="ident001" identifierref ="ref001" isvisible = "true">
-              <title>htmlTool</title>
-         </item>
-      </organization>
-   </organizations>
-   <resources>
-      <resource identifier ="ref001" type = "webcontent" adlcp:scormtype ="sco" href="index.html">
+    SettingsGenerated =
+      'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
+      'FollowSL=' + elementId("SLInput").checked + ';\n' +
+      'StageWidth=' + elementId("StageWidthInput").value +
+      ', StageHeight=' + elementId("StageHeightInput").value + ';\n' +
+      'Scaling="' + elementId("ScalingInput").value + '";\n' +
+      'Overflow="' + elementId("OverflowInput").value + '";\n';
 
+    const triggerJSON = safeStringify(parent.GeneratedTriggers);
 
-      </resource>
-   </resources>
-</manifest>
-`;
+    const manifestScorm =
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<manifest identifier="Manifest_2004-4a" version="1.1"\n' +
+      ' xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"\n' +
+      ' xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"\n' +
+      ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n' +
+      ' xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd\n' +
+      ' http://www.imsglobal.org/xsd/imsmd_rootv1p2p1 imsmd_rootv1p2p1.xsd\n' +
+      ' http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">\n' +
+      '  <metadata>\n' +
+      '    <schema>ADL SCORM</schema>\n' +
+      '    <schemaversion>1.2</schemaversion>\n' +
+      '    <adlcp:location>courseMetadata.xml</adlcp:location>\n' +
+      '  </metadata>\n' +
+      '  <organizations default="LINEAR">\n' +
+      '    <organization identifier="LINEAR">\n' +
+      '      <title>htmlTool</title>\n' +
+      '      <item identifier="ident001" identifierref="ref001" isvisible="true">\n' +
+      '        <title>htmlTool</title>\n' +
+      '      </item>\n' +
+      '    </organization>\n' +
+      '  </organizations>\n' +
+      '  <resources>\n' +
+      '    <resource identifier="ref001" type="webcontent" adlcp:scormtype="sco" href="index.html">\n' +
+      '    </resource>\n' +
+      '  </resources>\n' +
+      '</manifest>\n';
 
-const triggerBlock =
-`<!-- LT_TRIGGERS_START
+    const triggerBlock =
+      `<!-- LT_TRIGGERS_START
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
-  var JsCode =
-    "<scri" + "pt>\n var Move=gsap;\n" +
-    " //✂✂✂\n" +
-    GeneralCode.getValue() +
-    "\n//✂✂✂ \n" +
-    SettingsGenerated +"\n"+exportTriggersToCode() +
-    "\nfunction Build(){\n//✂✂✂\n" +
-    BuildCode.getValue() +
-    "\n//✂✂✂" +
-    AllTweens.join("\n//Tween\n") +
-    "//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n" +
-    StoryLinePlayer +
-    UpdateCode.getValue() +
-    "//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n" +
-    ScenestartCode.getValue() +
-    "\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n" +
-    ResizeCode.getValue() +
-    "\n//✂✂✂\n}</scri" + "pt>";
+    const JsCode =
+      "<scri" + "pt>\n var Move=gsap;\n" +
+      " //✂✂✂\n" +
+      GeneralCode.getValue() +
+      "\n//✂✂✂ \n" +
+      SettingsGenerated + "\n" + exportTriggersToCode() +
+      "\nfunction Build(){\n//✂✂✂\n" +
+      BuildCode.getValue() +
+      "\n//✂✂✂" +
+      AllTweens.join("\n//Tween\n") +
+      "//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n" +
+      StoryLinePlayer +
+      UpdateCode.getValue() +
+      "//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n" +
+      ScenestartCode.getValue() +
+      "\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n" +
+      ResizeCode.getValue() +
+      "\n//✂✂✂\n}</scri" + "pt>";
 
-  const finalHTML = HTMLCode + triggerBlock+JsCode;
+    const finalHTML = HTMLCode + triggerBlock + JsCode;
 
-  
+    const projectJSON = {
+      actors: cloneWithoutRuntime(AllActors),
+      scenes: cloneWithoutRuntime(AllScenes),
+      tweens: cloneWithoutRuntime(AllTweens),
+      scripts: {
+        general: GeneralCode.getValue(),
+        build: BuildCode.getValue(),
+        update: UpdateCode.getValue(),
+        resize: ResizeCode.getValue(),
+        sceneStart: ScenestartCode.getValue()
+      },
+      settings: {
+        scorm: elementId("ScormInput").checked,
+        followSL: elementId("SLInput").checked,
+        stageWidth: elementId("StageWidthInput").value,
+        stageHeight: elementId("StageHeightInput").value,
+        scaling: elementId("ScalingInput").value,
+        overflow: elementId("OverflowInput").value
+      }
+    };
 
-  // 1️⃣ Tilføj HTML output (det rigtige produkt!)
-  await zipWriter.add("index.html", new zip.TextReader(finalHTML));
+    // Tekstfiler
+    zip.file("index.html", finalHTML);
+    zip.file("project.json", safeStringify(projectJSON));
+    zip.file("js/engine.js", ENGINESTRING);
+    zip.file("js/eventdefinitions.js", eventdefinitionsSTRING);
+    zip.file("js/gsap.min.js", GSAPSTRING);
+    zip.file("js/SCORM_API_wrapper.js", SCORMAPI);
+    zip.file("imsmanifest.xml", manifestScorm);
 
-  // 2️⃣ Tilføj project.json (editor metadata)
-  const projectJSON = {
-    actors: cloneWithoutRuntime(AllActors),
-    scenes: cloneWithoutRuntime(AllScenes),
-    tweens: cloneWithoutRuntime(AllTweens),
-    scripts: {
-      general: GeneralCode.getValue(),
-      build: BuildCode.getValue(),
-      update: UpdateCode.getValue(),
-      resize: ResizeCode.getValue(),
-      sceneStart: ScenestartCode.getValue()
-    },
-    settings: {
-      scorm: elementId("ScormInput").checked,
-      followSL: elementId("SLInput").checked,
-      stageWidth: elementId("StageWidthInput").value,
-      stageHeight: elementId("StageHeightInput").value,
-      scaling: elementId("ScalingInput").value,
-      overflow: elementId("OverflowInput").value
-    }
-  };
-
-  await zipWriter.add(
-    "project.json",
-    new zip.TextReader(safeStringify(projectJSON))
-  );
-
-	await zipWriter.add("js/engine.js", new zip.TextReader(ENGINESTRING));
-	await zipWriter.add("js/eventdefinitions.js", new zip.TextReader(eventdefinitionsSTRING));
-	await zipWriter.add("js/gsap.min.js", new zip.TextReader(GSAPSTRING));
-	await zipWriter.add("js/SCORM_API_wrapper.js", new zip.TextReader(SCORMAPI));
-	await zipWriter.add("imsmanifest.xml", new zip.TextReader(manifestScorm));
-
-
-  // 3️⃣ Tilføj Library assets
-  if (window.Project && Project.assets) {
-    for (let fileName in Project.assets) {
-      const asset = Project.assets[fileName];
-      if (asset.blob) {
-        await zipWriter.add(
-          "" + fileName,
-          new zip.BlobReader(asset.blob)
-        );
+    // Assets
+    if (window.Project && Project.assets) {
+      for (let fileName in Project.assets) {
+        const asset = Project.assets[fileName];
+        if (asset.blob) {
+          zip.file(fileName.replace(/\\/g, "/"), asset.blob);
+        }
       }
     }
+
+    const zipBlob = await zip.generateAsync({
+      type: "blob",
+      compression: "STORE",
+      platform: "DOS"
+    });
+
+    if (writable) {
+      await writable.write(zipBlob);
+      await writable.close();
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(zipBlob);
+      a.download = "LearningTheaterPackage.zip";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    localStorage.removeItem("LT_autosave");
+    localStorage.removeItem("LT_autosave_time");
+  } catch (err) {
+    console.error("saveProjectAsZip failed:", err);
+    throw err;
+  } finally {
+    SavingOverlay.Opacity = 0;
   }
-
-  const zipBlob = await zipWriter.close();
-
-  
-
-    //const writable = await handle.createWritable();
-    if(writable){
-	await writable.write(zipBlob);
-    await writable.close();
-  } else {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(zipBlob);
-    a.download = "LearningTheaterPackage.zip";
-    a.click();
-    
-  }
-  
-}
-  localStorage.removeItem("LT_autosave");
-  localStorage.removeItem("LT_autosave_time");
-  SavingOverlay.Opacity=0;
 }
 
 
@@ -3709,6 +3701,43 @@ async function rebuildLibraryFromZip(entries) {
 	}
 }
 
+async function rebuildLibraryFromZip_JSZip(zip) {
+  if (!window.Project) window.Project = {};
+  if (!Project.assets) Project.assets = {};
+
+  zip.forEach((relativePath, fileEntry) => {
+    // vi samler promises bagefter
+  });
+
+  const promises = [];
+
+  zip.forEach((relativePath, fileEntry) => {
+    if (fileEntry.dir) return;
+
+    const fakeEntry = { filename: relativePath };
+    if (!isLibraryFile(fakeEntry)) return;
+
+    const promise = fileEntry.async("blob").then(rawBlob => {
+      const filename = relativePath;
+      const mime = getMimeType(filename);
+      const blob = new Blob([rawBlob], { type: mime });
+      const url = URL.createObjectURL(blob);
+
+      Project.assets[filename] = {
+        name: filename,
+        blob: blob,
+        url: url
+      };
+
+      addAssetToLibraryUI(filename, url);
+    });
+
+    promises.push(promise);
+  });
+
+  await Promise.all(promises);
+}
+
 function addAssetToLibraryUI(filename, url) {
 
 	const library = document.getElementById("Library");
@@ -3771,45 +3800,50 @@ function removeAssetFromLibraryUI(filename) {
 }
 
 async function loadProjectFromZip() {
+  parent.__loadingFromFile = true;
 
-	parent.__loadingFromFile = true;
+  try {
+    if (!window.showOpenFilePicker) {
+      alert("File System Access API not supported in this browser.");
+      return;
+    }
 
-	if (!window.showOpenFilePicker) {
-		alert("File System Access API not supported in this browser.");
-		return;
-	}
+    const [fileHandle] = await window.showOpenFilePicker({
+      id: "openProjectZip",
+      types: [{
+        description: "LearningTheater Project",
+        accept: { "application/zip": [".zip"] }
+      }]
+    });
 
-	const [fileHandle] = await window.showOpenFilePicker({
-		id: 'openProjectZip',
-		types: [{
-			description: 'LearningTheater Project',
-			accept: { 'application/zip': ['.zip'] }
-		}]
-	});
+    const file = await fileHandle.getFile();
+    const zip = await JSZip.loadAsync(file);
 
-	const file = await fileHandle.getFile();
+    let htmlFile = null;
 
-	const zipReader = new zip.ZipReader(new zip.BlobReader(file));
-	const entries = await zipReader.getEntries();
+    zip.forEach((relativePath, fileEntry) => {
+      if (!htmlFile && !fileEntry.dir && relativePath.toLowerCase().endsWith(".html")) {
+        htmlFile = fileEntry;
+      }
+    });
 
-	// 🔍 Find første html-fil i zip
-	const htmlEntry = entries.find(e => e.filename.endsWith(".html"));
+    if (!htmlFile) {
+      alert("No HTML file found in zip.");
+      return;
+    }
 
-	if (!htmlEntry) {
-		alert("No HTML file found in zip.");
-		await zipReader.close();
-		parent.__loadingFromFile = false;
-		return;
-	}
+    const content = await htmlFile.async("string");
 
-	const content = await htmlEntry.getData(new zip.TextWriter());
-	await rebuildLibraryFromZip(entries);
-	await zipReader.close();
+    await rebuildLibraryFromZip_JSZip(zip);
 
-	// 🔥 Her genbruger vi DIN eksisterende parsing
-	loadProjectFromHtmlString(content);
+    loadProjectFromHtmlString(content);
+  } catch (err) {
+    console.error("loadProjectFromZip failed:", err);
+    alert("Failed to load project.");
+  } finally {
+    parent.__loadingFromFile = false;
+  }
 }
-
 
 function loadProjectFromHtmlString(content) {
 
