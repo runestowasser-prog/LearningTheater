@@ -3057,8 +3057,10 @@ const triggerBlock =
 `<!-- LT_TRIGGERS_START
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
+
+const fonts=getProjectFontCSS(mode = "preview");
   
-  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; }</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
   
   document.getElementById("Scenes").value=currentSelect;
 	
@@ -3171,6 +3173,8 @@ const triggerBlock =
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+const fonts=getProjectFontCSS(mode = "preview");
+
     var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
     try {
@@ -3249,7 +3253,7 @@ function saveTextAsFile(){
 
 SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
-	
+	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 	
 	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
@@ -3259,6 +3263,8 @@ const triggerBlock =
 `<!-- LT_TRIGGERS_START
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
+
+const fonts=getProjectFontCSS(mode = "export");
   
 	var blob = new Blob([HTMLCode+triggerBlock+JsCode], {type: "text/plain;charset=utf-8"});
     //saveAs(blob, "show.html");
@@ -3410,6 +3416,8 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+
     const JsCode =
       "<scri" + "pt>\n var Move=gsap;\n" +
       " //✂✂✂\n" +
@@ -3448,7 +3456,8 @@ LT_TRIGGERS_END -->\n`;
         stageWidth: elementId("StageWidthInput").value,
         stageHeight: elementId("StageHeightInput").value,
         scaling: elementId("ScalingInput").value,
-        overflow: elementId("OverflowInput").value
+        overflow: elementId("OverflowInput").value,
+		GlobalFont: document.getElementById("FontInput")?.value || "Arial"
       }
     };
 
@@ -3820,10 +3829,17 @@ async function loadProjectFromZip() {
     const zip = await JSZip.loadAsync(file);
 
     let htmlFile = null;
+    let jsonFile = null;
 
     zip.forEach((relativePath, fileEntry) => {
-      if (!htmlFile && !fileEntry.dir && relativePath.toLowerCase().endsWith(".html")) {
+      const lower = relativePath.toLowerCase();
+
+      if (!htmlFile && !fileEntry.dir && lower.endsWith(".html")) {
         htmlFile = fileEntry;
+      }
+
+      if (!jsonFile && !fileEntry.dir && lower.endsWith("project.json")) {
+        jsonFile = fileEntry;
       }
     });
 
@@ -3834,9 +3850,25 @@ async function loadProjectFromZip() {
 
     const content = await htmlFile.async("string");
 
+    // 🔹 Load Project.json hvis den findes
+    if (jsonFile) {
+      try {
+        const jsonText = await jsonFile.async("string");
+        const projectData = JSON.parse(jsonText);
+
+        Project.settings = projectData.settings || {};
+      } catch (jsonErr) {
+        console.error("Failed to parse Project.json:", jsonErr);
+        Project.settings = {};
+      }
+    } else {
+      Project.settings = {};
+    }
+
     await rebuildLibraryFromZip_JSZip(zip);
 
     loadProjectFromHtmlString(content);
+
   } catch (err) {
     console.error("loadProjectFromZip failed:", err);
     alert("Failed to load project.");
@@ -3876,6 +3908,12 @@ function loadProjectFromHtmlString(content) {
 
 	if (settings.FollowSL !== null)
 		document.getElementById("SLInput").checked = settings.FollowSL;
+	
+	populateFontSelect();
+
+	if (Project.settings && Project.settings.GlobalFont) {
+		document.getElementById("FontInput").value = Project.settings.GlobalFont;
+	}
 
 	var buildCode = splitCode[3];
 	var tweenCode = splitCode[4];
@@ -4380,8 +4418,119 @@ window.Project = {
     assets: {} // key: filename, value: { blob, type, url }
 };
 
+function populateFontSelect() {
 
+    const select = document.getElementById("FontInput");
+    if (!select) return;
 
+    select.innerHTML = "";
+
+    const websafeFonts = [
+        "Arial",
+        "Verdana",
+        "Georgia",
+        "Times New Roman",
+        "Courier New",
+        "Tahoma",
+        "Trebuchet MS"
+    ];
+
+    // 🔹 Websafe fonts
+    websafeFonts.forEach(font => {
+        const opt = document.createElement("option");
+        opt.value = font;
+        opt.textContent = font;
+        select.appendChild(opt);
+    });
+
+    // 🔹 Separator (kun hvis der findes font-assets)
+    const fontFiles = Object.keys(Project.assets || {}).filter(name => {
+        const lower = name.toLowerCase();
+        return lower.endsWith(".woff") || lower.endsWith(".woff2");
+    });
+
+    if (fontFiles.length > 0) {
+        const separator = document.createElement("option");
+        separator.disabled = true;
+        separator.textContent = "──────────";
+        select.appendChild(separator);
+
+        fontFiles.forEach(filename => {
+            const opt = document.createElement("option");
+            opt.value = filename;
+            opt.textContent = filename.replace(/\.(woff2|woff)$/i, "");
+            select.appendChild(opt);
+        });
+    }
+
+    // 🔹 Sørg for Settings findes
+    Project.settings = Project.settings || {};
+
+    // 🔹 Default font
+    if (!Project.settings.GlobalFont) {
+        Project.settings.GlobalFont = "Arial";
+    }
+
+    // 🔹 Sæt valgt værdi
+    select.value = Project.settings.GlobalFont;
+
+    // 🔹 Når user vælger noget
+    select.onchange = () => {
+        Project.settings.GlobalFont = select.value;
+        showPreview();
+    };
+}
+
+function getProjectFontCSS(mode = "preview") {
+
+    Project.settings = Project.settings || {};
+
+    const selected = Project.settings.GlobalFont || "Arial";
+
+    const websafeFonts = {
+        "Arial": "Arial, Helvetica, sans-serif",
+        "Verdana": "Verdana, Geneva, sans-serif",
+        "Georgia": "Georgia, 'Times New Roman', serif",
+        "Times New Roman": "'Times New Roman', Times, serif",
+        "Courier New": "'Courier New', Courier, monospace",
+        "Tahoma": "Tahoma, Geneva, sans-serif",
+        "Trebuchet MS": "'Trebuchet MS', Arial, sans-serif"
+    };
+
+    // Websafe font
+    if (websafeFonts[selected]) {
+        return `
+html, body {
+    font-family: ${websafeFonts[selected]};
+}
+`;
+    }
+
+    // Library font
+    const asset = Project.assets && Project.assets[selected];
+    if (!asset) return "";
+
+    const lower = selected.toLowerCase();
+
+    let format = "";
+    if (lower.endsWith(".woff2")) format = "woff2";
+    else if (lower.endsWith(".woff")) format = "woff";
+
+    const src = mode === "preview" ? asset.url : `${selected}`;
+
+    return `
+@font-face {
+    font-family: 'LT_Global_Font';
+    src: url('${src}')${format ? ` format('${format}')` : ""};
+    font-style: normal;
+    font-weight: normal;
+}
+
+html, body {
+    font-family: 'LT_Global_Font', sans-serif;
+}
+`;
+}
 
 function Build(){SCORMTracking=false;
 StageWidth=window.innerWidth, StageHeight=window.innerHeight;
@@ -4392,7 +4541,7 @@ Overflow="visible";
 Actor("KeyframeOptions","DIV");
 KeyframeOptions.Width=400;
 
-Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="FitTop" oninput="showPreview()"><option>FitTop</option><option>FitCenter</option><option>None</option><option>Width</option><option>WidthVerticalScroll</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
+Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="FitTop" oninput="showPreview()"><option>FitTop</option><option>FitCenter</option><option>None</option><option>Width</option><option>WidthVerticalScroll</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br>Font:<select id="FontInput" oninput="showPreview()"></select><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
 thisActor.Opacity=0;
 thisActor.Z=1;
 
@@ -4552,7 +4701,7 @@ Actor('settingsBtn','button')
 thisActor.Text="Settings ⚙"
 //thisActor.Width=142
 thisActor.Height=30
-thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false"
+thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false; populateFontSelect();"
 thisActor.Parent="ScriptMenu"
 thisActor.Y=150
 
@@ -5317,10 +5466,7 @@ HEADCode=CodeMirror(elementId("HEAD"), {
   lineNumbers: false,
   tabSize: 2,
   value: `<style>
-	html{
-	font-family:arial;
 	
-	}
 	#stage{
     }
 	svg{
