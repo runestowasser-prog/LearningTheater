@@ -3707,6 +3707,7 @@ async function rebuildLibraryFromZip(entries) {
 		};
 
 		addAssetToLibraryUI(filename, url);
+		updateLibraryUsageUI();
 	}
 }
 
@@ -3779,6 +3780,7 @@ function addAssetToLibraryUI(filename, url) {
 	item.appendChild(deleteBtn);
 
 	library.appendChild(item);
+	updateLibraryUsageUI();
 }
 
 function deleteAsset(filename) {
@@ -3795,6 +3797,7 @@ function deleteAsset(filename) {
 	removeAssetFromLibraryUI(filename);
 
 	showPreview();
+	updateLibraryUsageUI();
 }
 
 function removeAssetFromLibraryUI(filename) {
@@ -4418,6 +4421,66 @@ window.Project = {
     assets: {} // key: filename, value: { blob, type, url }
 };
 
+function getTotalAssetSize() {
+  let total = 0;
+
+  if (window.Project && Project.assets) {
+    for (let key in Project.assets) {
+      const asset = Project.assets[key];
+      if (asset.blob) {
+        total += asset.blob.size;
+      }
+    }
+  }
+
+  return total;
+}
+
+function formatGB(bytes) {
+  return (bytes / (1024 * 1024 * 1024)).toFixed(2);
+}
+
+const MAX_SIZE = 1.8 * 1024 * 1024 * 1024;
+
+function getLibraryUsage() {
+  const used = getTotalAssetSize();
+  const percent = (used / MAX_SIZE) * 100;
+
+  return {
+    used,
+    percent: Math.min(percent, 100)
+  };
+}
+
+function updateLibraryUsageUI() {
+  const { used, percent } = getLibraryUsage();
+
+  const label = document.getElementById("LibraryUsageLabel");
+  const bar = document.getElementById("LibraryUsageBar");
+
+  const usedGB = formatGB(used);
+  const maxGB = formatGB(MAX_SIZE);
+
+  label.textContent = `${usedGB} GB / ${maxGB} GB (${percent.toFixed(0)}%)`;
+
+  bar.style.width = percent + "%";
+
+  // Farver
+  if (percent > 90) {
+    bar.style.background = "red";
+  } else if (percent > 70) {
+    bar.style.background = "orange";
+  } else {
+    bar.style.background = "limegreen";
+  }
+}
+
+
+
+
+
+
+
 function populateFontSelect() {
 
     const select = document.getElementById("FontInput");
@@ -4625,7 +4688,12 @@ thisActor.Width=400
 thisActor.Overflow="auto"
 thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
-thisActor.Text=`<div id="libraryDropzone">Drop files here</div> <ul id="libraryList"></ul>`;
+thisActor.Text=`<div id="LibraryUsageContainer" style="padding:6px;">
+  <div id="LibraryUsageLabel">0 GB / 1.8 GB</div>
+  <div style="width:100%; height:6px; background:#ccc; margin-top:4px;">
+    <div id="LibraryUsageBar" style="height:100%; width:0%; background:limegreen;"></div>
+  </div>
+</div><div id="libraryDropzone">Drop files here</div> <ul id="libraryList"></ul>`;
 thisActor.Color="white"
 
 
