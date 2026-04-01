@@ -24,7 +24,7 @@ const ConditionFunctions = {
     args: [
       { type: "actor", label: "Actor" },
 	  { type: "compare", label: "", defaultValue: "=="},
-      { type: "raw", label: "Volume", defaultValue:"0" }
+      { type: "raw", label: "Duration", defaultValue:"0" }
     ],
     build: (args) => `GetDuration(${args[0]})${args[1]}${args[2]}`
   },
@@ -36,7 +36,7 @@ const ConditionFunctions = {
     args: [
       { type: "actor", label: "Actor" },
 	  { type: "compare", label: "", defaultValue: "=="},
-      { type: "raw", label: "Volume", defaultValue:"0" }
+      { type: "raw", label: "Current time", defaultValue:"0" }
     ],
     build: (args) => `GetCurrentTime(${args[0]})${args[1]}${args[2]}`
   },
@@ -1276,8 +1276,9 @@ if (${args[0]}.VolumeData) {
 
   const audio = elementId("${args[0]}");
   if (!audio) return;
+  // const silent = ${args[1]};
 
-  const now = audio.currentTime;
+  const now = GetCurrentTime(${args[0]});
 
 	// detect scrub / repeat
 	if (!audioActor._lipLastTime) {
@@ -1292,11 +1293,10 @@ if (${args[0]}.VolumeData) {
 
   const startTime = ${args[9] || 0};
   const endTime = ${args[10] || 99999};
+  
+  
 
-  if (now < startTime || now > endTime) {
-    setSilent();
-    return;
-  }
+
 
   const fps = audioActor.VolumeData.fps;
   const frame = Math.floor(now * fps);
@@ -1315,6 +1315,11 @@ if (${args[0]}.VolumeData) {
     ${args[4]},
     ${args[5]}
   ];
+  
+    if (now < startTime || now > endTime) {
+    setSilent();
+    return;
+  }
 
   /* --- init runtime state --- */
   if (!audioActor._lipState) {
@@ -1352,11 +1357,11 @@ if (${args[0]}.VolumeData) {
   /* ---------- helpers ---------- */
 
   function setSilent(){
-    if (!audioActor._lipState) return;
-    if (audioActor._lipState.current !== 0) {
-      fadeTo(0);
-      audioActor._lipState.current = 0;
-    }
+    if (!audioActor._lipState) {
+		audioActor._lipstate ={ current:0, lastSwitch:0}
+	};
+    
+		
   }
 
   function fadeTo(index){
