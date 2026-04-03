@@ -2102,7 +2102,7 @@ wrapper.appendChild(eventSelect);
 const targetSelect = document.createElement("select");
 const emptyTargetOption = document.createElement("option");
 emptyTargetOption.value = "";
-emptyTargetOption.textContent = "(Vælg target)";
+emptyTargetOption.textContent = "(Select target)";
 targetSelect.appendChild(emptyTargetOption);
 
 AllActors.forEach(actor => {
@@ -2210,7 +2210,7 @@ if (typeof conditionValue === "string") {
 const conditionCategorySelect = document.createElement("select");
 conditionCategorySelect.className = "condition-category-select";
 
-conditionCategorySelect.appendChild(new Option("— kategori —", ""));
+conditionCategorySelect.appendChild(new Option("— Category —", ""));
 
 const conditionCategories = Array.from(
   new Set(
@@ -2503,7 +2503,7 @@ const actionCategories = Array.from(
 const categorySelect = document.createElement("select");
 categorySelect.className = "action-category-select";
 
-categorySelect.appendChild(new Option("— kategori —", ""));
+categorySelect.appendChild(new Option("— Category —", ""));
 
 actionCategories.forEach(cat => {
   categorySelect.appendChild(new Option(cat, cat));
@@ -3370,6 +3370,12 @@ async function saveProjectAsZip() {
     }
 
     SavingOverlay.Opacity = 100;
+    //if (typeof SavingOverlayText !== "undefined") {
+      SetText(SavingOverlay, "Preparing project...");
+    //}
+
+    // Giv browseren et frame til at vise overlayet
+    await new Promise(requestAnimationFrame);
 
     const zip = new JSZip();
 
@@ -3416,7 +3422,7 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
-	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+    HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 
     const JsCode =
       "<scri" + "pt>\n var Move=gsap;\n" +
@@ -3457,11 +3463,15 @@ LT_TRIGGERS_END -->\n`;
         stageHeight: elementId("StageHeightInput").value,
         scaling: elementId("ScalingInput").value,
         overflow: elementId("OverflowInput").value,
-		GlobalFont: document.getElementById("FontInput")?.value || "Arial"
+        GlobalFont: document.getElementById("FontInput")?.value || "Arial"
       }
     };
 
-    // Tekstfiler
+    //if (typeof SavingOverlayText !== "undefined") {
+    //  SavingOverlayText.Text = "Adding files to zip...";
+	  SetText(SavingOverlay,"Adding files to zip...");
+    //}
+
     zip.file("index.html", finalHTML);
     zip.file("project.json", safeStringify(projectJSON));
     zip.file("js/engine.js", ENGINESTRING);
@@ -3470,7 +3480,6 @@ LT_TRIGGERS_END -->\n`;
     zip.file("js/SCORM_API_wrapper.js", SCORMAPI);
     zip.file("imsmanifest.xml", manifestScorm);
 
-    // Assets
     if (window.Project && Project.assets) {
       for (let fileName in Project.assets) {
         const asset = Project.assets[fileName];
@@ -3480,11 +3489,34 @@ LT_TRIGGERS_END -->\n`;
       }
     }
 
-    const zipBlob = await zip.generateAsync({
-      type: "blob",
-      compression: "STORE",
-      platform: "DOS"
-    });
+    //if (typeof SavingOverlayText !== "undefined") {
+     // SavingOverlayText.Text = "Building zip... 0%";
+	  SetText(SavingOverlay,"Building zip... 0%")
+    //}
+
+    const zipBlob = await zip.generateAsync(
+      {
+        type: "blob",
+        compression: "STORE",
+        platform: "DOS"
+      },
+      function updateCallback(metadata) {
+        const percent = Math.round(metadata.percent || 0);
+        const currentFile = metadata.currentFile || "";
+
+       // if (typeof SavingOverlayText !== "undefined") {
+       SavingOverlayText= 
+              `Saving project... ${percent}%`;
+			
+			SetText(SavingOverlay, SavingOverlayText);
+		//}
+		
+      }
+    );
+
+    //if (typeof SavingOverlayText !== "undefined") {
+      SetText(SavingOverlay, "Writing file...");
+    //}
 
     if (writable) {
       await writable.write(zipBlob);
@@ -3504,9 +3536,11 @@ LT_TRIGGERS_END -->\n`;
     throw err;
   } finally {
     SavingOverlay.Opacity = 0;
+    //if (typeof SavingOverlayText !== "undefined") {
+    //  SavingOverlayText.Text = "";
+    //}
   }
 }
-
 
 window.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key === 's') {
