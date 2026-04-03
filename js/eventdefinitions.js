@@ -326,7 +326,7 @@ const ConditionFunctions = {
   },
 
 
-  
+/*  
 "MouseState": {
   label: "Mouse State",
   category: "Mouse",
@@ -348,7 +348,7 @@ const ConditionFunctions = {
     return stateCheck;
   }
 }
-  
+  */
   
   
   
@@ -513,6 +513,7 @@ const ActionFunctions = {
     ],
     build: (args) => `Move.to(${args[0]},{Y:MouseY+${args[1]},duration:${args[2]}})`
   },
+  /*
   "Reverse property": {
     label: "Reverse value",
 	category:"Calculation",
@@ -523,6 +524,7 @@ const ActionFunctions = {
     ],
     build: (args) => `${args[0]}.${args[1]}=-${args[0]}.${args[1]}`
   },
+  */
   "SetEnsembleProperty": {
   label: "Set property on Ensemble",
 	category:"Ensemble",
@@ -696,7 +698,7 @@ const ActionFunctions = {
 
 "AnimateSVG": {
   label: "Animate SVG element",
-  category: "SVG",
+  category: "SVG (embedded only)",
 
   args: [
     {
@@ -756,7 +758,7 @@ const ActionFunctions = {
 
 "MultiDrawSVG": {
   label: "Draw SVG paths",
-  category: "SVG",
+  category: "SVG (embedded only)",
 
   args: [
     { 
@@ -824,7 +826,7 @@ const ActionFunctions = {
 
 "MultiFillFadeSVG": {
   label: "Fade in SVG fills",
-  category: "SVG",
+  category: "SVG (embedded only)",
 
   args: [
     {
@@ -905,7 +907,7 @@ const ActionFunctions = {
 
 "EraseSVGLine": {
   label: "Erase SVG lines",
-  category: "SVG",
+  category: "SVG (embedded only)",
 
   args: [
     { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
@@ -945,7 +947,7 @@ const ActionFunctions = {
 
 "FadeOutSVGFill": {
   label: "Fade out SVG fills",
-  category: "SVG",
+  category: "SVG (embedded only)",
 
   args: [
     { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
@@ -1131,7 +1133,7 @@ const ActionFunctions = {
     build: (args) => `${args[0]}.Timeline.reverse()`
   },
 
-
+/*
 "AudioLipSync": {
   label: "Audio LipSync",
   category: ["Audio", "Media"],
@@ -1201,6 +1203,7 @@ if (${args[0]}.VolumeData) {
 }
 `
 },
+*/
 
 "AnimateFromVolume": {
   label: "Animate Property From Volume",
@@ -1248,7 +1251,7 @@ if (${args[0]}.VolumeData) {
 },
 
 "LipSyncV2": {
-  label: "LipSync V2 (Pro)",
+  label: "LipSync",
   category: ["Audio", "Media"],
 
   args: [
@@ -1383,6 +1386,174 @@ if (${args[0]}.VolumeData) {
     mouths.forEach((m, i) => {
       Move.to(m, {
         Opacity: (i === index-1) ? 100 : 0,
+        duration: fadeDuration
+      });
+    });
+  }
+
+})();
+`
+},
+
+"LipSyncEnsemble": {
+  label: "LipSync from Ensemble",
+  category: ["Audio", "Media", "Ensemble"],
+
+  args: [
+    { label: "Audio Ensemble", type: "ensemble" },
+
+    { label: "Silent Mouth Actor", type: "actor" },
+    { label: "Talking Mouth 1", type: "actor" },
+    { label: "Talking Mouth 2", type: "actor" },
+    { label: "Talking Mouth 3", type: "actor" },
+    { label: "Talking Mouth 4", type: "actor" },
+
+    { label: "Threshold (0-100)", type: "raw", defaultValue: "10" },
+    { label: "Switch Speed (ms)", type: "raw", defaultValue: "100" },
+    { label: "Fade Duration (seconds)", type: "raw", defaultValue: "0" }
+  ],
+
+  build: (args) => `
+(function(){
+
+  const audioEnsemble = ${args[0]};
+  if (!audioEnsemble || !audioEnsemble.length) return;
+
+  const silent = ${args[1]};
+  const mouths = [
+    ${args[2]},
+    ${args[3]},
+    ${args[4]},
+    ${args[5]}
+  ];
+
+  const threshold = ${args[6]};
+  const switchSpeed = ${args[7]};
+  const fadeDuration = ${args[8]};
+
+  /* --- runtime state lives on the character / mouth setup --- */
+  if (!silent._lipSyncState) {
+    silent._lipSyncState = {
+      current: 0,
+      lastSwitch: 0,
+      lastTime: 0,
+      activeAudio: null
+    };
+  }
+
+  const state = silent._lipSyncState;
+
+  /* --- find currently active audio actor in ensemble --- */
+  let activeAudioActor = null;
+  let activeAudioElement = null;
+
+  for (let i = 0; i < audioEnsemble.length; i++) {
+    const a = audioEnsemble[i];
+    if (!a || !a.VolumeData) continue;
+
+    const el =
+      elementId(a.ID);
+
+    if (!el) continue;
+
+    const isActive = !el.paused && !el.ended;
+
+    if (isActive) {
+      activeAudioActor = a;
+      activeAudioElement = el;
+      break;
+    }
+  }
+
+  /* --- no active audio: go silent --- */
+  if (!activeAudioActor || !activeAudioElement) {
+    setSilent();
+    state.activeAudio = null;
+    state.lastTime = 0;
+    return;
+  }
+
+  const now = activeAudioElement.currentTime || 0;
+
+  /* --- if audio source changed, reset timing state --- */
+  if (state.activeAudio !== activeAudioActor) {
+    state.activeAudio = activeAudioActor;
+    state.lastTime = now;
+    state.lastSwitch = 0;
+  }
+
+  /* --- detect scrub / restart --- */
+  if (now < state.lastTime) {
+    state.current = 0;
+    state.lastSwitch = 0;
+  }
+
+  state.lastTime = now;
+
+  const fps = activeAudioActor.VolumeData.fps;
+  if (!fps) {
+    setSilent();
+    return;
+  }
+
+  const frame = Math.floor(now * fps);
+  const rawVolume = activeAudioActor.VolumeData.data[frame] || 0;
+  const volume = rawVolume * 100;
+  const nowMs = now * 1000;
+
+  /* --- silent frame --- */
+  if (volume < threshold) {
+    setSilent();
+    return;
+  }
+
+  /* --- switch control --- */
+  if (nowMs - state.lastSwitch < switchSpeed) return;
+
+  const randomIndex = Math.floor(Math.random() * mouths.length) + 1;
+
+  if (randomIndex !== state.current) {
+    fadeTo(randomIndex);
+    state.current = randomIndex;
+  }
+
+  state.lastSwitch = nowMs;
+
+  /* ---------- helpers ---------- */
+
+  function setSilent() {
+    if (state.current !== 0) {
+      fadeTo(0);
+      state.current = 0;
+    } else {
+      /* keep display correct even if state says silent already */
+      Move.to(silent, { Opacity: 100, duration: fadeDuration });
+      mouths.forEach(m => {
+        if (m) Move.to(m, { Opacity: 0, duration: fadeDuration });
+      });
+    }
+  }
+
+  function fadeTo(index) {
+    Move.killTweensOf(silent);
+    mouths.forEach(m => {
+      if (m) Move.killTweensOf(m);
+    });
+
+    if (index === 0) {
+      Move.to(silent, { Opacity: 100, duration: fadeDuration });
+      mouths.forEach(m => {
+        if (m) Move.to(m, { Opacity: 0, duration: fadeDuration });
+      });
+      return;
+    }
+
+    Move.to(silent, { Opacity: 0, duration: fadeDuration });
+
+    mouths.forEach((m, i) => {
+      if (!m) return;
+      Move.to(m, {
+        Opacity: (i === index - 1) ? 100 : 0,
         duration: fadeDuration
       });
     });
