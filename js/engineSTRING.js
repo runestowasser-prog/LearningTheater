@@ -159,17 +159,17 @@ function GetScore() {
    ================================ */
 
 function SetObjective(index, id) {
-  pipwerks.SCORM.set(\`cmi.objectives.${index}.id\`, String(id));
+  pipwerks.SCORM.set(\`cmi.objectives.\${index}.id\`, String(id));
 }
 
 function SetObjectiveStatus(index, status) {
   // status: "passed", "completed", "failed", "incomplete", "browsed", "not attempted"
-  pipwerks.SCORM.set(\`cmi.objectives.${index}.status\`, String(status));
+  pipwerks.SCORM.set(\`cmi.objectives.\${index}.status\`, String(status));
   SCORM_save();
 }
 
 function GetObjectiveStatus(index) {
-  return pipwerks.SCORM.get(\`cmi.objectives.${index}.status\`);
+  return pipwerks.SCORM.get(\`cmi.objectives.\${index}.status\`);
 }
 
 /* ================================
@@ -523,7 +523,7 @@ function SetSource(e, newSrc) {
         pre.onerror = () => { e.Loaded = true; };
         pre.src = newSrc;
 
-        x.style.backgroundImage = \`url(${newSrc})\`;
+        x.style.backgroundImage = \`url(\${newSrc})\`;
         x.style.backgroundRepeat = "no-repeat";
         x.style.backgroundSize = "100% 100%";
     }
@@ -728,7 +728,7 @@ function GenerateElement(id){
 				pre.onerror = () => { id.Loaded = true; };
 				pre.src = resolvedSource;
 
-				x.style.backgroundImage = \`url(${resolvedSource})\`;
+				x.style.backgroundImage = \`url(\${resolvedSource})\`;
 				x.style.backgroundRepeat = "no-repeat";
 				x.style.backgroundSize = "100% 100%";
 			}
@@ -1022,7 +1022,7 @@ var duplicateCount=0;
 function DuplicateActor(baseID, count) {
   const original = Elements.find(el => el.ID === baseID);
   if (!original) {
-    console.warn(\`Element med ID "${baseID}" blev ikke fundet.\`);
+    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
     return;
   }
 
@@ -1049,7 +1049,7 @@ function duplicateActorRecursive(actor, newParentID) {
 
   // Unikt ID
   duplicateCount++;
-  clone.ID = \`${actor.ID}${duplicateCount}\`;
+  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
 
   // Hvis vi duplikerer et barn, skal det pege på den nye forælder
   if (newParentID) clone.Parent = newParentID;
@@ -1073,7 +1073,7 @@ var duplicateCount=0;
 function DuplicateActor(baseID, count) {
   const original = Elements.find(el => el.ID === baseID);
   if (!original) {
-    console.warn(\`Element med ID "${baseID}" blev ikke fundet.\`);
+    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
     return;
   }
 
@@ -1100,7 +1100,7 @@ function duplicateActorRecursive(actor, newParentID) {
 
   // Unikt ID
   duplicateCount++;
-  clone.ID = \`${actor.ID}${duplicateCount}\`;
+  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
 
   // Hvis vi duplikerer et barn, skal det pege på den nye forælder
   if (newParentID) clone.Parent = newParentID;
@@ -1126,14 +1126,14 @@ var duplicateCount = 0;
 function DuplicateSceneAsActor(sceneID, options = {}) {
   const originalScene = Scenes.find(s => s.ID === sceneID);
   if (!originalScene) {
-    console.warn(\`Scene med ID "${sceneID}" blev ikke fundet.\`);
+    console.warn(\`Scene med ID "\${sceneID}" blev ikke fundet.\`);
     return;
   }
 
   // 1️⃣ Lav en “scene-actor” som container
   const sceneClone = {
     ...originalScene,
-    ID: options.newID || \`${originalScene.ID}_copy${++duplicateCount}\`,
+    ID: options.newID || \`\${originalScene.ID}_copy\${++duplicateCount}\`,
     Parent: options.parent || "stage", // default til stage
 	Opacity:100,
     Children: [],
@@ -1306,7 +1306,7 @@ function attachTriggerListener(containerId, eventType) {
       try {
         new Function(actorObj[eventType])();
       } catch (err) {
-        console.warn(\`Fejl i ${eventType} for ${actorId}:\`, err);
+        console.warn(\`Fejl i \${eventType} for \${actorId}:\`, err);
       }
     }
 
@@ -1438,7 +1438,7 @@ function FilterEnsemble(name, property, compare, value) {
   if (!window[name]) return;
   const result = window[name].filter(a => {
     try {
-      return eval(\`a["${property}"] ${compare} ${value}\`);
+      return eval(\`a["\${property}"] \${compare} \${value}\`);
     } catch {
       return false;
     }
