@@ -213,7 +213,7 @@ const ConditionFunctions = {
     if (left === true || left === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "left"`);
     if (right === true || right === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "right"`);
 
-    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})) && ${ensemble}.length>0)`
+    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})))`
   }
 },
 
