@@ -1,4 +1,5 @@
 const ENGINESTRING=String`
+
 if (typeof Triggers === "undefined") {
   Triggers = [];
 }
@@ -158,17 +159,17 @@ function GetScore() {
    ================================ */
 
 function SetObjective(index, id) {
-  pipwerks.SCORM.set(\`cmi.objectives.\${index}.id\`, String(id));
+  pipwerks.SCORM.set(\`cmi.objectives.${index}.id\`, String(id));
 }
 
 function SetObjectiveStatus(index, status) {
   // status: "passed", "completed", "failed", "incomplete", "browsed", "not attempted"
-  pipwerks.SCORM.set(\`cmi.objectives.\${index}.status\`, String(status));
+  pipwerks.SCORM.set(\`cmi.objectives.${index}.status\`, String(status));
   SCORM_save();
 }
 
 function GetObjectiveStatus(index) {
-  return pipwerks.SCORM.get(\`cmi.objectives.\${index}.status\`);
+  return pipwerks.SCORM.get(\`cmi.objectives.${index}.status\`);
 }
 
 /* ================================
@@ -522,7 +523,7 @@ function SetSource(e, newSrc) {
         pre.onerror = () => { e.Loaded = true; };
         pre.src = newSrc;
 
-        x.style.backgroundImage = \`url(\${newSrc})\`;
+        x.style.backgroundImage = \`url(${newSrc})\`;
         x.style.backgroundRepeat = "no-repeat";
         x.style.backgroundSize = "100% 100%";
     }
@@ -727,7 +728,7 @@ function GenerateElement(id){
 				pre.onerror = () => { id.Loaded = true; };
 				pre.src = resolvedSource;
 
-				x.style.backgroundImage = \`url(\${resolvedSource})\`;
+				x.style.backgroundImage = \`url(${resolvedSource})\`;
 				x.style.backgroundRepeat = "no-repeat";
 				x.style.backgroundSize = "100% 100%";
 			}
@@ -1008,10 +1009,10 @@ function init(){
 		elementId(""+Scenes[0].ID).style.display="block";
 		Scenes[0].Timeline.restart();
 		}
+
 		StartLoop();
+		runTriggers("SceneStart");
 		SceneStart();
-		SceneStartTrigger();
-		
 	   
 }
 
@@ -1021,7 +1022,7 @@ var duplicateCount=0;
 function DuplicateActor(baseID, count) {
   const original = Elements.find(el => el.ID === baseID);
   if (!original) {
-    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
+    console.warn(\`Element med ID "${baseID}" blev ikke fundet.\`);
     return;
   }
 
@@ -1048,7 +1049,7 @@ function duplicateActorRecursive(actor, newParentID) {
 
   // Unikt ID
   duplicateCount++;
-  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
+  clone.ID = \`${actor.ID}${duplicateCount}\`;
 
   // Hvis vi duplikerer et barn, skal det pege på den nye forælder
   if (newParentID) clone.Parent = newParentID;
@@ -1072,7 +1073,7 @@ var duplicateCount=0;
 function DuplicateActor(baseID, count) {
   const original = Elements.find(el => el.ID === baseID);
   if (!original) {
-    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
+    console.warn(\`Element med ID "${baseID}" blev ikke fundet.\`);
     return;
   }
 
@@ -1099,7 +1100,7 @@ function duplicateActorRecursive(actor, newParentID) {
 
   // Unikt ID
   duplicateCount++;
-  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
+  clone.ID = \`${actor.ID}${duplicateCount}\`;
 
   // Hvis vi duplikerer et barn, skal det pege på den nye forælder
   if (newParentID) clone.Parent = newParentID;
@@ -1125,14 +1126,14 @@ var duplicateCount = 0;
 function DuplicateSceneAsActor(sceneID, options = {}) {
   const originalScene = Scenes.find(s => s.ID === sceneID);
   if (!originalScene) {
-    console.warn(\`Scene med ID "\${sceneID}" blev ikke fundet.\`);
+    console.warn(\`Scene med ID "${sceneID}" blev ikke fundet.\`);
     return;
   }
 
   // 1️⃣ Lav en “scene-actor” som container
   const sceneClone = {
     ...originalScene,
-    ID: options.newID || \`\${originalScene.ID}_copy\${++duplicateCount}\`,
+    ID: options.newID || \`${originalScene.ID}_copy${++duplicateCount}\`,
     Parent: options.parent || "stage", // default til stage
 	Opacity:100,
     Children: [],
@@ -1174,42 +1175,9 @@ function ShuffleEnsembleProperty(ensemble, property) {
 
 
 function SceneStartTrigger() {
-  Triggers.forEach(trigger => {
-    if (trigger.event === "SceneStart") {
-      let conditionMet = true;
-      const conditions = trigger.conditions || ["true"];
-
-      for (let cond of conditions) {
-        if (!cond) continue;
- 	 const code = typeof cond === "string" ? cond : cond.code;
-        try {
-          if (!new Function("return (" + cond.code + ")")()) {
-            conditionMet = false;
-            break;
-          }
-        } catch (err) {
-          console.warn(\`Fejl i trigger condition:\`, err);
-          conditionMet = false;
-          break;
-        }
-      }
-
-      if (conditionMet) {
-        const actions = trigger.actions || [];
-        actions.forEach(act => {
-          const code = typeof act === "string" ? act : act.code;
-          if (!code) return;
-          try {
-            new Function(code)();
-          } catch (err) {
-            console.warn(\`Fejl i trigger action:\`, err);
-          }
-        });
-      }
-    }
-  });
+  runTriggers("SceneStart");
 }
-
+/*
 function runTriggers(eventName) {
 	
   if (!Array.isArray(Triggers)) return;
@@ -1276,7 +1244,7 @@ function runTriggers(eventName) {
     }
   }
 }
-
+*/
   // global state
   window._MouseState = {
     isDown: false,
@@ -1321,6 +1289,7 @@ function MouseListener(){
     }
   });
 }
+
 function attachTriggerListener(containerId, eventType) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1332,57 +1301,116 @@ function attachTriggerListener(containerId, eventType) {
     const actorId = targetEl.getAttribute("data-actor-id");
     const actorObj = window[actorId];
 
-    // Kør evt. Actorens egen MouseDown / MouseUp som string
+    // Actorens egen MouseDown / MouseUp
     if (actorObj && actorObj[eventType]) {
       try {
         new Function(actorObj[eventType])();
       } catch (err) {
-        console.warn(\`Fejl i \${eventType} for \${actorId}:\`, err);
+        console.warn(\`Fejl i ${eventType} for ${actorId}:\`, err);
       }
     }
 
-    // Kør Triggers
-    Triggers.forEach(trigger => {const eventHasTarget = actorId != null;
-	//if (trigger.event === eventType && (!eventHasTarget || trigger.target === actorId)) {
-		if (trigger.event === eventType && trigger.target === actorId){
-	console.log("Trigger matched:", trigger);
-
-        // ⭐ NY DEL: Evaluering af flere conditions
-        let conditionMet = true;
-        const conditions = trigger.conditions || ["true"]; // hvis ingen conditions, altid true
-
-        for (let cond of conditions) {
-  		if (!cond) continue;
- 			 const code = typeof cond === "string" ? cond : cond.code;
- 		 try {
-   		 if (!new Function("return (" + code + ")")()) {
-     		 conditionMet = false;
-     		 break;
-   		 }
-	  } catch (err) {
-  	  console.warn(\`Fejl i trigger condition:\`, err);
-   	 conditionMet = false;
-  	  break;
-  	}
-    
-
-        }
-
-        if (conditionMet) {
-          // ⭐ NY DEL: Udfør flere actions
-          const actions = trigger.actions || [];
-actions.forEach(act => {
-  if (!act || !act.code) return;
-  try {
-    new Function(act.code)();
-  } catch (err) {
-    console.warn(\`Fejl i trigger action:\`, err);
-  }
-});
-        }
-      }
-    });
+    // Kør triggers for dette event og target
+    runTriggers(eventType, actorId);
   });
+}
+function getTriggerCode(item) {
+  if (!item) return "";
+  return typeof item === "string" ? item : (item.code || "");
+}
+
+function evaluateTriggerCondition(cond, trigger) {
+  const code = getTriggerCode(cond);
+  if (!code) return true;
+
+  try {
+    return !!new Function("return (" + code + ")")();
+  } catch (err) {
+    console.warn("Fejl i trigger condition:", {
+      trigger,
+      condition: cond,
+      code,
+      err
+    });
+    return false;
+  }
+}
+
+function runTriggerAction(act, trigger) {
+  const code = getTriggerCode(act);
+  if (!code) return;
+
+  try {
+    new Function(code)();
+  } catch (err) {
+    console.warn("Fejl i trigger action:", {
+      trigger,
+      action: act,
+      code,
+      err
+    });
+  }
+}
+
+function executeTrigger(trigger) {
+  if (!trigger) return;
+
+  const conditions = Array.isArray(trigger.conditions) ? trigger.conditions : [];
+  let conditionMet = true;
+
+  for (const cond of conditions) {
+    if (!cond) continue;
+
+    if (!evaluateTriggerCondition(cond, trigger)) {
+      conditionMet = false;
+      break;
+    }
+  }
+
+  // init fire flag
+  if (trigger._hasFired == null) {
+    trigger._hasFired = false;
+  }
+
+  if (conditionMet) {
+    switch (trigger.fireMode) {
+      case "once":
+        if (!trigger._hasFired) {
+          (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+          trigger._hasFired = true;
+        }
+        break;
+
+      case "onceWhileTrue":
+        if (!trigger._hasFired) {
+          (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+          trigger._hasFired = true;
+        }
+        break;
+
+      case "whiletrue":
+      default:
+        (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+        break;
+    }
+  } else {
+    if (trigger.fireMode === "onceWhileTrue") {
+      trigger._hasFired = false;
+    }
+  }
+}
+
+function runTriggers(eventName, targetActorId = null) {
+  if (!Array.isArray(Triggers)) return;
+
+  for (const trigger of Triggers) {
+    if (!trigger || trigger.event !== eventName) continue;
+
+    // hvis trigger har target, skal det matche
+    if (trigger.target != null && trigger.target !== targetActorId) continue;
+
+    executeTrigger(trigger);
+  }
 }
 
 var Actors=Elements;
@@ -1410,7 +1438,7 @@ function FilterEnsemble(name, property, compare, value) {
   if (!window[name]) return;
   const result = window[name].filter(a => {
     try {
-      return eval(\`a["\${property}"] \${compare} \${value}\`);
+      return eval(\`a["${property}"] ${compare} ${value}\`);
     } catch {
       return false;
     }
@@ -1418,7 +1446,6 @@ function FilterEnsemble(name, property, compare, value) {
   window[name] = result;
   return result;
 }
-
 
 
 

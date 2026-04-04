@@ -1008,10 +1008,10 @@ function init(){
 		elementId(""+Scenes[0].ID).style.display="block";
 		Scenes[0].Timeline.restart();
 		}
+
 		StartLoop();
+		runTriggers("SceneStart");
 		SceneStart();
-		SceneStartTrigger();
-		
 	   
 }
 
@@ -1174,42 +1174,9 @@ function ShuffleEnsembleProperty(ensemble, property) {
 
 
 function SceneStartTrigger() {
-  Triggers.forEach(trigger => {
-    if (trigger.event === "SceneStart") {
-      let conditionMet = true;
-      const conditions = trigger.conditions || ["true"];
-
-      for (let cond of conditions) {
-        if (!cond) continue;
- 	 const code = typeof cond === "string" ? cond : cond.code;
-        try {
-          if (!new Function("return (" + cond.code + ")")()) {
-            conditionMet = false;
-            break;
-          }
-        } catch (err) {
-          console.warn(`Fejl i trigger condition:`, err);
-          conditionMet = false;
-          break;
-        }
-      }
-
-      if (conditionMet) {
-        const actions = trigger.actions || [];
-        actions.forEach(act => {
-          const code = typeof act === "string" ? act : act.code;
-          if (!code) return;
-          try {
-            new Function(code)();
-          } catch (err) {
-            console.warn(`Fejl i trigger action:`, err);
-          }
-        });
-      }
-    }
-  });
+  runTriggers("SceneStart");
 }
-
+/*
 function runTriggers(eventName) {
 	
   if (!Array.isArray(Triggers)) return;
@@ -1276,7 +1243,7 @@ function runTriggers(eventName) {
     }
   }
 }
-
+*/
   // global state
   window._MouseState = {
     isDown: false,
@@ -1321,6 +1288,7 @@ function MouseListener(){
     }
   });
 }
+
 function attachTriggerListener(containerId, eventType) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -1332,7 +1300,7 @@ function attachTriggerListener(containerId, eventType) {
     const actorId = targetEl.getAttribute("data-actor-id");
     const actorObj = window[actorId];
 
-    // Kør evt. Actorens egen MouseDown / MouseUp som string
+    // Actorens egen MouseDown / MouseUp
     if (actorObj && actorObj[eventType]) {
       try {
         new Function(actorObj[eventType])();
@@ -1341,48 +1309,107 @@ function attachTriggerListener(containerId, eventType) {
       }
     }
 
-    // Kør Triggers
-    Triggers.forEach(trigger => {const eventHasTarget = actorId != null;
-	//if (trigger.event === eventType && (!eventHasTarget || trigger.target === actorId)) {
-		if (trigger.event === eventType && trigger.target === actorId){
-	console.log("Trigger matched:", trigger);
-
-        // ⭐ NY DEL: Evaluering af flere conditions
-        let conditionMet = true;
-        const conditions = trigger.conditions || ["true"]; // hvis ingen conditions, altid true
-
-        for (let cond of conditions) {
-  		if (!cond) continue;
- 			 const code = typeof cond === "string" ? cond : cond.code;
- 		 try {
-   		 if (!new Function("return (" + code + ")")()) {
-     		 conditionMet = false;
-     		 break;
-   		 }
-	  } catch (err) {
-  	  console.warn(`Fejl i trigger condition:`, err);
-   	 conditionMet = false;
-  	  break;
-  	}
-    
-
-        }
-
-        if (conditionMet) {
-          // ⭐ NY DEL: Udfør flere actions
-          const actions = trigger.actions || [];
-actions.forEach(act => {
-  if (!act || !act.code) return;
-  try {
-    new Function(act.code)();
-  } catch (err) {
-    console.warn(`Fejl i trigger action:`, err);
-  }
-});
-        }
-      }
-    });
+    // Kør triggers for dette event og target
+    runTriggers(eventType, actorId);
   });
+}
+function getTriggerCode(item) {
+  if (!item) return "";
+  return typeof item === "string" ? item : (item.code || "");
+}
+
+function evaluateTriggerCondition(cond, trigger) {
+  const code = getTriggerCode(cond);
+  if (!code) return true;
+
+  try {
+    return !!new Function("return (" + code + ")")();
+  } catch (err) {
+    console.warn("Fejl i trigger condition:", {
+      trigger,
+      condition: cond,
+      code,
+      err
+    });
+    return false;
+  }
+}
+
+function runTriggerAction(act, trigger) {
+  const code = getTriggerCode(act);
+  if (!code) return;
+
+  try {
+    new Function(code)();
+  } catch (err) {
+    console.warn("Fejl i trigger action:", {
+      trigger,
+      action: act,
+      code,
+      err
+    });
+  }
+}
+
+function executeTrigger(trigger) {
+  if (!trigger) return;
+
+  const conditions = Array.isArray(trigger.conditions) ? trigger.conditions : [];
+  let conditionMet = true;
+
+  for (const cond of conditions) {
+    if (!cond) continue;
+
+    if (!evaluateTriggerCondition(cond, trigger)) {
+      conditionMet = false;
+      break;
+    }
+  }
+
+  // init fire flag
+  if (trigger._hasFired == null) {
+    trigger._hasFired = false;
+  }
+
+  if (conditionMet) {
+    switch (trigger.fireMode) {
+      case "once":
+        if (!trigger._hasFired) {
+          (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+          trigger._hasFired = true;
+        }
+        break;
+
+      case "onceWhileTrue":
+        if (!trigger._hasFired) {
+          (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+          trigger._hasFired = true;
+        }
+        break;
+
+      case "whiletrue":
+      default:
+        (trigger.actions || []).forEach(act => runTriggerAction(act, trigger));
+        break;
+    }
+  } else {
+    if (trigger.fireMode === "onceWhileTrue") {
+      trigger._hasFired = false;
+    }
+  }
+}
+
+function runTriggers(eventName, targetActorId = null) {
+  if (!Array.isArray(Triggers)) return;
+
+  for (const trigger of Triggers) {
+    if (!trigger || trigger.event !== eventName) continue;
+
+    // hvis trigger har target, skal det matche
+    if (trigger.target != null && trigger.target !== targetActorId) continue;
+
+    executeTrigger(trigger);
+  }
 }
 
 var Actors=Elements;
