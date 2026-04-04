@@ -1757,38 +1757,35 @@ case "ensemble": {
     });
   }
 
-  function updateDropdown() {
-    const pw = getPreviewWindow();
-    const candidates = findEnsembles(pw);
-    input.innerHTML = "";
+function updateDropdown() {
+  const pw = getPreviewWindow();
+  const candidates = findEnsembles(pw);
+  const previousValue = argsValues[index];
 
-    if (candidates.length === 0) {
-      const none = document.createElement("option");
-      none.textContent = "(no ensembles)";
-      none.disabled = true;
-      input.appendChild(none);
-    } else {
-      candidates.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name; // fjernet tællingen
-        input.appendChild(opt);
-      });
-    }
+  input.innerHTML = "";
 
-    // Hvis kun én mulighed, vælg den
-    if (candidates.length === 1) {
-      input.value = candidates[0];
-    }
-
-    // restore tidligere værdi
-    if (argsValues[index]) {
-      input.value = argsValues[index];
-    }
-
-    // Sikr at argsValues altid matcher input.value
-    argsValues[index] = input.value;
+  if (candidates.length === 0) {
+    const none = document.createElement("option");
+    none.textContent = "(no ensembles)";
+    none.disabled = true;
+    none.selected = true;
+    input.appendChild(none);
+    return;
   }
+
+  candidates.forEach(name => {
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    input.appendChild(opt);
+  });
+
+  if (previousValue && candidates.includes(previousValue)) {
+    input.value = previousValue;
+  } else if (candidates.length === 1) {
+    input.value = candidates[0];
+  }
+}
 
   // Når brugeren vælger noget manuelt
   input.addEventListener("change", () => {
@@ -1798,7 +1795,7 @@ case "ensemble": {
 
   // Opdatér listen når dropdown’en åbnes/fokuseres
   input.addEventListener("mousedown", updateDropdown);
-  input.addEventListener("focus", updateDropdown);
+  //input.addEventListener("focus", updateDropdown);
 
   // Initial setup
   updateDropdown();
@@ -2964,7 +2961,7 @@ function loadFullString(fullText) {
 	parent.GeneratedTriggers = extractTriggersFromHTML(fullText);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
 parent.renderTriggerEditor("triggerEditor");	
-	setTimeout(function(){ showPreview(); }, 1000);
+	//setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
 	
 
