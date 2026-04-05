@@ -1767,6 +1767,7 @@ function updateDropdown() {
   if (candidates.length === 0) {
     const none = document.createElement("option");
     none.textContent = "(no ensembles)";
+    none.value = "";
     none.disabled = true;
     none.selected = true;
     input.appendChild(none);
@@ -1780,13 +1781,18 @@ function updateDropdown() {
     input.appendChild(opt);
   });
 
-  if (previousValue && candidates.includes(previousValue)) {
-    input.value = previousValue;
-  } else if (candidates.length === 1) {
-    input.value = candidates[0];
+  const resolvedValue =
+    previousValue && candidates.includes(previousValue)
+      ? previousValue
+      : candidates[0];
+
+  input.value = resolvedValue;
+
+  if (argsValues[index] !== resolvedValue) {
+    argsValues[index] = resolvedValue;
+    try { onChange(index, resolvedValue); } catch (e) {}
   }
 }
-
   // Når brugeren vælger noget manuelt
   input.addEventListener("change", () => {
     argsValues[index] = input.value;
