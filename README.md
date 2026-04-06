@@ -38,7 +38,7 @@ Learning Theater is built around a few simple ideas:
 
 - **Actors** — visual elements such as text, images, and containers
 - **Properties** — position, size, appearance, and behavior
-- **Scripts** — `General`, `Build`, `SceneStart`, and `Resize`
+- **Code** — add custom javascript
 - **Event System** — create interactions using events, conditions, and actions
 - **GSAP timelines** — build smooth, sequenced animations
 
