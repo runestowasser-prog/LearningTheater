@@ -59,7 +59,7 @@ Learning Theater is not a replacement — it's what you use when other tools hit
 | Visual editor | ✅ | ✅ |
 | Advanced animations | ⚠️ Limited | ✅ GSAP timelines |
 | Custom logic | ⚠️ Workarounds | ✅ Full control |
-| Flexibility | ❌ محدود | ✅ Unlimited |
+| Flexibility | ⚠️ Limited | ✅ Unlimited |
 | Code access | ❌ | ✅ |
 | Lock-in | High | None |
 
@@ -71,7 +71,7 @@ Learning Theater is built around a few simple concepts:
 
 - **Actors** — visual elements (text, images, containers)  
 - **Properties** — position, size, behavior  
-- **Scripts** — `General`, `Build`, `SceneStart`, `Resize`  
+- **Code** — make custom javascript functions  
 - **Event System** — events, conditions, actions  
 - **GSAP timelines** — smooth animation control  
 
