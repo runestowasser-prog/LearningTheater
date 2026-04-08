@@ -3554,6 +3554,219 @@ window.addEventListener('keydown', e => {
   }
 });
 
+async function saveProjectAsSingleHTML() {
+  let writable = null;
+
+  function blobToDataURL(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function normalizePath(path) {
+    return String(path || "").replace(/\\/g, "/");
+  }
+
+  function replaceAssetPathsWithDataUrls(text, assetMap) {
+    let out = text;
+
+    for (const [originalPath, dataUrl] of Object.entries(assetMap)) {
+      const normalizedPath = normalizePath(originalPath);
+
+      const variants = new Set([
+        normalizedPath,
+        "./" + normalizedPath,
+        encodeURI(normalizedPath),
+        "./" + encodeURI(normalizedPath)
+      ]);
+
+      for (const variant of variants) {
+        out = out.replace(
+          new RegExp(escapeRegExp(variant), "g"),
+          dataUrl
+        );
+      }
+    }
+
+    return out;
+  }
+
+  try {
+    if (window.showSaveFilePicker) {
+      const handle = await showSaveFilePicker({
+        suggestedName: "LearningTheaterSingleFile.html",
+        types: [{
+          description: "HTML file",
+          accept: { "text/html": [".html"] }
+        }]
+      });
+      writable = await handle.createWritable();
+    }
+
+    SavingOverlay.Opacity = 100;
+    SetText(SavingOverlay, "Preparing single-file export...");
+    await new Promise(requestAnimationFrame);
+
+    SettingsGenerated =
+      'SCORMTracking=' + elementId("ScormInput").checked + ';\n' +
+      'FollowSL=' + elementId("SLInput").checked + ';\n' +
+      'StageWidth=' + elementId("StageWidthInput").value +
+      ', StageHeight=' + elementId("StageHeightInput").value + ';\n' +
+      'Scaling="' + elementId("ScalingInput").value + '";\n' +
+      'Overflow="' + elementId("OverflowInput").value + '";\n';
+
+    const triggerJSON = safeStringify(parent.GeneratedTriggers);
+
+    const triggerBlock =
+      `<!-- LT_TRIGGERS_START
+${triggerJSON}
+LT_TRIGGERS_END -->\n`;
+
+    const projectJSON = {
+      actors: cloneWithoutRuntime(AllActors),
+      scenes: cloneWithoutRuntime(AllScenes),
+      tweens: cloneWithoutRuntime(AllTweens),
+      scripts: {
+        general: GeneralCode.getValue(),
+        build: BuildCode.getValue(),
+        update: UpdateCode.getValue(),
+        resize: ResizeCode.getValue(),
+        sceneStart: ScenestartCode.getValue()
+      },
+      settings: {
+        scorm: elementId("ScormInput").checked,
+        followSL: elementId("SLInput").checked,
+        stageWidth: elementId("StageWidthInput").value,
+        stageHeight: elementId("StageHeightInput").value,
+        scaling: elementId("ScalingInput").value,
+        overflow: elementId("OverflowInput").value,
+        GlobalFont: document.getElementById("FontInput")?.value || "Arial"
+      }
+    };
+
+    const embeddedProjectBlock =
+      '<script id="LT_PROJECT" type="application/json">\n' +
+      safeStringify(projectJSON) +
+      '\n</s'+'cript>\n';
+
+    HTMLCode =
+      '<!DOCTYPE html>\n<html style="height:100%;">\n<head>\n' +
+      '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n' +
+      '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n' +
+      '<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n' +
+      '<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" />\n' +
+      '<script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr' + 'ipt>\n' +
+      '<!-- Generated with Learning Theater -->\n' +
+      '<!' + '--- ✂✂✂ ---' + '>\n' +
+      HEADCode.getValue() + '\n' +
+      '<!--- ✂✂✂ ---' + '>\n' +
+      '<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } ' +
+      getProjectFontCSS("export") +
+      '</style>\n' +
+      '<scr' + 'ipt>\n' +
+      ENGINESTRING + '\n' +
+      '</scr' + 'ipt>\n' +
+      '<scr' + 'ipt>\n' +
+      eventdefinitionsSTRING + '\n' +
+      '</scr' + 'ipt>\n' +
+      '<scr' + 'ipt>\n' +
+      GSAPSTRING + '\n' +
+      '</scr' + 'ipt>\n' +
+      '<scr' + 'ipt>\n' +
+      SCORMAPI + '\n' +
+      '</scr' + 'ipt>\n' +
+      '</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents;">\n' +
+      '<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n' +
+      ' <!--- ✂✂✂ ---' + '>';
+
+    const JsCode =
+      "<scri" + "pt>\nvar Move=gsap;\n" +
+      "//✂✂✂\n" +
+      GeneralCode.getValue() +
+      "\n//✂✂✂\n" +
+      SettingsGenerated + "\n" + exportTriggersToCode() +
+      "\nfunction Build(){\n//✂✂✂\n" +
+      BuildCode.getValue() +
+      "\n//✂✂✂\n" +
+      AllTweens.join("\n//Tween\n") +
+      "\n//✂✂✂\n}\n\n" +
+      "function Update(){\n//✂✂✂\n" +
+      StoryLinePlayer +
+      UpdateCode.getValue() +
+      "\n//✂✂✂\n}\n\n" +
+      "function SceneStart(){\n//✂✂✂\n" +
+      ScenestartCode.getValue() +
+      "\n//✂✂✂\n}\n\n" +
+      "function Resize(){\n//✂✂✂\n" +
+      ResizeCode.getValue() +
+      "\n//✂✂✂\n}\n</scri" + "pt>";
+
+    let finalHTML = HTMLCode + embeddedProjectBlock + triggerBlock + JsCode;
+
+    SetText(SavingOverlay, "Converting assets to data URLs...");
+    await new Promise(requestAnimationFrame);
+
+    const assetMap = {};
+
+    if (window.Project && Project.assets) {
+      const assetNames = Object.keys(Project.assets);
+
+      for (let i = 0; i < assetNames.length; i++) {
+        const fileName = assetNames[i];
+        const asset = Project.assets[fileName];
+
+        if (asset && asset.blob) {
+          const normalizedName = normalizePath(fileName);
+          const percent = Math.round((i / Math.max(assetNames.length, 1)) * 100);
+
+          SetText(SavingOverlay, `Embedding assets... ${percent}%`);
+          await new Promise(requestAnimationFrame);
+
+          assetMap[normalizedName] = await blobToDataURL(asset.blob);
+        }
+      }
+    }
+
+    SetText(SavingOverlay, "Replacing asset paths...");
+    await new Promise(requestAnimationFrame);
+
+    finalHTML = replaceAssetPathsWithDataUrls(finalHTML, assetMap);
+
+    SetText(SavingOverlay, "Writing HTML file...");
+    await new Promise(requestAnimationFrame);
+
+    const htmlBlob = new Blob([finalHTML], {
+      type: "text/html;charset=utf-8"
+    });
+
+    if (writable) {
+      await writable.write(htmlBlob);
+      await writable.close();
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(htmlBlob);
+      a.download = "LearningTheaterSingleFile.html";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    localStorage.removeItem("LT_autosave");
+    localStorage.removeItem("LT_autosave_time");
+  } catch (err) {
+    console.error("saveProjectAsSingleHTML failed:", err);
+    throw err;
+  } finally {
+    SavingOverlay.Opacity = 0;
+  }
+}
+
 function loadFileAsText(){
 	var content=null;
 	
@@ -3917,6 +4130,324 @@ async function loadProjectFromZip() {
   }
 }
 
+async function loadProjectFromSingleHTML() {
+  parent.__loadingFromFile = true;
+
+  function guessExtensionFromMime(mime) {
+    const map = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "image/svg+xml": "svg",
+      "audio/mpeg": "mp3",
+      "audio/mp3": "mp3",
+      "audio/wav": "wav",
+      "audio/x-wav": "wav",
+      "audio/ogg": "ogg",
+      "video/mp4": "mp4",
+      "video/webm": "webm",
+      "font/woff": "woff",
+      "font/woff2": "woff2",
+      "font/ttf": "ttf",
+      "application/font-woff": "woff"
+    };
+
+    return map[(mime || "").toLowerCase()] || "bin";
+  }
+
+  function shouldStoreAsAsset(mime) {
+    mime = (mime || "").toLowerCase();
+
+    return (
+      mime.startsWith("image/") ||
+      mime.startsWith("audio/") ||
+      mime.startsWith("video/") ||
+      mime.startsWith("font/") ||
+      mime === "application/font-woff"
+    );
+  }
+
+  function escapeRegExp(str) {
+		return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	  }
+
+	  function dataUrlToBlob(dataUrl) {
+	  const [header, data] = dataUrl.split(",");
+
+	  const mimeMatch = header.match(/data:([^;]+)/i);
+	  const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+
+	  const isBase64 = header.includes(";base64");
+
+	  let byteString;
+
+	  if (isBase64) {
+		byteString = atob(data);
+	  } else {
+		byteString = decodeURIComponent(data);
+	  }
+
+	  const arrayBuffer = new ArrayBuffer(byteString.length);
+	  const uintArray = new Uint8Array(arrayBuffer);
+
+	  for (let i = 0; i < byteString.length; i++) {
+		uintArray[i] = byteString.charCodeAt(i);
+	  }
+
+	  return new Blob([uintArray], { type: mime });
+	}
+
+	function extractEmbeddedProjectJSON(htmlText) {
+	  const doc = new DOMParser().parseFromString(htmlText, "text/html");
+	  const el = doc.getElementById("LT_PROJECT");
+	  if (!el) return null;
+
+	  try {
+		return JSON.parse(el.textContent);
+	  } catch (err) {
+		console.warn("Failed to parse LT_PROJECT:", err);
+		return null;
+	  }
+	}
+
+async function rebuildLibraryFromSingleHTMLContent(htmlText) {
+  if (!window.Project) window.Project = {};
+  if (!Project.assets) Project.assets = {};
+
+  function guessExtensionFromMime(mime) {
+    const map = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/jpg": "jpg",
+      "image/gif": "gif",
+      "image/webp": "webp",
+      "image/svg+xml": "svg",
+      "audio/mpeg": "mp3",
+      "audio/mp3": "mp3",
+      "audio/wav": "wav",
+      "audio/x-wav": "wav",
+      "audio/ogg": "ogg",
+      "video/mp4": "mp4",
+      "video/webm": "webm",
+      "font/woff": "woff",
+      "font/woff2": "woff2",
+      "font/ttf": "ttf",
+      "application/font-woff": "woff"
+    };
+
+    return map[(mime || "").toLowerCase()] || "bin";
+  }
+
+  function shouldStoreAsAsset(mime) {
+    mime = (mime || "").toLowerCase();
+
+    return (
+      mime.startsWith("image/") ||
+      mime.startsWith("audio/") ||
+      mime.startsWith("video/") ||
+      mime.startsWith("font/") ||
+      mime === "application/font-woff"
+    );
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  function dataUrlToBlob(dataUrl) {
+    const cleaned = String(dataUrl).trim();
+
+    if (!cleaned.startsWith("data:")) {
+      throw new Error("Not a data URL");
+    }
+
+    const commaIndex = cleaned.indexOf(",");
+    if (commaIndex === -1) {
+      throw new Error("Malformed data URL");
+    }
+
+    const header = cleaned.slice(0, commaIndex);
+    const data = cleaned.slice(commaIndex + 1);
+
+    const mimeMatch = header.match(/^data:([^;]+)/i);
+    const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+    const isBase64 = /;base64/i.test(header);
+
+    let bytes;
+
+    if (isBase64) {
+      const normalized = data.replace(/\s+/g, "");
+      const binary = atob(normalized);
+      const arr = new Uint8Array(binary.length);
+
+      for (let i = 0; i < binary.length; i++) {
+        arr[i] = binary.charCodeAt(i);
+      }
+
+      bytes = arr;
+    } else {
+      const decoded = decodeURIComponent(data);
+      const arr = new Uint8Array(decoded.length);
+
+      for (let i = 0; i < decoded.length; i++) {
+        arr[i] = decoded.charCodeAt(i);
+      }
+
+      bytes = arr;
+    }
+
+    return new Blob([bytes], { type: mime });
+  }
+
+  const doc = new DOMParser().parseFromString(htmlText, "text/html");
+  const projectScript = doc.getElementById("LT_PROJECT");
+
+  if (!projectScript) {
+    console.warn("LT_PROJECT not found.");
+    return htmlText;
+  }
+
+  let projectData;
+  try {
+    projectData = JSON.parse(projectScript.textContent);
+  } catch (err) {
+    console.error("Failed to parse LT_PROJECT JSON:", err);
+    return htmlText;
+  }
+
+  let assetIndex = 1;
+  const dataUrlToFilename = new Map();
+
+  function registerAssetFromDataUrl(dataUrl) {
+    if (!dataUrl || typeof dataUrl !== "string" || !dataUrl.startsWith("data:")) {
+      return dataUrl;
+    }
+
+    if (dataUrlToFilename.has(dataUrl)) {
+      return dataUrlToFilename.get(dataUrl);
+    }
+
+    const mimeMatch = dataUrl.match(/^data:([^;,]+)/i);
+    const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+
+    if (!shouldStoreAsAsset(mime)) {
+      return dataUrl;
+    }
+
+    const blob = dataUrlToBlob(dataUrl);
+    const ext = guessExtensionFromMime(blob.type || mime);
+    const filename = `embedded_${assetIndex}.${ext}`;
+    assetIndex++;
+
+    const objectUrl = URL.createObjectURL(blob);
+
+    Project.assets[filename] = {
+      name: filename,
+      blob: blob,
+      url: objectUrl,
+      originalDataUrl: dataUrl
+    };
+
+    addAssetToLibraryUI(filename, objectUrl);
+    dataUrlToFilename.set(dataUrl, filename);
+
+    return filename;
+  }
+
+  function walkAndRewrite(node) {
+    if (Array.isArray(node)) {
+      for (let i = 0; i < node.length; i++) {
+        node[i] = walkAndRewrite(node[i]);
+      }
+      return node;
+    }
+
+    if (node && typeof node === "object") {
+      for (const key in node) {
+        if (!Object.prototype.hasOwnProperty.call(node, key)) continue;
+
+        const value = node[key];
+
+        if (typeof value === "string") {
+          if (
+            (key === "Source" ||
+             key === "Mask" ||
+             key === "Poster" ||
+             key === "Image" ||
+             key === "Audio" ||
+             key === "Video") &&
+            value.startsWith("data:")
+          ) {
+            node[key] = registerAssetFromDataUrl(value);
+          }
+        } else if (value && typeof value === "object") {
+          node[key] = walkAndRewrite(value);
+        }
+      }
+    }
+
+    return node;
+  }
+
+  walkAndRewrite(projectData);
+
+  // Opdatér LT_PROJECT i DOM'en
+  projectScript.textContent = JSON.stringify(projectData);
+
+  // Brug KUN de data URLs, vi fandt i LT_PROJECT, til at rewrite hele HTML'en
+  let rewrittenHtml = htmlText;
+
+  for (const [dataUrl, filename] of dataUrlToFilename.entries()) {
+    rewrittenHtml = rewrittenHtml.replace(
+      new RegExp(escapeRegExp(dataUrl), "g"),
+      filename
+    );
+  }
+
+  return rewrittenHtml;
+}
+
+  try {
+    if (!window.showOpenFilePicker) {
+      alert("File System Access API not supported in this browser.");
+      return;
+    }
+
+    const [fileHandle] = await window.showOpenFilePicker({
+      id: "openProjectSingleHTML",
+      types: [{
+        description: "LearningTheater Self-contained HTML",
+        accept: { "text/html": [".html", ".htm"] }
+      }]
+    });
+
+    const file = await fileHandle.getFile();
+    const content = await file.text();
+
+	const embeddedProject = extractEmbeddedProjectJSON(content);
+	if (embeddedProject && embeddedProject.settings) {
+	  Project.settings = embeddedProject.settings || {};
+	} else {
+	  Project.settings = {};
+	}
+
+	const rewrittenContent = await rebuildLibraryFromSingleHTMLContent(content);
+	console.log("Before load:", Project.settings);
+	loadProjectFromHtmlString(rewrittenContent);
+	console.log("After load:", Project.settings);
+	
+
+  } catch (err) {
+    console.error("loadProjectFromSingleHTML failed:", err);
+    alert("Failed to load project.");
+  } finally {
+    parent.__loadingFromFile = false;
+  }
+}
+
+
 function loadProjectFromHtmlString(content) {
 
 	document.getElementById("generalCode").style.display="flex";
@@ -3930,31 +4461,16 @@ function loadProjectFromHtmlString(content) {
 
 	var generalCode = splitCode[1];
 	var settings = extractSettingsFromCode(content);
-
-	if (settings.StageWidth !== null)
-		document.getElementById("StageWidthInput").value = settings.StageWidth;
-
-	if (settings.StageHeight !== null)
-		document.getElementById("StageHeightInput").value = settings.StageHeight;
-
-	if (settings.Scaling !== null)
-		document.getElementById("ScalingInput").value = settings.Scaling;
-
-	if (settings.Overflow !== null)
-		document.getElementById("OverflowInput").value = settings.Overflow;
-
-	if (settings.SCORMTracking !== null)
-		document.getElementById("ScormInput").checked = settings.SCORMTracking;
-
-	if (settings.FollowSL !== null)
-		document.getElementById("SLInput").checked = settings.FollowSL;
 	
-	populateFontSelect();
-
-	if (Project.settings && Project.settings.GlobalFont) {
-		document.getElementById("FontInput").value = Project.settings.GlobalFont;
+	if (Project.settings) {
+	if (Project.settings.stageWidth != null) settings.StageWidth = Project.settings.stageWidth;
+	if (Project.settings.stageHeight != null) settings.StageHeight = Project.settings.stageHeight;
+	if (Project.settings.scaling != null) settings.Scaling = Project.settings.scaling;
+	if (Project.settings.overflow != null) settings.Overflow = Project.settings.overflow;
+	if (Project.settings.scorm != null) settings.SCORMTracking = Project.settings.scorm;
+	if (Project.settings.followSL != null) settings.FollowSL = Project.settings.followSL;
 	}
-
+	
 	var buildCode = splitCode[3];
 	var tweenCode = splitCode[4];
 	var updateCode = splitCode[6];
@@ -4899,9 +5415,9 @@ ActorProps(thisActor, {
   ShowOrigin: false,
   Draggable: false,
   MouseUp: `fileMenu.Opacity=0;
-saveTextAsFile();`,
+saveProjectAsSingleHTML();`,
   Color: "",
-  Text: "Save HTML",
+  Text: "Export HTML",
   FontSize: 16,
   Opacity: 100,
   TranslateX: 0,
@@ -4929,9 +5445,9 @@ ActorProps(thisActor, {
   ShowOrigin: false,
   Draggable: false,
   MouseUp: `fileMenu.Opacity=0;
-loadFileAsText();`,
+loadProjectFromSingleHTML();`,
   Color: "",
-  Text: "Load HTML",
+  Text: "Import HTML",
   FontSize: 16,
   Opacity: 100,
   TranslateX: 0,
@@ -5574,6 +6090,7 @@ HEADCode=CodeMirror(elementId("HEAD"), {
   value: `<style>
 	
 	#stage{
+	cursor:default;
     }
 	svg{
 	width:100%;
