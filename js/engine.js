@@ -273,7 +273,7 @@ function OnResize(){
 
 }
 
-function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX,RotateY,RotateZ, TranslateX, TranslateY, TranslateZ, MouseDown, MouseUp, BackgroundImage, Style){
+function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX,RotateY,RotateZ, TranslateX, TranslateY, TranslateZ, MouseDown, MouseUp, BackgroundImage, Style, Mask){
 	var S = new Object();
     S.X = X;
     S.Y = Y;
@@ -315,6 +315,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.Scale=1;
 	S.ShowOrigin=false;
 	S.InputType=undefined;
+	S.Mask=Mask;
     return S;
 	
 }
@@ -419,11 +420,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	//console.log(thisActor.Text)
@@ -762,6 +763,8 @@ function GenerateElement(id){
 		} else {
 			id.Loaded = true;
 		}
+		
+		
 
 		if(id.TransformOriginX!=undefined){
 		x.style.transformOrigin=""+id.TransformOriginX*StageScale+"px "+id.TransformOriginY*StageScale+"px ";
@@ -786,6 +789,53 @@ function GenerateElement(id){
 		x.style.backgroundRepeat="no-repeat";
 		x.style.backgroundSize="100% 100%";
 		}
+		function resolveLibraryAsset(path) {
+			let resolved = path;
+
+			try {
+				if (
+					window.parent &&
+					window.parent !== window &&
+					window.parent.Project &&
+					window.parent.Project.assets &&
+					window.parent.Project.assets[resolved]
+				) {
+					resolved = window.parent.Project.assets[resolved].url;
+				}
+			} catch (err) {}
+
+			return encodeURI(resolved);
+		}
+		
+		
+		if (id.Mask) {
+			let resolvedMask = id.Mask;
+
+			if (
+				window.parent &&
+				window.parent.Project &&
+				window.parent.Project.assets &&
+				window.parent.Project.assets[resolvedMask]
+			) {
+				resolvedMask = window.parent.Project.assets[resolvedMask].url;
+			}
+
+			// encode path
+			resolvedMask = encodeURI(resolvedMask);
+			
+
+			x.style.maskImage = 'url("' + resolvedMask + '")';
+			x.style.maskRepeat = "no-repeat";
+			x.style.maskSize = "100% 100%";
+			x.style.maskPosition = "center";
+			x.style.maskMode = "alpha";
+
+			x.style.webkitMaskImage = 'url("' + resolvedMask + '")';
+			x.style.webkitMaskRepeat = "no-repeat";
+			x.style.webkitMaskSize = "100% 100%";
+			x.style.webkitMaskPosition = "center";
+		}
+
 		if(id.Z!=undefined){
 		x.style.zIndex=id.Z+"";
 		}
