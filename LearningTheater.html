@@ -53,7 +53,7 @@ const editorForm = document.getElementById("propertyForm");
 const closeEditorBtn = document.getElementById("closeEditor");
 
 const editableProps = [
-  "ID", "Type", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY", "ShowOrigin", "Controls",
+  "ID", "Type", "Parent", "Source", "Mask", "Color", "Shape", "TransformOriginX", "TransformOriginY", "ShowOrigin", "Controls",
   "Width", "Height", "X", "Y", "Scale", "Opacity", "Angle", "SkewX", "SkewY",
   "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY", "TranslateZ",
   "Text", "FontSize", "MouseDown", "MouseUp", "Draggable", "Style", "Class"
@@ -697,6 +697,56 @@ function createSourceSelect(actor) {
 	return wrapper;
 }
 
+function createMaskSelect(actor) {
+	const wrapper = document.createElement("div");
+	wrapper.className = "source-select-wrapper";
+
+	const maskSelect = document.createElement("select");
+
+	const empty = document.createElement("option");
+	empty.value = "";
+	empty.textContent = "-- none --";
+	maskSelect.appendChild(empty);
+
+	if (window.Project && Project.assets) {
+		Object.keys(Project.assets)
+			.filter(filename => /\.png$/i.test(filename))
+			.sort((a, b) => a.localeCompare(b))
+			.forEach(filename => {
+				const opt = document.createElement("option");
+				opt.value = filename;
+				opt.textContent = filename;
+				maskSelect.appendChild(opt);
+			});
+	}
+
+	const currentValue = actor.Mask || "";
+	maskSelect.value = currentValue;
+
+	console.log("createMaskSelect currentValue:", currentValue);
+	console.log("createMaskSelect actor before:", actor);
+
+	maskSelect.addEventListener("change", () => {
+		const value = maskSelect.value;
+
+		console.log("Mask changed to:", value);
+
+		actor.Mask = value;
+
+		if (actor._original) {
+			actor._original.Mask = value;
+		}
+
+		updateOriginalArray(actor, { Mask: value });
+
+		console.log("actor after mask set:", actor);
+
+		showPreview();
+	});
+
+	wrapper.appendChild(maskSelect);
+	return wrapper;
+}
 
 function openPropertyEditor(item) {
 if (!item._original) item._original = { ...item };
@@ -748,7 +798,7 @@ editor.appendChild(gridWrapper);
 	};
 
   const allProperties = [
-    "ID", "Type", "InputType", "Parent", "Source", "Color", "Shape", "TransformOriginX", "TransformOriginY",
+    "ID", "Type", "InputType", "Parent", "Source", "Mask", "Color", "Shape", "TransformOriginX", "TransformOriginY",
     "ShowOrigin", "Controls", "Width", "Height", "X", "Y", "Scale", "Opacity",
     "Angle", "SkewX", "SkewY", "RotateX", "RotateY", "RotateZ", "TranslateZ", "Text", "FontSize",
     "Draggable", "Style", "Class",
@@ -779,6 +829,12 @@ editor.appendChild(gridWrapper);
 	
 	if (prop === "Source") {
     wrapper.appendChild(createSourceSelect(item));
+    editor.appendChild(wrapper);
+	//updateOriginalArray(item, { [prop]: item[prop] });
+    return; // 🔥 VIGTIGT – stop her!
+	}
+	if (prop === "Mask") {
+    wrapper.appendChild(createMaskSelect(item));
     editor.appendChild(wrapper);
 	//updateOriginalArray(item, { [prop]: item[prop] });
     return; // 🔥 VIGTIGT – stop her!
@@ -1418,7 +1474,7 @@ function generateActorCode(actor) {
     "Parent", "InputType", "Width", "Height", "X", "Y", "Z", "Angle", "RotateX", "RotateY", "RotateZ",
     "ShowOrigin", "TransformOriginX", "TransformOriginY", "Draggable", "MouseDown", "MouseUp", "Click", "Style", "Color", 
     "Text", "TextColor", "FontSize", "Opacity", "TranslateX", "TranslateY", 
-    "TranslateZ", "Scale", "SkewX", "SkewY", "Overflow", "BackgroundImage", "Source", "Shape", "Controls",
+    "TranslateZ", "Scale", "SkewX", "SkewY", "Overflow", "BackgroundImage", "Source", "Mask", "Shape", "Controls",
     "Class", "VolumeData",
   ];
 
