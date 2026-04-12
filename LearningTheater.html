@@ -3128,7 +3128,7 @@ const fonts=getProjectFontCSS(mode = "preview");
 	
   
     var jsCode = "<scri"+"pt>\n" +
-"window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };\n" +
+"/*window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };*/\n" +
 "var Move=gsap;\n"+
 exportTriggersToCode() +
 GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
@@ -3983,7 +3983,8 @@ function getMimeType(filename) {
 		webp: "image/webp",
 		mp4: "video/mp4",
 		mp3: "audio/mpeg",
-		wav: "audio/wav"
+		wav: "audio/wav",
+		html: "text/html",
 	};
 
 	return map[ext] || "application/octet-stream";
@@ -4207,7 +4208,8 @@ async function loadProjectFromSingleHTML() {
       "font/woff": "woff",
       "font/woff2": "woff2",
       "font/ttf": "ttf",
-      "application/font-woff": "woff"
+      "application/font-woff": "woff",
+	  "text/html": "html",
     };
 
     return map[(mime || "").toLowerCase()] || "bin";
@@ -4221,6 +4223,7 @@ async function loadProjectFromSingleHTML() {
       mime.startsWith("audio/") ||
       mime.startsWith("video/") ||
       mime.startsWith("font/") ||
+	  mime.startsWith("text/") ||
       mime === "application/font-woff"
     );
   }
@@ -4290,7 +4293,8 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
       "font/woff": "woff",
       "font/woff2": "woff2",
       "font/ttf": "ttf",
-      "application/font-woff": "woff"
+      "application/font-woff": "woff",
+	  "text/html": "html",
     };
 
     return map[(mime || "").toLowerCase()] || "bin";
@@ -4304,6 +4308,7 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
       mime.startsWith("audio/") ||
       mime.startsWith("video/") ||
       mime.startsWith("font/") ||
+	  mime.startsWith("text/") ||
       mime === "application/font-woff"
     );
   }
@@ -6148,6 +6153,9 @@ HEADCode=CodeMirror(elementId("HEAD"), {
 	#stage{
 	cursor:default;
     }
+	iframe{
+	border:none;
+	}
 	svg{
 	width:100%;
 	height:100%;
