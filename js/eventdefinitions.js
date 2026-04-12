@@ -574,6 +574,32 @@ const ActionFunctions = {
     ],
     build: (args) => `${args[0]}.${args[1]} ${args[2]} ${args[3]}`
   },
+  
+   "SetPropertyOnParent": {
+    label: "Set a property on an actor in parent",
+	category:"Frame",
+
+    args: [
+      { type: "raw", label: "Actor" },
+      { type: "raw", label: "Property" },
+      { type: "raw", label: "Value", defaultValue:"0" }
+    ],
+    build: (args) => `LTSetActorProperty("${args[0]}", "${args[1]}", ${args[2]})`
+  },
+  
+     "SetPropertyOnIframe": {
+    label: "Set a property on an actor in an iFrame",
+	category:"Frame",
+
+    args: [
+	  { type: "actor", label: "iFrame Actor" },
+      { type: "raw", label: "Actor" },
+      { type: "raw", label: "Property" },
+      { type: "raw", label: "Value", defaultValue:"0" }
+    ],
+    build: (args) => `LTSetPropertyInIframe("${args[0]}", "${args[1]}", "${args[2]}", ${args[3]})`
+  },
+  
   "SnapToActor": {
     label: "Snap an actor to another",
 	category:"Actor",

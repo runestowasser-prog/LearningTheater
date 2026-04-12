@@ -970,7 +970,8 @@ function Collision(e1, e2, modifierX, modifierY) {
 }
 
 
-
+var LT_IFrameMessageQueue = [];
+var LT_IFrameMessagingInitialized = false;
 
 
 //intro.Opacity=100;
@@ -979,10 +980,8 @@ function StartLoop(){
 		SCORM_init();
 	}
 	gsap.ticker.add(Loop);
-//requestAnimationFrame(repeatOften);
+
 }
-//Start();
-//var DeltaRatio=gsap.ticker.deltaRatio();
 
 function FollowSLPlayer(){
 	if(FollowSL==true){
@@ -1016,8 +1015,41 @@ function Loop() {
   for (let i = 0; i < Elements.length; i++) {
     UpdateElement(Elements[i]);
   }
+  processIFrameMessages();
 }
 
+function processIFrameMessages() {
+  while (LT_IFrameMessageQueue.length > 0) {
+    const msg = LT_IFrameMessageQueue.shift();
+
+    const actor = FindActorByID(msg.target);
+    if (!actor) continue;
+
+    actor[msg.property] = msg.value;
+  }
+}
+
+function FindActorByID(id) {
+  for (let i = 0; i < Actors.length; i++) {
+    if (Actors[i].ID === id) return Actors[i];
+  }
+  return null;
+}
+
+function LTSetPropertyInIframe(iframeID, actorID, property, value) {
+  const iframeActor = FindActorByID(iframeID);
+  if (!iframeActor || !iframeActor.Loaded) return;
+
+  const iframeEl = elementId(iframeActor.ID);
+  if (!iframeEl || !iframeEl.contentWindow) return;
+
+  iframeEl.contentWindow.postMessage({
+    type: "LT_SET_ACTOR_PROPERTY",
+    target: actorID,
+    property: property,
+    value: value
+  }, "*");
+}
 
 function repeatOften(event) {
   // Kør Update og triggere
@@ -1039,7 +1071,7 @@ function repeatOften(event) {
 
 
 function init(){
-	
+	initIFrameMessaging();
 	Build();
 		document.getElementById("stage").style.overflow=Overflow+"";
 //	elementId("stage").style.overflowX="clip";
@@ -1054,6 +1086,7 @@ function init(){
 	}
 	attachTriggerListener("stage", "MouseDown");
 	attachTriggerListener("stage", "MouseUp");
+	
 
 	if (Scenes[0]!=undefined){
 		Scenes[0].Opacity=100;
@@ -1067,7 +1100,72 @@ function init(){
 	   
 }
 
+function initIFrameMessaging() {
+  if (LT_IFrameMessagingInitialized) return;
+  LT_IFrameMessagingInitialized = true;
 
+  window.addEventListener("message", function(event) {
+    const msg = event.data;
+
+    if (!msg) return;
+
+    // Vi accepterer kun vores egen type
+    if (msg.type === "LT_SET_ACTOR_PROPERTY") {
+      LT_IFrameMessageQueue.push(msg);
+    }
+  });
+}
+/*
+var duplicateCount=0;
+function DuplicateActor(baseID, count) {
+  const original = Elements.find(el => el.ID === baseID);
+  if (!original) {
+    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
+    return;
+  }
+
+  for (let i = 1; i <= count; i++) {
+    duplicateActorRecursive(original, null);
+  }
+}
+
+// Hjælpefunktion: dupliker actor + børn
+function duplicateActorRecursive(actor, newParentID) {
+  const clone = {};
+
+  // Kopiér værdier fra originalen
+  for (const key in actor) {
+    const value = actor[key];
+    if (typeof value !== "function" && key !== "CustomProps") {
+      clone[key] = Array.isArray(value)
+        ? [...value]
+        : (value && typeof value === "object")
+        ? { ...value }
+        : value;
+    }
+  }
+
+  // Unikt ID
+  duplicateCount++;
+  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
+
+  // Hvis vi duplikerer et barn, skal det pege på den nye forælder
+  if (newParentID) clone.Parent = newParentID;
+
+  // Tilføj til Elements
+  Elements.push(clone);
+  GenerateElement(clone);
+
+  // Find børn af originalen
+  const children = Elements.filter(el => el.Parent === actor.ID);
+
+  // Dupliker børnene rekursivt, med deres nye parent = denne klones ID
+  for (const child of children) {
+    duplicateActorRecursive(child, clone.ID);
+  }
+
+  return clone;
+}*/
 
 var duplicateCount=0;
 function DuplicateActor(baseID, count) {
@@ -1120,59 +1218,8 @@ function duplicateActorRecursive(actor, newParentID) {
   return clone;
 }
 
-var duplicateCount=0;
-function DuplicateActor(baseID, count) {
-  const original = Elements.find(el => el.ID === baseID);
-  if (!original) {
-    console.warn(\`Element med ID "\${baseID}" blev ikke fundet.\`);
-    return;
-  }
 
-  for (let i = 1; i <= count; i++) {
-    duplicateActorRecursive(original, null);
-  }
-}
-
-// Hjælpefunktion: dupliker actor + børn
-function duplicateActorRecursive(actor, newParentID) {
-  const clone = {};
-
-  // Kopiér værdier fra originalen
-  for (const key in actor) {
-    const value = actor[key];
-    if (typeof value !== "function" && key !== "CustomProps") {
-      clone[key] = Array.isArray(value)
-        ? [...value]
-        : (value && typeof value === "object")
-        ? { ...value }
-        : value;
-    }
-  }
-
-  // Unikt ID
-  duplicateCount++;
-  clone.ID = \`\${actor.ID}\${duplicateCount}\`;
-
-  // Hvis vi duplikerer et barn, skal det pege på den nye forælder
-  if (newParentID) clone.Parent = newParentID;
-
-  // Tilføj til Elements
-  Elements.push(clone);
-  GenerateElement(clone);
-
-  // Find børn af originalen
-  const children = Elements.filter(el => el.Parent === actor.ID);
-
-  // Dupliker børnene rekursivt, med deres nye parent = denne klones ID
-  for (const child of children) {
-    duplicateActorRecursive(child, clone.ID);
-  }
-
-  return clone;
-}
-
-
-var duplicateCount = 0;
+//var duplicateCount = 0;
 
 function DuplicateSceneAsActor(sceneID, options = {}) {
   const originalScene = Scenes.find(s => s.ID === sceneID);
@@ -1497,6 +1544,9 @@ function FilterEnsemble(name, property, compare, value) {
   window[name] = result;
   return result;
 }
+
+
+
 
 
 
