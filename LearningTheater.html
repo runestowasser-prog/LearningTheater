@@ -4233,30 +4233,49 @@ async function loadProjectFromSingleHTML() {
 	  }
 
 	  function dataUrlToBlob(dataUrl) {
-	  const [header, data] = dataUrl.split(",");
+		  const cleaned = String(dataUrl).trim();
 
-	  const mimeMatch = header.match(/data:([^;]+)/i);
-	  const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+		  if (!cleaned.startsWith("data:")) {
+			throw new Error("Not a data URL");
+		  }
 
-	  const isBase64 = header.includes(";base64");
+		  const commaIndex = cleaned.indexOf(",");
+		  if (commaIndex === -1) {
+			throw new Error("Malformed data URL");
+		  }
 
-	  let byteString;
+		  const header = cleaned.slice(0, commaIndex);
+		  const data = cleaned.slice(commaIndex + 1);
 
-	  if (isBase64) {
-		byteString = atob(data);
-	  } else {
-		byteString = decodeURIComponent(data);
-	  }
+		  const mimeMatch = header.match(/^data:([^;]+)/i);
+		  const mime = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+		  const isBase64 = /;base64/i.test(header);
 
-	  const arrayBuffer = new ArrayBuffer(byteString.length);
-	  const uintArray = new Uint8Array(arrayBuffer);
+		  let bytes;
 
-	  for (let i = 0; i < byteString.length; i++) {
-		uintArray[i] = byteString.charCodeAt(i);
-	  }
+		  if (isBase64) {
+			const normalized = data.replace(/\s+/g, "");
+			const binary = atob(normalized);
+			const arr = new Uint8Array(binary.length);
 
-	  return new Blob([uintArray], { type: mime });
-	}
+			for (let i = 0; i < binary.length; i++) {
+			  arr[i] = binary.charCodeAt(i);
+			}
+
+			bytes = arr;
+		  } else {
+			const decoded = decodeURIComponent(data);
+			const arr = new Uint8Array(decoded.length);
+
+			for (let i = 0; i < decoded.length; i++) {
+			  arr[i] = decoded.charCodeAt(i);
+			}
+
+			bytes = arr;
+		  }
+
+		  return new Blob([bytes], { type: mime });
+		}
 
 	function extractEmbeddedProjectJSON(htmlText) {
 	  const doc = new DOMParser().parseFromString(htmlText, "text/html");
@@ -4270,6 +4289,78 @@ async function loadProjectFromSingleHTML() {
 		return null;
 	  }
 	}
+
+function isWebsafeFont(fontName) {
+  const websafeFonts = [
+    "Arial",
+    "Verdana",
+    "Georgia",
+    "Times New Roman",
+    "Courier New",
+    "Tahoma",
+    "Trebuchet MS"
+  ];
+
+  return websafeFonts.includes(fontName);
+}
+
+function rebuildGlobalFontFromSingleHTMLContent(htmlText) {
+  if (!window.Project) window.Project = {};
+  if (!Project.assets) Project.assets = {};
+  Project.settings = Project.settings || {};
+
+  let selected = Project.settings.GlobalFont;
+  if (!selected || isWebsafeFont(selected)) return;
+
+  const blockMatch = htmlText.match(
+    /@font-face\s*{[\s\S]*?font-family:\s*['"]LT_Global_Font['"][\s\S]*?}/i
+  );
+
+  if (!blockMatch) {
+    console.warn("Could not find LT_Global_Font block in HTML.");
+    return;
+  }
+
+  const block = blockMatch[0];
+  const dataMatch = block.match(/url\((['"]?)(data:[^)'"]+)\1\)/i);
+
+  if (!dataMatch) {
+    console.warn("Could not find embedded font data URL in HTML.");
+    return;
+  }
+
+  const dataUrl = dataMatch[2];
+
+  try {
+    const blob = dataUrlToBlob(dataUrl);
+    const objectUrl = URL.createObjectURL(blob);
+
+    // Hvis GlobalFont er blevet til data URL, så giv den et rigtigt navn igen
+    if (typeof selected !== "string" || selected.startsWith("data:")) {
+      let ext = "woff";
+
+      const mime = blob.type || "";
+      if (mime.includes("woff2")) ext = "woff2";
+      else if (mime.includes("woff")) ext = "woff";
+      else if (mime.includes("ttf")) ext = "ttf";
+      else if (mime.includes("otf")) ext = "otf";
+
+      selected = `embedded_font.${ext}`;
+      Project.settings.GlobalFont = selected;
+    }
+
+    Project.assets[selected] = {
+      name: selected,
+      blob,
+      url: objectUrl,
+      originalDataUrl: dataUrl
+    };
+
+    addAssetToLibraryUI(selected, objectUrl);
+  } catch (err) {
+    console.error("Failed to rebuild global font asset:", err);
+  }
+}
 
 async function rebuildLibraryFromSingleHTMLContent(htmlText) {
   if (!window.Project) window.Project = {};
@@ -4293,7 +4384,7 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
       "font/woff": "woff",
       "font/woff2": "woff2",
       "font/ttf": "ttf",
-      "application/font-woff": "woff",
+      /*"application/font-woff": "woff",*/
 	  "text/html": "html",
     };
 
@@ -4495,9 +4586,9 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
 	}
 
 	const rewrittenContent = await rebuildLibraryFromSingleHTMLContent(content);
-	console.log("Before load:", Project.settings);
+	rebuildGlobalFontFromSingleHTMLContent(rewrittenContent);
 	loadProjectFromHtmlString(rewrittenContent);
-	console.log("After load:", Project.settings);
+	
 	
 
   } catch (err) {
@@ -4505,6 +4596,40 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
     alert("Failed to load project.");
   } finally {
     parent.__loadingFromFile = false;
+  }
+}
+
+function applyProjectSettingsToUI() {
+  const s = Project.settings || {};
+
+  if (s.stageWidth != null) {
+    document.getElementById("StageWidthInput").value = s.stageWidth;
+  }
+
+  if (s.stageHeight != null) {
+    document.getElementById("StageHeightInput").value = s.stageHeight;
+  }
+
+  if (s.scaling != null) {
+    document.getElementById("ScalingInput").value = s.scaling;
+  }
+
+  if (s.overflow != null) {
+    document.getElementById("OverflowInput").value = s.overflow;
+  }
+
+  if (s.scorm != null) {
+    document.getElementById("ScormInput").checked = !!s.scorm;
+  }
+
+  if (s.followSL != null) {
+    document.getElementById("SLInput").checked = !!s.followSL;
+  }
+
+  populateFontSelect();
+
+  if (s.GlobalFont) {
+    document.getElementById("FontInput").value = s.GlobalFont;
   }
 }
 
@@ -4521,7 +4646,7 @@ function loadProjectFromHtmlString(content) {
 	var splitHTML = content.split("<!--- ✂✂✂ --->");
 
 	var generalCode = splitCode[1];
-	var settings = extractSettingsFromCode(content);
+/*	var settings = extractSettingsFromCode(content);
 	
 	if (Project.settings) {
 	if (Project.settings.stageWidth != null) settings.StageWidth = Project.settings.stageWidth;
@@ -4531,7 +4656,8 @@ function loadProjectFromHtmlString(content) {
 	if (Project.settings.scorm != null) settings.SCORMTracking = Project.settings.scorm;
 	if (Project.settings.followSL != null) settings.FollowSL = Project.settings.followSL;
 	}
-	
+*/
+	applyProjectSettingsToUI()	
 	var buildCode = splitCode[3];
 	var tweenCode = splitCode[4];
 	var updateCode = splitCode[6];
@@ -6233,7 +6359,7 @@ const dropzone = document.getElementById("libraryDropzone");
 		files.forEach(addToLibrary);
 });
 
-
+setTimeout(function(){ showPreview(); }, 1000);
 showPreview();
 } 
 //showPreview();
