@@ -703,7 +703,7 @@ function GenerateElement(id){
 		if (id.Source) {
 
 			let resolvedSource = id.Source;
-
+			try{
 			if (
 				window.parent &&
 				window.parent.Project &&
@@ -712,6 +712,7 @@ function GenerateElement(id){
 			) {
 				resolvedSource = window.parent.Project.assets[resolvedSource].url;
 			}
+			}catch(err){}
 
 			// encode path
 			resolvedSource = encodeURI(resolvedSource);
@@ -812,7 +813,7 @@ function GenerateElement(id){
 		
 		if (id.Mask) {
 			let resolvedMask = id.Mask;
-
+			try{
 			if (
 				window.parent &&
 				window.parent.Project &&
@@ -821,7 +822,7 @@ function GenerateElement(id){
 			) {
 				resolvedMask = window.parent.Project.assets[resolvedMask].url;
 			}
-
+			}catch(err){}
 			// encode path
 			resolvedMask = encodeURI(resolvedMask);
 			

@@ -9,7 +9,7 @@ const ConditionFunctions = {
     label: "Volume is",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor" },
+      { type: "actor", label: "media Actor", actorTypes: ["audio","video"] },
 	  { type: "compare", label: "", defaultValue: "=="},
       { type: "raw", label: "Volume", defaultValue:"0" }
 
@@ -22,7 +22,7 @@ const ConditionFunctions = {
 	category:"Media",
 
     args: [
-      { type: "actor", label: "Actor" },
+      { type: "actor", label: "Actor", actorTypes: ["audio","video"] },
 	  { type: "compare", label: "", defaultValue: "=="},
       { type: "raw", label: "Duration", defaultValue:"0" }
     ],
@@ -34,7 +34,7 @@ const ConditionFunctions = {
 	category:"Media",
 
     args: [
-      { type: "actor", label: "Actor" },
+      { type: "actor", label: "Actor", actorTypes: ["audio","video"] },
 	  { type: "compare", label: "", defaultValue: "=="},
       { type: "raw", label: "Current time", defaultValue:"0" }
     ],
@@ -386,7 +386,7 @@ const ActionFunctions = {
     label: "Play media",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor", defaultValue:"Actors[0]" }
+      { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] }
     ],
     build: (args) => `Play(${args[0]})`
   },
@@ -394,7 +394,7 @@ const ActionFunctions = {
     label: "Pause media",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor", defaultValue:"Actors[0]" }
+      { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] }
     ],
     build: (args) => `Pause(${args[0]})`
   },
@@ -402,7 +402,7 @@ const ActionFunctions = {
     label: "Stop media",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor", defaultValue:"Actors[0]" }
+      { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] }
     ],
     build: (args) => `Stop(${args[0]})`
   },
@@ -410,7 +410,7 @@ const ActionFunctions = {
     label: "Set time of media",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor", defaultValue:"Actors[0]" },
+      { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] },
       { type: "raw", label: "time", defaultValue:"0" }
 
     ],
@@ -420,7 +420,7 @@ const ActionFunctions = {
     label: "Set Volume of media",
 	category:"Media",
     args: [
-      { type: "actor", label: "media Actor", defaultValue:"Actors[0]" },
+      { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] },
       { type: "raw", label: "time", defaultValue:"0" }
 
     ],
@@ -592,7 +592,7 @@ const ActionFunctions = {
 	category:"Frame",
 
     args: [
-	  { type: "actor", label: "iFrame Actor" },
+	  { type: "actor", label: "iFrame Actor", actorTypes: ["iframe"] },
       { type: "raw", label: "Actor" },
       { type: "raw", label: "Property" },
       { type: "raw", label: "Value", defaultValue:"0" }
@@ -664,7 +664,7 @@ const ActionFunctions = {
   },
 
     "FireActor": {
-    label: "Fire an Actor",
+    label: "Sack an Actor",
 	category:"Actor",
 
     args: [
@@ -790,7 +790,8 @@ const ActionFunctions = {
     { 
 	  type: "actor", 
 	  label: " Actor: ",
-	  defaultValue:"Actors[0]" 
+	  defaultValue:"Actors[0]",
+	  actorTypes: ["div"],
 	  },
     {
       type: "dropdown",
@@ -858,7 +859,8 @@ const ActionFunctions = {
     {
       type: "actor",
       label: "SVG container",
-      defaultValue: "Actors[0]"
+      defaultValue: "Actors[0]",
+	  actorTypes: ["div"],
     },
     {
       type: "dropdown",
@@ -936,7 +938,7 @@ const ActionFunctions = {
   category: "SVG (embedded only)",
 
   args: [
-    { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
+    { type: "actor", label: "SVG container", defaultValue: "Actors[0]", actorTypes: ["div"] },
     { type: "dropdown", label: "Mode", options: ["all-together","stagger","sequence"], defaultValue: "sequence" },
     { type: "raw", label: "Duration (per path)", defaultValue: "1" },
     { type: "raw", label: "Delay", defaultValue: "0" }
@@ -976,7 +978,7 @@ const ActionFunctions = {
   category: "SVG (embedded only)",
 
   args: [
-    { type: "actor", label: "SVG container", defaultValue: "Actors[0]" },
+    { type: "actor", label: "SVG container", defaultValue: "Actors[0]", actorTypes: ["div"] },
     { type: "dropdown", label: "Mode", options: ["all-together","stagger","sequence"], defaultValue: "all-together" },
     { type: "raw", label: "Duration (per element)", defaultValue: "1" },
     { type: "raw", label: "Delay", defaultValue: "0" }
@@ -1236,7 +1238,7 @@ if (${args[0]}.VolumeData) {
   category: ["Audio", "Media"],
 
   args: [
-    { label: "Audio Actor", type: "actor" },
+    { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
     { label: "Target Actor", type: "actor" },
     { label: "Property", type: "property" },
     { label: "Min Value", type: "raw", defaultValue:"0" },
@@ -1281,7 +1283,7 @@ if (${args[0]}.VolumeData) {
   category: ["Audio", "Media"],
 
   args: [
-    { label: "Audio Actor", type: "actor" },
+    { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
 
     { label: "Silent Mouth Actor", type: "actor" },
     { label: "Talking Mouth 1", type: "actor" },
@@ -1594,7 +1596,7 @@ if (${args[0]}.VolumeData) {
   category: ["Media", "Audio", "Timeline"],
 
   args: [
-    { label: "Audio Actor", type: "actor" },
+    { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
     { label: "Scene", type: "scene" },
     { label: "Tolerance (seconds)", type: "raw", defaultValue: "0.1" },
     { label: "Time Offset (seconds)", type: "raw", defaultValue: "0" }
