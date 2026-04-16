@@ -1632,17 +1632,25 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
     let input;
 
     switch (arg.type) {
-      case "actor":
-        input = document.createElement("select");
-        AllActors.forEach(actor => {
-          const option = document.createElement("option");
-          option.value = actor.ID;
-          option.textContent = actor.ID;
-          input.appendChild(option);
-        });
-        input.value = argsValues[index] || "";
-        break;
+		case "actor": {
+		  input = document.createElement("select");
 
+		  const actorTypes = arg.actorTypes;
+		  
+
+		  AllActors.forEach(actor => {
+			if (actorTypes && !actorTypes.includes(actor.Type)) return;
+
+			const option = document.createElement("option");
+			option.value = actor.ID;
+			option.textContent = actor.ID;
+			input.appendChild(option);
+		  });
+
+		  input.value = argsValues[index] || "";
+		  break;
+		}
+		
       case "scene":
         input = document.createElement("select");
         AllScenes.forEach(scene => { // Hvis du har AllScenes
@@ -1804,7 +1812,7 @@ case "ensemble": {
   }
 
   function findEnsembles(pw) {
-    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements"];
+    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements", "LT_IFrameMessageQueue"];
     return Object.keys(pw || {}).filter(k => {
       try {
         const v = pw[k];
@@ -1830,6 +1838,28 @@ function updateDropdown() {
     return;
   }
 
+  let resolvedValue = "";
+
+  // Behold loaded værdi hvis den findes i listen
+  if (previousValue && candidates.includes(previousValue)) {
+    resolvedValue = previousValue;
+  }
+  // Auto-vælg kun hvis der kun er én mulighed
+  else if (candidates.length === 1) {
+    resolvedValue = candidates[0];
+  }
+
+  // Hvis der er flere muligheder og ingen valgt værdi,
+  // så indsæt en tom placeholder øverst
+  if (!resolvedValue && candidates.length > 1) {
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "(select ensemble)";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    input.appendChild(placeholder);
+  }
+
   candidates.forEach(name => {
     const opt = document.createElement("option");
     opt.value = name;
@@ -1837,18 +1867,18 @@ function updateDropdown() {
     input.appendChild(opt);
   });
 
-  const resolvedValue =
-    previousValue && candidates.includes(previousValue)
-      ? previousValue
-      : candidates[0];
+  if (resolvedValue) {
+    input.value = resolvedValue;
 
-  input.value = resolvedValue;
-
-  if (argsValues[index] !== resolvedValue) {
-    argsValues[index] = resolvedValue;
-    try { onChange(index, resolvedValue); } catch (e) {}
+    if (argsValues[index] !== resolvedValue) {
+      argsValues[index] = resolvedValue;
+      try { onChange(index, resolvedValue); } catch (e) {}
+    }
+  } else {
+    input.value = "";
   }
 }
+
   // Når brugeren vælger noget manuelt
   input.addEventListener("change", () => {
     argsValues[index] = input.value;
@@ -1860,7 +1890,7 @@ function updateDropdown() {
   //input.addEventListener("focus", updateDropdown);
 
   // Initial setup
-  updateDropdown();
+  setTimeout(updateDropdown, 0);
 
   break;
 }
@@ -3022,9 +3052,10 @@ function loadFullString(fullText) {
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(fullText);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
-parent.renderTriggerEditor("triggerEditor");	
-	//setTimeout(function(){ showPreview(); }, 1000);
+//parent.renderTriggerEditor("triggerEditor");	
+	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
+	parent.renderTriggerEditor("triggerEditor");	
 	
 
 }
@@ -3920,9 +3951,10 @@ function loadFileAsText(){
 		
 	parent.GeneratedTriggers = extractTriggersFromHTML(textFromFileLoaded);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
-parent.renderTriggerEditor("triggerEditor");	
+//parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
+	parent.renderTriggerEditor("triggerEditor");	
 	
 	const previewWin = elementId("PreviewWindow").contentWindow;
 
@@ -4328,7 +4360,7 @@ function rebuildGlobalFontFromSingleHTMLContent(htmlText) {
     console.warn("Could not find embedded font data URL in HTML.");
     return;
   }
-
+e
   const dataUrl = dataMatch[2];
 
   try {
@@ -4684,10 +4716,10 @@ function loadProjectFromHtmlString(content) {
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(content);
 	console.log("Loaded triggers:", parent.GeneratedTriggers);
-parent.renderTriggerEditor("triggerEditor");	
+//parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
-
+	parent.renderTriggerEditor("triggerEditor");	
 	
 }
  
