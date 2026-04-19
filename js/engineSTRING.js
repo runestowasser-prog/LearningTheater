@@ -1046,6 +1046,15 @@ function LTSetPropertyInIframe(iframeID, actorID, property, value) {
   }, "*");
 }
 
+function LTSetActorProperty(target, property, value) {
+  parent.postMessage({
+    type: "LT_SET_ACTOR_PROPERTY",
+    target: target,
+    property: property,
+    value: value
+  }, "*");
+}
+
 function repeatOften(event) {
   // Kør Update og triggere
   Update(runTriggers("Update"));
