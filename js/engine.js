@@ -342,7 +342,7 @@ function SceneTransition(Transition,Duration,direction,ThisScene,Next){
 	var thisScene=ThisScene;
 	var next=Next
 	
-  console.log("transition triggered")
+  //console.log("transition triggered")
   if(Transition=="Slide"&&direction=="Left"){
 	gsap.to(thisScene, {duration: Duration, X: -StageWidth,ease:"power2.inOut"});
 	gsap.set(thisScene, {Opacity:0, delay:Duration});
@@ -856,9 +856,7 @@ function GenerateElement(id){
 			
 		if(id.Draggable==true){
 			x.setAttribute("onmousedown","mouseDown("+id.ID+");  "+id.MouseDown+";");
-			x.setAttribute("ontouchstart","touchStart("+id.ID+");"+id.MouseDown+";");
 			x.setAttribute("onmouseup","mouseUp("+id.ID+"); "+id.MouseUp+";"+id.DropFunction);
-			x.setAttribute("ontouchend","mouseUp("+id.ID+"); "+id.DropFunction);
 			//x.style.cursor="pointer";
 		}
   Div1.appendChild(x);
@@ -888,8 +886,6 @@ function mouseDown(e){
 		e.dragging=true;
 		e.initX=MouseX-e.X;
 		e.initY=MouseY-e.Y;
-//		e.X=MouseX-(e.Width/2);
-//		e.Y=MouseY-(e.Height/2);
 	}
 }
 function touchStart(e){
@@ -904,7 +900,6 @@ function touchStart(e){
 
 function mouseUp(e){
 	e.dragging=false;
-
 }
 
 
@@ -1114,7 +1109,7 @@ function initIFrameMessaging() {
     }
   });
 }
-/*
+
 var duplicateCount=0;
 function DuplicateActor(baseID, count) {
   const original = Elements.find(el => el.ID === baseID);
@@ -1130,6 +1125,7 @@ function DuplicateActor(baseID, count) {
 
 // Hjælpefunktion: dupliker actor + børn
 function duplicateActorRecursive(actor, newParentID) {
+	
   const clone = {};
 
   // Kopiér værdier fra originalen
@@ -1152,71 +1148,98 @@ function duplicateActorRecursive(actor, newParentID) {
   if (newParentID) clone.Parent = newParentID;
 
   // Tilføj til Elements
+  //Actor(clone.ID,clone.Type);
+   GenerateElement(clone);
+   window[clone.ID] = clone;
   Elements.push(clone);
-  GenerateElement(clone);
+ 
+  
 
   // Find børn af originalen
   const children = Elements.filter(el => el.Parent === actor.ID);
 
   // Dupliker børnene rekursivt, med deres nye parent = denne klones ID
+  for (const child of children) {
+    duplicateActorRecursive(child, clone.ID);
+  }
+  
+  return clone;
+}
+/*
+var duplicateCount = 0;
+
+function DuplicateActor(baseID, count) {
+  const original = Elements.find(el => el.ID === baseID);
+  if (!original) {
+    console.warn(`Element med ID "${baseID}" blev ikke fundet.`);
+    return;
+  }
+
+  for (let i = 0; i < count; i++) {
+    duplicateActorRecursive(original, null);
+  }
+}
+
+function duplicateActorRecursive(actor, newParentID) {
+  // Find originale børn FØR vi laver klonen
+  const children = Elements.filter(el => el.Parent === actor.ID);
+
+  // Lav nyt unikt ID
+  duplicateCount++;
+  const newID = `${actor.ID}${duplicateCount}`;
+
+  // Opret ny rigtig actor via engine-funktionerne
+  Actor(newID, actor.Type);
+
+  // Find den nyoprettede actor i Elements
+  const clone = Elements.find(el => el.ID === newID);
+
+  if (!clone) {
+    console.warn(`Klon med ID "${newID}" kunne ikke oprettes.`);
+    return null;
+  }
+
+  // Saml props der skal kopieres
+  const copiedProps = {};
+
+  for (const key in actor) {
+    const value = actor[key];
+
+    // Spring ting over som ikke skal kopieres direkte
+    if (key === "ID") continue;
+    if (key === "Parent") continue;
+    if (key === "Type") continue;
+    if (key === "CustomProps") continue;
+    if (typeof value === "function") continue;
+
+    copiedProps[key] = Array.isArray(value)
+      ? [...value]
+      : (value && typeof value === "object")
+      ? structuredClone(value)
+      : value;
+  }
+
+  // Parent skal enten være ny parent eller samme som original
+  copiedProps.Parent = newParentID || actor.Parent;
+
+  // Kopiér evt. CustomProps
+  if (actor.CustomProps) {
+    copiedProps.CustomProps = structuredClone(actor.CustomProps);
+  }
+
+  // Sæt properties via dit eget system
+  ActorProps(clone, copiedProps);
+
+  // Byg DOM
+  GenerateElement(clone);
+	Elements.push(clone);
+  // Dupliker børn rekursivt med ny parent
   for (const child of children) {
     duplicateActorRecursive(child, clone.ID);
   }
 
   return clone;
 }*/
-
-var duplicateCount=0;
-function DuplicateActor(baseID, count) {
-  const original = Elements.find(el => el.ID === baseID);
-  if (!original) {
-    console.warn(`Element med ID "${baseID}" blev ikke fundet.`);
-    return;
-  }
-
-  for (let i = 1; i <= count; i++) {
-    duplicateActorRecursive(original, null);
-  }
-}
-
-// Hjælpefunktion: dupliker actor + børn
-function duplicateActorRecursive(actor, newParentID) {
-  const clone = {};
-
-  // Kopiér værdier fra originalen
-  for (const key in actor) {
-    const value = actor[key];
-    if (typeof value !== "function" && key !== "CustomProps") {
-      clone[key] = Array.isArray(value)
-        ? [...value]
-        : (value && typeof value === "object")
-        ? { ...value }
-        : value;
-    }
-  }
-
-  // Unikt ID
-  duplicateCount++;
-  clone.ID = `${actor.ID}${duplicateCount}`;
-
-  // Hvis vi duplikerer et barn, skal det pege på den nye forælder
-  if (newParentID) clone.Parent = newParentID;
-
-  // Tilføj til Elements
-  Elements.push(clone);
-  GenerateElement(clone);
-
-  // Find børn af originalen
-  const children = Elements.filter(el => el.Parent === actor.ID);
-
-  // Dupliker børnene rekursivt, med deres nye parent = denne klones ID
-  for (const child of children) {
-    duplicateActorRecursive(child, clone.ID);
-  }
-
-  return clone;
-}
-
 
 //var duplicateCount = 0;
 
