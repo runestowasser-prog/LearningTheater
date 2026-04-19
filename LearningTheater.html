@@ -354,7 +354,7 @@ summary.appendChild(makeBtn("📝", "Rename", () => {
   //renderTriggerEditor?.("triggerEditor"); // opdater editor-visningen så den reflekterer ændringer
    BuildCode.setValue(exportToCode());
   showPreview();
-  console.log(`Renamed ${item.__type} ${oldID} → ${newID}`);
+  //console.log(`Renamed ${item.__type} ${oldID} → ${newID}`);
 }));
 
 
@@ -723,13 +723,13 @@ function createMaskSelect(actor) {
 	const currentValue = actor.Mask || "";
 	maskSelect.value = currentValue;
 
-	console.log("createMaskSelect currentValue:", currentValue);
-	console.log("createMaskSelect actor before:", actor);
+	//console.log("createMaskSelect currentValue:", currentValue);
+	//console.log("createMaskSelect actor before:", actor);
 
 	maskSelect.addEventListener("change", () => {
 		const value = maskSelect.value;
 
-		console.log("Mask changed to:", value);
+		//console.log("Mask changed to:", value);
 
 		actor.Mask = value;
 
@@ -739,7 +739,7 @@ function createMaskSelect(actor) {
 
 		updateOriginalArray(actor, { Mask: value });
 
-		console.log("actor after mask set:", actor);
+		//console.log("actor after mask set:", actor);
 
 		showPreview();
 	});
@@ -3019,7 +3019,7 @@ function loadFullString(fullText) {
 
 	if (settings.FollowSL !== null)
 		document.getElementById("SLInput").checked = settings.FollowSL;
-		console.log(settings);
+		//console.log(settings);
 	
     BuildCode.setValue(buildCode);
     AllTweens = tweenCode.split("//Tween");
@@ -3051,7 +3051,7 @@ function loadFullString(fullText) {
 		
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(fullText);
-	console.log("Loaded triggers:", parent.GeneratedTriggers);
+	//console.log("Loaded triggers:", parent.GeneratedTriggers);
 //parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
@@ -3071,7 +3071,7 @@ function restoreTriggersFromPreview() {
 	const interval = setInterval(() => {
 
 		if (previewWin && previewWin.Triggers && previewWin.Triggers.length >= 0) {
-			console.log(previewWin.Triggers);
+			//console.log(previewWin.Triggers);
 			clearInterval(interval);
 
 			//parent.GeneratedTriggers = structuredClone(previewWin.Triggers);
@@ -3912,7 +3912,7 @@ function loadFileAsText(){
 
 	if (settings.FollowSL !== null)
 		document.getElementById("SLInput").checked = settings.FollowSL;
-		console.log(settings);
+		//console.log(settings);
 		
 		
 		var buildCode = splitCode[3]
@@ -3950,7 +3950,7 @@ function loadFileAsText(){
 		select.add(option);
 		
 	parent.GeneratedTriggers = extractTriggersFromHTML(textFromFileLoaded);
-	console.log("Loaded triggers:", parent.GeneratedTriggers);
+	//console.log("Loaded triggers:", parent.GeneratedTriggers);
 //parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
@@ -4101,7 +4101,7 @@ function addAssetToLibraryUI(filename, url) {
 	nameSpan.textContent = filename;
 
 	nameSpan.onclick = function () {
-		console.log("Selected:", filename);
+		//console.log("Selected:", filename);
 	};
 
 	// 🔹 Delete-knap
@@ -4715,7 +4715,7 @@ function loadProjectFromHtmlString(content) {
 	ShowSelectedScript(BuildSpecial,'Actors',BuildSpecial);
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(content);
-	console.log("Loaded triggers:", parent.GeneratedTriggers);
+	//console.log("Loaded triggers:", parent.GeneratedTriggers);
 //parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
@@ -5182,7 +5182,7 @@ function renderLibrary() {
         li.textContent = filename;
 
         li.onclick = () => {
-            console.log("Selected:", filename);
+            //console.log("Selected:", filename);
         };
 
         list.appendChild(li);
