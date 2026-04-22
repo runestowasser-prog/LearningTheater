@@ -1203,7 +1203,6 @@ function applyDuplicateOverrides(clone, overrides, original, copyIndex) {
 		}
 	  }
 	}
-
     // {i} replacement
     if (typeof value === "string" && value.includes("{i}")) {
       clone[key] = value.replace(/\{i\}/g, copyIndex);
@@ -1263,10 +1262,33 @@ function DuplicateSceneAsActor(sceneID, options = {}) {
 
 
 
-function DeleteActor(a){
-	Elements.splice(Elements.findIndex(v => v.ID === a.ID),1)
-	elementId(a).remove();
+function DeleteActor(a) {
+  if (!a) return;
+
+  const children = Elements.filter(el => el.Parent === a.ID).slice();
+
+  for (const child of children) {
+    DeleteActor(child);
+  }
+
+  if (typeof gsap !== "undefined") {
+    gsap.killTweensOf(a);
+  }
+
+  const el = document.getElementById(a.ID);
+
+  const index = Elements.findIndex(v => v.ID === a.ID);
+  if (index !== -1) {
+    Elements.splice(index, 1);
+  }
+
+  if (el) {
+    el.remove();
+  }
+
+  delete window[a.ID];
 }
+
 
 
 function ShuffleEnsembleProperty(ensemble, property) {
@@ -1278,6 +1300,104 @@ function ShuffleEnsembleProperty(ensemble, property) {
   ensemble.forEach((a, i) => a[property] = values[i]);
 }
 
+function rand(amount = 0) {
+  return (Math.random() - 0.5) * amount;
+}
+
+function randRange(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function Burst(actorID, options = {}) {
+  const {
+    count = 20,
+    distance = 300,
+    distanceRandom = 0,
+    duration = 1,
+    durationRandom = 0,
+    spread = 360,
+    startAngle = 0,
+    angleRandom = 0,
+    xRandom = 0,
+    yRandom = 0,
+    fade = true,
+    remove = true,
+    scaleMin = 1,
+    scaleMax = 1,
+    opacityRandom = 0,
+    rotationRandom = 0,
+    stagger = 0,
+    ease = "power2.out",
+    gravity = 0
+  } = options;
+
+  const original = Elements.find(el => el.ID === actorID);
+  if (!original) {
+    console.warn(\`Burst: Actor med ID "\${actorID}" blev ikke fundet.\`);
+    return;
+  }
+
+  for (let i = 0; i < count; i++) {
+    const clone = duplicateActorRecursive(original, null);
+    if (!clone) continue;
+
+    const spawnX = original.X + rand(xRandom);
+    const spawnY = original.Y + rand(yRandom);
+
+    clone.X = spawnX;
+    clone.Y = spawnY;
+
+    clone.Scale = randRange(scaleMin, scaleMax);
+
+    if (rotationRandom) {
+      clone.RotateZ = rand(rotationRandom);
+    }
+
+    if (opacityRandom) {
+      clone.Opacity = Math.max(0, Math.min(100, (clone.Opacity ?? 100) + rand(opacityRandom)));
+    }
+
+    const angleDeg = startAngle + Math.random() * spread + rand(angleRandom);
+    const angleRad = angleDeg * Math.PI / 180;
+
+    const finalDistance = distance + rand(distanceRandom);
+    const finalDuration = Math.max(0.01, duration + rand(durationRandom));
+
+    const targetX = spawnX + Math.cos(angleRad) * finalDistance;
+    const targetY = spawnY + Math.sin(angleRad) * finalDistance;
+
+    const delay = i * stagger;
+
+    // Bevægelse med rigtig gravity
+    const motion = { t: 0 };
+
+    gsap.to(motion, {
+      t: 1,
+      duration: finalDuration,
+      delay: delay,
+      ease: ease,
+      onUpdate: () => {
+        const t = motion.t;
+
+        clone.X = spawnX + (targetX - spawnX) * t;
+        clone.Y = spawnY + (targetY - spawnY) * t + gravity * t * t;
+      },
+      onComplete: () => {
+        if (remove) DeleteActor(clone);
+      }
+    });
+
+    // Fade separat
+    if (fade) {
+      gsap.to(clone, {
+        Opacity: 0,
+        duration: finalDuration,
+        delay: delay,
+        ease: "none"
+      });
+    }
+  }
+}
 
 
 function SceneStartTrigger() {
@@ -1552,7 +1672,6 @@ function FilterEnsemble(name, property, compare, value) {
   window[name] = result;
   return result;
 }
-
 
 
 

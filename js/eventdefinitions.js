@@ -1592,6 +1592,120 @@ if (${args[0]}.VolumeData) {
 `
 },
 
+"SyncMediaToSceneTimeline": {
+  label: "Sync Media To Scene Timeline",
+  category: ["Media", "Audio", "Video", "Timeline"],
+
+  args: [
+    { label: "Media Actor", type: "actor", actorTypes: ["audio", "video"] },
+    { label: "Scene", type: "scene" },
+    { label: "Tolerance (seconds)", type: "raw", defaultValue: "0.1" },
+    { label: "Time Offset (seconds)", type: "raw", defaultValue: "0" }
+  ],
+
+  build: (args) => `
+(function(){
+
+  const mediaActor = ${args[0]};
+  const media = elementId("${args[0]}");
+  if (!media) return;
+
+  const scene = ${args[1]};
+  if (!scene || !scene.Timeline) return;
+
+  const tl = scene.Timeline;
+
+  const tolerance = ${args[2]};
+  const offset = ${args[3]};
+
+  // --- Install visibility sync only once per media/scene pair ---
+  const visibilitySyncKey = "__ltVisibilitySync_" + "${args[0]}" + "_" + "${args[1]}";
+
+  if (!media[visibilitySyncKey]) {
+    media[visibilitySyncKey] = true;
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        media.pause();
+      }
+    });
+  }
+
+  const timelineTime = tl.time();
+  const desiredMediaTime = timelineTime - offset;
+
+  const hasDuration = Number.isFinite(media.duration) && media.duration > 0;
+
+  // --- If media metadata is not ready yet, only handle pause/play safely ---
+  if (!hasDuration) {
+    if (tl.paused() || document.hidden) {
+      if (!media.paused) media.pause();
+      return;
+    }
+
+    if (!tl.paused() && !document.hidden && media.paused && timelineTime >= offset) {
+      media.play().catch(() => {});
+    }
+
+    return;
+  }
+
+  // --- Before media start: park at 0 and pause ---
+  if (desiredMediaTime <= 0) {
+    if (Math.abs(media.currentTime) > tolerance) {
+      media.currentTime = 0;
+    }
+
+    if (!media.paused) {
+      media.pause();
+    }
+
+    return;
+  }
+
+  // --- After media end: park at end and pause ---
+  if (desiredMediaTime >= media.duration) {
+    if (Math.abs(media.currentTime - media.duration) > tolerance) {
+      media.currentTime = media.duration;
+    }
+
+    if (!media.paused) {
+      media.pause();
+    }
+
+    return;
+  }
+
+  // --- Clamp target time into legal media range ---
+  let targetTime = desiredMediaTime;
+
+  if (targetTime < 0) targetTime = 0;
+  if (targetTime > media.duration) targetTime = media.duration;
+
+  const drift = Math.abs(media.currentTime - targetTime);
+
+  // --- Drift correction ---
+  if (drift > tolerance) {
+    media.currentTime = targetTime;
+  }
+
+  // --- Pause if timeline is paused or tab is hidden ---
+  if ((tl.paused() || document.hidden) && !media.paused) {
+    media.pause();
+    return;
+  }
+
+  // --- Play only when timeline is active and offset has been reached ---
+  if (!tl.paused() && !document.hidden && media.paused) {
+    if (timelineTime >= offset) {
+      media.play().catch(() => {});
+    }
+  }
+
+})();
+`
+},
+
 "SyncAudioToSceneTimeline": {
   label: "Sync Audio To Scene Timeline",
   category: ["Media", "Audio", "Timeline"],
@@ -1618,11 +1732,55 @@ if (${args[0]}.VolumeData) {
   const tolerance = ${args[2]};
   const offset = ${args[3]};
 
+  // --- Install visibility sync only once per audio/scene pair ---
+  const visibilitySyncKey = "__ltVisibilitySync_" + "${args[0]}" + "_" + "${args[1]}";
+
+  if (!audio[visibilitySyncKey]) {
+    audio[visibilitySyncKey] = true;
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        audio.pause();
+      }
+    });
+  }
+
   const timelineTime = tl.time();
   const desiredAudioTime = timelineTime - offset;
 
-  // --- Clamp (audio can't go negative) ---
-  const targetTime = desiredAudioTime < 0 ? 0 : desiredAudioTime;
+  const hasDuration = Number.isFinite(audio.duration) && audio.duration > 0;
+
+  // --- Before audio start: keep audio parked at 0 and paused ---
+  if (desiredAudioTime <= 0) {
+    if (Math.abs(audio.currentTime - 0) > tolerance) {
+      audio.currentTime = 0;
+    }
+
+    if (!audio.paused) {
+      audio.pause();
+    }
+
+    return;
+  }
+
+  // --- After audio end: park at end and pause (prevents stuttering) ---
+  if (hasDuration && desiredAudioTime >= audio.duration) {
+    if (Math.abs(audio.currentTime - audio.duration) > tolerance) {
+      audio.currentTime = audio.duration;
+    }
+
+    if (!audio.paused) {
+      audio.pause();
+    }
+
+    return;
+  }
+
+  // --- Clamp target time into legal audio range ---
+  let targetTime = desiredAudioTime;
+
+  if (targetTime < 0) targetTime = 0;
+  if (hasDuration && targetTime > audio.duration) targetTime = audio.duration;
 
   const drift = Math.abs(audio.currentTime - targetTime);
 
@@ -1631,18 +1789,15 @@ if (${args[0]}.VolumeData) {
     audio.currentTime = targetTime;
   }
 
-  // --- Pause / Play sync ---
-  if (tl.paused() && !audio.paused) {
+  // --- Pause if timeline is paused or tab is hidden ---
+  if ((tl.paused() || document.hidden) && !audio.paused) {
     audio.pause();
+    return;
   }
 
-  if (!tl.paused() && audio.paused) {
-
-    // only play if timeline has passed offset
-    if (timelineTime >= offset) {
-      audio.play();
-    }
-
+  // --- Play only when timeline is active and target is inside audio range ---
+  if (!tl.paused() && !document.hidden && audio.paused) {
+    audio.play().catch(() => {});
   }
 
 })();
@@ -1660,6 +1815,147 @@ if (${args[0]}.VolumeData) {
     build: (args) => `elementId("${args[1]}").appendChild(elementId("${args[0]}")); ${args[0]}.Opacity=100; ${args[0]}.Timeline.play();
 	`
   },
+  
+  
+  
+  "Burst": {
+	  label: "Burst / Particle Effect",
+	  category: "Effects",
+
+	  args: [
+		{ type: "actor", label: " Actor: ", defaultValue: "Actors[0]" },
+		{ type: "raw", label: " Count: ", defaultValue: "20" },
+		{ type: "raw", label: " Distance: ", defaultValue: "300" },
+		{ type: "raw", label: " Duration (sec): ", defaultValue: "1" },
+		{ type: "raw", label: " Spread (deg): ", defaultValue: "360" },
+		{ type: "raw", label: " Extra options: ", defaultValue: 'fade:true, remove:true, scaleMin:0.8, scaleMax:1.2' }
+	  ],
+
+	  build: (args) => `Burst("${args[0]}", {
+		count: ${args[1]},
+		distance: ${args[2]},
+		duration: ${args[3]},
+		spread: ${args[4]},
+		${args[5]}
+	  })`
+	},
+	
+		"Burst": {
+	  label: "Burst / Particle Effect Advanced",
+	  category: "Effects",
+
+	  args: [
+		{ type: "actor", label: " Actor: ", defaultValue: "Actors[0]" },
+		{ type: "number", label: " Count: ", defaultValue: "20" },
+		{ type: "number", label: " Distance: ", defaultValue: "300" },
+		{ type: "number", label: " Distance random: ", defaultValue: "0" },
+		{ type: "number", label: " Duration (sec): ", defaultValue: "1" },
+		{ type: "number", label: " Duration random: ", defaultValue: "0" },
+		{ type: "number", label: " Spread (deg): ", defaultValue: "360" },
+		{ type: "number", label: " Start angle: ", defaultValue: "0" },
+		{ type: "number", label: " Angle random: ", defaultValue: "0" },
+		{ type: "number", label: " X random: ", defaultValue: "0" },
+		{ type: "number", label: " Y random: ", defaultValue: "0" },
+		{ type: "number", label: " Scale min: ", defaultValue: "1" },
+		{ type: "number", label: " Scale max: ", defaultValue: "1" },
+		{ type: "number", label: " Opacity random: ", defaultValue: "0" },
+		{ type: "number", label: " Rotation random: ", defaultValue: "0" },
+		{ type: "number", label: " Gravity: ", defaultValue: "0" },
+		{ type: "number", label: " Stagger: ", defaultValue: "0" },
+		{ type: "easing", label: "easing", defaultValue: "power1.out"},
+		{ type: "boolean", label: " Fade: ", defaultValue: "true" },
+		{ type: "boolean", label: " Remove: ", defaultValue: "true" }
+	  ],
+
+	  build: (args) => `Burst("${args[0]}",{
+		count:${args[1]},
+		distance:${args[2]},
+		distanceRandom:${args[3]},
+		duration:${args[4]},
+		durationRandom:${args[5]},
+		spread:${args[6]},
+		startAngle:${args[7]},
+		angleRandom:${args[8]},
+		xRandom:${args[9]},
+		yRandom:${args[10]},
+		scaleMin:${args[11]},
+		scaleMax:${args[12]},
+		opacityRandom:${args[13]},
+		rotationRandom:${args[14]},
+		gravity:${args[15]},
+		stagger:${args[16]},
+		ease:"${args[17]}",
+		fade:${args[18]},
+		remove:${args[19]}
+	  })`
+	},
+	
+	"Fireworks": {
+	  label: "Fireworks",
+	  category: "Effects",
+	  args: [
+		{ type: "actor", label: " Particle Actor: ", defaultValue: "Actors[0]" }
+	  ],
+	  build: (args) => `Burst("${args[0]}",{
+		count:40,
+		distance:500,
+		distanceRandom:150,
+		duration:1.4,
+		durationRandom:0.3,
+		spread:360,
+		scaleMin:0.5,
+		scaleMax:1.5,
+		opacityRandom:20,
+		rotationRandom:360,
+		fade:true,
+		remove:true
+	  })`
+	},
+	"Explosion": {
+	  label: "Explosion",
+	  category: "Effects",
+	  args: [
+		{ type: "actor", label: " Actor: ", defaultValue: "Actors[0]" }
+	  ],
+	  build: (args) => `Burst("${args[0]}",{
+		count:25,
+		distance:280,
+		distanceRandom:120,
+		duration:0.7,
+		durationRandom:0.2,
+		spread:360,
+		angleRandom:25,
+		scaleMin:0.8,
+		scaleMax:1.8,
+		rotationRandom:720,
+		fade:true,
+		remove:true
+	  })`
+	},
+	"Fire": {
+	  label: "Fire / Sparks",
+	  category: "Effects",
+	  args: [
+		{ type: "actor", label: " Particle Actor: ", defaultValue: "Actors[0]" }
+	  ],
+	  build: (args) => `Burst("${args[0]}",{
+		count:12,
+		distance:140,
+		distanceRandom:60,
+		duration:1,
+		durationRandom:0.4,
+		spread:50,
+		startAngle:245,
+		xRandom:20,
+		yRandom:10,
+		scaleMin:0.7,
+		scaleMax:1.3,
+		opacityRandom:15,
+		gravity:-80,
+		fade:true,
+		remove:true
+	  })`
+	}
 
 };
 
