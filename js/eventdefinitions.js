@@ -683,11 +683,12 @@ const ActionFunctions = {
     args: [
       { type: "actor", label: " Actor: ",defaultValue:"Actors[0]" },
       { type: "number", label: " times: ",defaultValue:"1" },
+	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
       
 
 
     ],
-    build: (args) => `DuplicateActor("${args[0]}",${args[1]})`
+    build: (args) => `DuplicateActor("${args[0]}",${args[1]},{${args[2]}})`
   },
 
 
