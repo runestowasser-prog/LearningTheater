@@ -1,5 +1,6 @@
 const ENGINESTRING=String`
 
+
 if (typeof Triggers === "undefined") {
   Triggers = [];
 }
@@ -1332,10 +1333,7 @@ function Burst(actorID, options = {}) {
   } = options;
 
   const original = Elements.find(el => el.ID === actorID);
-  if (!original) {
-    console.warn(\`Burst: Actor med ID "\${actorID}" blev ikke fundet.\`);
-    return;
-  }
+  if (!original) return;
 
   for (let i = 0; i < count; i++) {
     const clone = duplicateActorRecursive(original, null);
@@ -1366,39 +1364,31 @@ function Burst(actorID, options = {}) {
     const targetX = spawnX + Math.cos(angleRad) * finalDistance;
     const targetY = spawnY + Math.sin(angleRad) * finalDistance;
 
-    const delay = i * stagger;
-
-    // Bevægelse med rigtig gravity
-    const motion = { t: 0 };
-
-    gsap.to(motion, {
-      t: 1,
+    const tweenProps = {
+      X: targetX,
+      Y: targetY,
       duration: finalDuration,
-      delay: delay,
+      delay: i * stagger,
       ease: ease,
-      onUpdate: () => {
-        const t = motion.t;
-
-        clone.X = spawnX + (targetX - spawnX) * t;
-        clone.Y = spawnY + (targetY - spawnY) * t + gravity * t * t;
-      },
       onComplete: () => {
         if (remove) DeleteActor(clone);
       }
-    });
+    };
 
-    // Fade separat
-    if (fade) {
+    if (fade) tweenProps.Opacity = 0;
+
+    if (gravity) {
       gsap.to(clone, {
-        Opacity: 0,
+        Y: targetY + gravity,
         duration: finalDuration,
-        delay: delay,
-        ease: "none"
+        delay: i * stagger,
+        ease: ease
       });
     }
+
+    gsap.to(clone, tweenProps);
   }
 }
-
 
 function SceneStartTrigger() {
   runTriggers("SceneStart");
@@ -1672,6 +1662,7 @@ function FilterEnsemble(name, property, compare, value) {
   window[name] = result;
   return result;
 }
+
 
 
 
