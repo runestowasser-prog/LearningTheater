@@ -1074,6 +1074,7 @@ function repeatOften(event) {
 
 
 function init(){
+
 	initIFrameMessaging();
 	Build();
 		document.getElementById("stage").style.overflow=Overflow+"";
@@ -1089,6 +1090,7 @@ function init(){
 	}
 	attachTriggerListener("stage", "MouseDown");
 	attachTriggerListener("stage", "MouseUp");
+	KeyboardListener();
 	
 
 	if (Scenes[0]!=undefined){
@@ -1327,7 +1329,7 @@ function Burst(actorID, options = {}) {
     rotationRandom = 0,
     stagger = 0,
     ease = "power2.out",
-    gravity = 0
+    //gravity = 0
   } = options;
 
   const original = Elements.find(el => el.ID === actorID);
@@ -1342,6 +1344,7 @@ function Burst(actorID, options = {}) {
 
     clone.X = spawnX;
     clone.Y = spawnY;
+	clone.Opacity=100;
 
     clone.Scale = randRange(scaleMin, scaleMax);
 
@@ -1362,6 +1365,7 @@ function Burst(actorID, options = {}) {
     const targetX = spawnX + Math.cos(angleRad) * finalDistance;
     const targetY = spawnY + Math.sin(angleRad) * finalDistance;
 
+
     const tweenProps = {
       X: targetX,
       Y: targetY,
@@ -1375,14 +1379,6 @@ function Burst(actorID, options = {}) {
 
     if (fade) tweenProps.Opacity = 0;
 
-    if (gravity) {
-      gsap.to(clone, {
-        Y: targetY + gravity,
-        duration: finalDuration,
-        delay: i * stagger,
-        ease: ease
-      });
-    }
 
     gsap.to(clone, tweenProps);
   }
@@ -1502,6 +1498,46 @@ function MouseListener(){
       window.TriggerTarget = null;
     }
   });
+}
+
+function KeyboardListener() {
+  window._KeyState = window._KeyState || {};
+
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+
+    window._KeyState.isDown = true;
+    window._KeyState.code = e.code;
+    window._KeyState.key = e.key;
+    window.Key = window._KeyState;
+
+    runKeyTriggers("MouseDown", e.code);
+  });
+
+  document.addEventListener("keyup", (e) => {
+    window._KeyState.isDown = false;
+    window._KeyState.code = e.code;
+    window._KeyState.key = e.key;
+    window.Key = window._KeyState;
+
+    runKeyTriggers("MouseUp", e.code);
+  });
+}
+
+function runKeyTriggers(eventName, keyCode) {
+  if (!Array.isArray(Triggers)) return;
+
+  for (const trigger of Triggers) {
+    if (!trigger || trigger.event !== eventName) continue;
+    if (!trigger.key || trigger.key !== keyCode) continue;
+
+    const actorId = trigger.target || null;
+
+    window.TriggerTarget = actorId;
+    executeTrigger(trigger);
+  }
+
+  window.TriggerTarget = null;
 }
 
 function attachTriggerListener(containerId, eventType) {
