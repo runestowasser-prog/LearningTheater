@@ -180,7 +180,8 @@ if (typeof window.actorFoldState === "undefined") {
 
 function createList(groupedItems, parentId = "stage", level = 0) {
   const container = document.createElement("div");
-  container.style.marginLeft = `${level * 10}px`;
+  container.className="actor-tree"
+  container.style.marginLeft = `${level +5}px`;
 
   const items = groupedItems[parentId] || [];
 
@@ -1828,37 +1829,10 @@ function updateDropdown() {
 
   input.innerHTML = "";
 
-  if (candidates.length === 0) {
-    const none = document.createElement("option");
-    none.textContent = "(no ensembles)";
-    none.value = "";
-    none.disabled = true;
-    none.selected = true;
-    input.appendChild(none);
-    return;
-  }
-
-  let resolvedValue = "";
-
-  // Behold loaded værdi hvis den findes i listen
-  if (previousValue && candidates.includes(previousValue)) {
-    resolvedValue = previousValue;
-  }
-  // Auto-vælg kun hvis der kun er én mulighed
-  else if (candidates.length === 1) {
-    resolvedValue = candidates[0];
-  }
-
-  // Hvis der er flere muligheder og ingen valgt værdi,
-  // så indsæt en tom placeholder øverst
-  if (!resolvedValue && candidates.length > 1) {
-    const placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "(select ensemble)";
-    placeholder.disabled = true;
-    placeholder.selected = true;
-    input.appendChild(placeholder);
-  }
+  const none = document.createElement("option");
+  none.value = "";
+  none.textContent = "(none)";
+  input.appendChild(none);
 
   candidates.forEach(name => {
     const opt = document.createElement("option");
@@ -1867,13 +1841,8 @@ function updateDropdown() {
     input.appendChild(opt);
   });
 
-  if (resolvedValue) {
-    input.value = resolvedValue;
-
-    if (argsValues[index] !== resolvedValue) {
-      argsValues[index] = resolvedValue;
-      try { onChange(index, resolvedValue); } catch (e) {}
-    }
+  if (previousValue && candidates.includes(previousValue)) {
+    input.value = previousValue;
   } else {
     input.value = "";
   }
@@ -1887,7 +1856,7 @@ function updateDropdown() {
 
   // Opdatér listen når dropdown’en åbnes/fokuseres
   input.addEventListener("mousedown", updateDropdown);
-  //input.addEventListener("focus", updateDropdown);
+  input.addEventListener("focus", updateDropdown);
 
   // Initial setup
   setTimeout(updateDropdown, 0);
@@ -6706,6 +6675,50 @@ details[open] > summary::before {
 
 .library-item:hover .library-delete {
 	opacity: 1;
+	
+	
+:root {
+  --tree-indent: 8px;
+  --toggle-width: 10px;
+}
+
+.actor-tree details {
+  margin: 0;
+  padding: 0;
+}
+
+.actor-tree summary {
+  list-style: none;     /* fjerner standard marker-plads */
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* skjul standard trekant i Chromium/WebKit */
+.actor-tree summary::-webkit-details-marker {
+  display: none;
+}
+
+/* din egen lille toggle */
+.actor-tree details > summary::before {
+  content: "▸";
+  width: var(--toggle-width);
+  display: inline-block;
+  flex: 0 0 var(--toggle-width);
+  text-align: center;
+}
+
+.actor-tree details[open] > summary::before {
+  content: "▾";
+}
+
+/* børn får kun én lille indrykning */
+.actor-tree .children {
+  margin-left: var(--tree-indent);
+}
 }
 
 </style>
