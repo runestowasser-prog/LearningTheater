@@ -1542,7 +1542,7 @@ if (actor.CustomProps && Array.isArray(actor.CustomProps)) {
 }
 
 
-function makeSortable(ulElement, parentId) {
+/*function makeSortable(ulElement, parentId) {
   new Sortable(ulElement, {
     animation: 150,
     group: null, // forhindrer cross-parent drag
@@ -1568,7 +1568,7 @@ function makeSortable(ulElement, parentId) {
       updateActorList(); // Opdater visningen
     }
   });
-}
+}*/
 
 function findInsertIndex(array, parentId, targetIndex) {
   let count = 0;
@@ -1583,13 +1583,17 @@ function findInsertIndex(array, parentId, targetIndex) {
 
 // ny hjælpefunktion
 function createNewTrigger(eventType = "Update") {
-  const eventsWithTarget = ["MouseDown", "MouseUp"];  // Udvid evt. senere
+  const eventsWithTarget = ["MouseDown", "MouseUp"];
+  const eventsWithKey = ["MouseDown", "MouseUp"];
+
   const hasTarget = eventsWithTarget.includes(eventType);
+  const hasKey = eventsWithKey.includes(eventType);
 
   return {
     event: eventType,
-    target: hasTarget ? (AllActors[0]?.ID || null) : null,  // Hvis der er Actors, vælg første, ellers null
-    comment: "",        // 👈 nyt felt: gemmer brugerens fritekst-kommentar
+    target: hasTarget ? (AllActors[0]?.ID || null) : null,
+    key: hasKey ? "" : null,
+    comment: "",
     conditions: [],
     actions: []
   };
@@ -2081,6 +2085,7 @@ function renderTriggerEditor(containerId) {
 
   const eventTypes = ["Update", "SceneStart", "MouseDown", "MouseUp"];
   const eventsWithTarget = ["MouseDown", "MouseUp"];
+  const eventsWithKey = ["MouseDown", "MouseUp"];
   
   function triggerMatchesSearch(trigger, searchTerm) {
   if (!searchTerm) return true;
@@ -2208,24 +2213,54 @@ fireModeSelect.onchange = () => {
 fireModeContainer.appendChild(fireModeSelect);
 wrapper.appendChild(fireModeContainer);
 
+const keyContainer = document.createElement("span");
+keyContainer.style.marginLeft = "8px";
+
+const keyInput = document.createElement("input");
+keyInput.type = "text";
+keyInput.placeholder = "Press key";
+keyInput.readOnly = true;
+keyInput.value = trigger.key || "";
+
+const clearKeyButton = document.createElement("button");
+clearKeyButton.textContent = "Clear";
+
+keyContainer.appendChild(keyInput);
+keyContainer.appendChild(clearKeyButton);
+wrapper.appendChild(keyContainer);
 
  
 
- eventSelect.onchange = () => {
+eventSelect.onchange = () => {
   trigger.event = eventSelect.value;
 
   // Show/hide target dropdown
   const needsTarget = eventsWithTarget.includes(trigger.event);
   targetSelect.style.display = needsTarget ? "inline-block" : "none";
+
   if (!needsTarget) {
     trigger.target = undefined;
+  } else if (!trigger.target) {
+    trigger.target = AllActors[0]?.ID || null;
+    targetSelect.value = trigger.target || "";
+  }
+
+  // Show/hide keyboard field
+  const needsKey = eventsWithKey.includes(trigger.event);
+  keyContainer.style.display = needsKey ? "inline-block" : "none";
+
+  if (!needsKey) {
+    delete trigger.key;
+    keyInput.value = "";
+  } else {
+    if (trigger.key == null) trigger.key = "";
+    keyInput.value = trigger.key;
   }
 
   // 🔥 Show/hide FireMode select (kun ved Update)
   if (trigger.event === "Update") {
     fireModeContainer.style.display = "inline-block";
 
-    // Hvis der ikke allerede findes en fireMode, giv default
     if (!trigger.fireMode) trigger.fireMode = "whiletrue";
 
     fireModeSelect.value = trigger.fireMode;
@@ -2236,8 +2271,22 @@ wrapper.appendChild(fireModeContainer);
 };
 
 targetSelect.onchange = () => {
-  trigger.target = targetSelect.value;
+  trigger.target = targetSelect.value || null;
 };
+
+keyInput.onkeydown = (e) => {
+	//console.log("KEY CAPTURED:", e.code);
+  e.preventDefault();
+  trigger.key = e.code;
+  keyInput.value = e.code;
+};
+
+clearKeyButton.onclick = () => {
+  trigger.key = "";
+  keyInput.value = "";
+};
+
+eventSelect.onchange();
 
 
 // 🚀 MULTI-CONDITION DEL
@@ -2894,6 +2943,7 @@ function exportTriggersToCode() {
     return `Triggers.push({ 
       event: "${trigger.event}", 
       target: ${trigger.target ? `"${trigger.target}"` : null}, 
+	  key: ${JSON.stringify(trigger.key || "")},
       comment: ${JSON.stringify(trigger.comment || "")}, 
       conditions: ${JSON.stringify(trigger.conditions || [])}, 
       actions: ${JSON.stringify(trigger.actions || [])},
