@@ -537,6 +537,8 @@ const ActionFunctions = {
   ],
   build: (args) => `${args[0]}.forEach(a => a["${args[1]}"] ${args[2]} ${args[3]})`
   },
+  
+  
 
   "ShuffleEnsembleProperty": {
   label: "Shuffle property on Ensemble",
@@ -548,7 +550,29 @@ const ActionFunctions = {
   build: (args) => `ShuffleEnsembleProperty(${args[0]}, "${args[1]}")`
   },
 
+	    "GatherEnsemble": {
+  label: "Gather ensemble by",
+  category: "Ensemble",
+  args: [
+    { type: "raw", label: "Ensemble name" },
+    { type: "property", label: "Property", exclude: ["BackgroundImage","Click","Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue: "X" },
+    { type: "raw", label: "Property value" }
+  ],
+  build: (args) => `GatherEnsemble(${JSON.stringify(args[0])}, ${JSON.stringify(args[1])}, ${JSON.stringify(args[2])})`
+},
 
+"FilterEnsemble": {
+  label: "Trim ensemble",
+  category: "Ensemble",
+  args: [
+    { type: "ensemble", label: "Ensemble" },
+    { type: "property", label: "Property", defaultValue: "X" },
+    { type: "compare", label: "", defaultValue: "==" },
+    { type: "raw", label: "Value" }
+  ],
+  build: (args) =>
+    `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} ${args[3]})`
+},
 
   "SetSource": {
    label: "Set a new source on actor",
@@ -645,7 +669,22 @@ const ActionFunctions = {
 
 
     ],
-    build: (args) => `Move.to("#${args[0]}",{"background-color":"${args[1]}", duration:${args[2]}})`
+    build: (args) => `Move.to("#${args[0]}",{"background-color":"${args[1]}", duration:${args[2]}}); Move.to(${args[0]},{Color:"${args[1]}", duration:${args[2]}})`
+  },
+  
+   "ChangeColorEnsemble": {
+    label: "Change the color of an ensemble",
+	category:"Ensemble",
+
+    args: [
+      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors[0]" },
+      { type: "color", label: " Color: ", defaultValue: "#ffffff" },
+      { type: "number", label: " Fadetime: ", defaultValue: "1" },
+      
+
+
+    ],
+    build: (args) => `${args[0]}.forEach(a =>Move.to("#"+a.ID,{"background-color":"${args[1]}", duration:${args[2]}}; Move.to("a,{Color:"${args[1]}", duration:${args[2]}}))`
   },
 
   "ChangeBlur": {
@@ -660,7 +699,22 @@ const ActionFunctions = {
 
 
     ],
-    build: (args) => `Move.to("#${args[0]}",{"filter:":"blur(${args[1]}em"), duration:${args[2]}})`
+    build: (args) => `Move.to("#${args[0]}",{"filter":"blur(${args[1]}em)", duration:${args[2]}})`
+  },
+  
+   "ChangeBlurEnsemble": {
+    label: "Change the blur of an Ensemble",
+	category:"Ensemble",
+
+    args: [
+      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors[0]" },
+      { type: "number", label: " amount: ", defaultValue: "1" },
+      { type: "number", label: " Fadetime: ", defaultValue: "1" },
+      
+
+
+    ],
+    build: (args) => `${args[0]}.forEach(a => Move.to(elementId(a.ID),{"filter::"blur(${args[1]}em)", duration:${args[2]}}))`
   },
 
     "FireActor": {
@@ -674,6 +728,19 @@ const ActionFunctions = {
 
     ],
     build: (args) => `DeleteActor("${args[0]}")`
+  },
+  
+      "SackEnsemble": {
+    label: "Sack an Actor fom ensemble",
+	category:"Ensemble",
+
+    args: [
+      { type: "ensemble", label: " Ensemble: ",defaultValue:"Actors" },
+      
+
+
+    ],
+    build: (args) => `${args[0]}.forEach(a => DeleteActor(a))`
   },
 
    "DuplicateActor": {
@@ -689,6 +756,21 @@ const ActionFunctions = {
 
     ],
     build: (args) => `DuplicateActor("${args[0]}",${args[1]},{${args[2]}})`
+  },
+  
+     "DuplicateEnsemble": {
+    label: "Duplicate Ensemble",
+	category:"Ensemble",
+
+    args: [
+      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors" },
+      { type: "number", label: " times: ",defaultValue:"1" },
+	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
+      
+
+
+    ],
+    build: (args) => `${args[0]}.forEach(a => DuplicateActor(a,${args[1]},{${args[2]}})`
   },
 
 
@@ -1860,7 +1942,6 @@ if (${args[0]}.VolumeData) {
 		{ type: "number", label: " Scale max: ", defaultValue: "1" },
 		{ type: "number", label: " Opacity random: ", defaultValue: "0" },
 		{ type: "number", label: " Rotation random: ", defaultValue: "0" },
-		{ type: "number", label: " Gravity: ", defaultValue: "0" },
 		{ type: "number", label: " Stagger: ", defaultValue: "0" },
 		{ type: "easing", label: "easing", defaultValue: "power1.out"},
 		{ type: "boolean", label: " Fade: ", defaultValue: "true" },
@@ -1882,11 +1963,10 @@ if (${args[0]}.VolumeData) {
 		scaleMax:${args[12]},
 		opacityRandom:${args[13]},
 		rotationRandom:${args[14]},
-		gravity:${args[15]},
-		stagger:${args[16]},
-		ease:"${args[17]}",
-		fade:${args[18]},
-		remove:${args[19]}
+		stagger:${args[15]},
+		ease:"${args[16]}",
+		fade:${args[17]},
+		remove:${args[18]}
 	  })`
 	},
 	
@@ -1951,7 +2031,6 @@ if (${args[0]}.VolumeData) {
 		scaleMin:0.7,
 		scaleMax:1.3,
 		opacityRandom:15,
-		gravity:-80,
 		fade:true,
 		remove:true
 	  })`
