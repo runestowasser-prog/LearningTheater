@@ -9,12 +9,6 @@ https://stowasser.dk/LearningTheater/Live/
 
 ---
 
-## 🎬 Quick demo
-
-<!-- Insert your short demo video here -->
-
----
-
 ## 🤔 Why Learning Theater?
 
 If you've ever tried to push tools like Storyline or Rise beyond their intended use, you know the feeling:
