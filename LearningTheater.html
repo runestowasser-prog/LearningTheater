@@ -1899,6 +1899,28 @@ function updateDropdown() {
   input.value = argsValues[index] || "";
   break;
 
+	case "quill":
+	  input = document.createElement("div");
+	  input.className = "quillArgInput";
+	  input.style.minHeight = "120px";
+
+	  setTimeout(() => {
+		const quill = new Quill(input, {
+		  theme: "snow"
+		});
+
+		quill.root.innerHTML = argsValues[index] || "";
+
+		quill.on("text-change", function(){
+		  argsValues[index] = quill.root.innerHTML;
+		  onChange([...argsValues]);
+		});
+
+		input.__quill = quill;
+	  }, 0);
+
+	  break;
+	
         
 	case "linebreak":
         lineBreak = document.createElement("br");
@@ -1922,14 +1944,17 @@ function updateDropdown() {
 
     }
 
-    input.onchange = () => {
-      if (arg.type === "boolean") {
-        argsValues[index] = input.checked;
-      } else {
-        argsValues[index] = input.value;
-      }
-      onChange([...argsValues]);
-    };
+	if (arg.type !== "quill") {
+	  input.onchange = () => {
+		if (arg.type === "boolean") {
+		  argsValues[index] = input.checked;
+		} else {
+		  argsValues[index] = input.value;
+		}
+
+		onChange([...argsValues]);
+	  };
+	}
 
     container.appendChild(input);
   });
@@ -3469,12 +3494,17 @@ async function saveProjectAsZip() {
   try {
     if (window.showSaveFilePicker) {
       const handle = await showSaveFilePicker({
-        suggestedName: "LearningTheaterPackage.zip",
+	  startIn: currentProjectFileHandle || undefined,
+        suggestedName: currentProjectFileHandle
+      ? currentProjectFileHandle.name
+      : "LearningTheaterPackage.zip",
+
         types: [{
           description: "Learning Theater Package",
           accept: { "application/zip": [".zip"] }
         }]
       });
+	  currentProjectFileHandle = handle;
       writable = await handle.createWritable();
     }
 
@@ -3707,12 +3737,14 @@ async function saveProjectAsSingleHTML() {
   try {
     if (window.showSaveFilePicker) {
       const handle = await showSaveFilePicker({
+		startIn: currentProjectFileHandle || undefined,
         suggestedName: "LearningTheaterSingleFile.html",
         types: [{
           description: "HTML file",
           accept: { "text/html": [".html"] }
         }]
       });
+	  currentProjectFileHandle = handle;
       writable = await handle.createWritable();
     }
 
@@ -3884,9 +3916,9 @@ function loadFileAsText(){
  
 	if( window.showOpenFilePicker ) {
 	[fileHandle] = await window.showOpenFilePicker({
-		//startIn: file_handle,
-		id:'startId',
 		startIn: file_handle,
+		id:'startId',
+		//startIn: file_handle,
 		types: [{
 		description: 'Html',
 		accept: {
@@ -4169,6 +4201,9 @@ function removeAssetFromLibraryUI(filename) {
 	});
 }
 
+let currentProjectFileHandle = null;
+let currentProjectDirectoryHandle = null;
+
 async function loadProjectFromZip() {
   parent.__loadingFromFile = true;
 
@@ -4185,7 +4220,13 @@ async function loadProjectFromZip() {
         accept: { "application/zip": [".zip"] }
       }]
     });
+	
+	// Remember the current project file for this LT session
+	currentProjectFileHandle = fileHandle;
 
+	if (fileHandle.parent) {
+		currentProjectDirectoryHandle = await fileHandle.parent;
+	}
     const file = await fileHandle.getFile();
     const zip = await JSZip.loadAsync(file);
 
@@ -4625,7 +4666,7 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
         accept: { "text/html": [".html", ".htm"] }
       }]
     });
-
+	currentProjectFileHandle = fileHandle;
     const file = await fileHandle.getFile();
     const content = await file.text();
 
