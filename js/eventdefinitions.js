@@ -370,6 +370,17 @@ const ActionFunctions = {
     build: (args) => `SetText(${args[0]},"${args[1]}")`
   },
   
+    "SetTextQuill": {
+    label: "Set text (editor)",
+	category:"Actor",
+
+    args: [
+      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
+      { type: "quill", label: "New text" },
+    ],
+    build: (args) => `SetText(${args[0]},"${args[1]}")`
+  },
+  
    "ReplaceText": {
     label: "Replace text",
 	category:"Actor",
@@ -2034,6 +2045,36 @@ if (${args[0]}.VolumeData) {
 		fade:true,
 		remove:true
 	  })`
+	},
+	
+	
+	  "PushQuestion": {
+	  label: "Tilføj Spørgsmål",
+	  category: "Lykkehjul",
+	  args: [
+		{
+		  label: "Kategori",
+		  type: "dropdown",
+		  options: ["0", "1", "2"]
+		},
+		{
+		  label: "Spørgsmål",
+		  type: "quill"
+		},
+		{
+		  label: "Svar",
+		  type: "quill"
+		}
+	  ],
+	  build(args){
+		const categoryIndex = Number(args[0]);
+		const question = args[1] || "";
+		const answer = args[2] || "";
+
+		const html = question + "<details><summary>Vis svar</summary>" + answer + "</details>";
+
+		return `ResponsePool[${categoryIndex}].push(${JSON.stringify(html)});`
+	  }
 	}
 
 };
