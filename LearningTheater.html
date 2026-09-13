@@ -488,15 +488,6 @@ addActorBtn.addEventListener("click", () => {
   }
 
 
-//addActorBtn.addEventListener("click", () => {
-//  const id = prompt("ID for new Actor:");
-//  if (!id) return;
-
-//  if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) {
-//    alert("ID'et findes allerede!");
-//    return;
-//  }
-
   const newActor = {
     ID: id,
     Type: "div",
@@ -4204,7 +4195,7 @@ function removeAssetFromLibraryUI(filename) {
 let currentProjectFileHandle = null;
 let currentProjectDirectoryHandle = null;
 
-async function loadProjectFromZip() {
+async function loadProjectFromZip(merge = false) {
   parent.__loadingFromFile = true;
 
   try {
@@ -4269,7 +4260,7 @@ async function loadProjectFromZip() {
 
     await rebuildLibraryFromZip_JSZip(zip);
 
-    loadProjectFromHtmlString(content);
+    loadProjectFromHtmlString(content, merge);
 
   } catch (err) {
     console.error("loadProjectFromZip failed:", err);
@@ -4279,7 +4270,7 @@ async function loadProjectFromZip() {
   }
 }
 
-async function loadProjectFromSingleHTML() {
+async function loadProjectFromSingleHTML(merge = false) {
   parent.__loadingFromFile = true;
 
   function guessExtensionFromMime(mime) {
@@ -4679,7 +4670,7 @@ async function rebuildLibraryFromSingleHTMLContent(htmlText) {
 
 	const rewrittenContent = await rebuildLibraryFromSingleHTMLContent(content);
 	rebuildGlobalFontFromSingleHTMLContent(rewrittenContent);
-	loadProjectFromHtmlString(rewrittenContent);
+	loadProjectFromHtmlString(rewrittenContent, merge);
 	
 	
 
@@ -4725,8 +4716,17 @@ function applyProjectSettingsToUI() {
   }
 }
 
+function setOrMergeCode(editor, importedCode, merge) {
+    if (merge) {
+        editor.setValue(
+            editor.getValue() + "\n" + importedCode
+        );
+    } else {
+        editor.setValue(importedCode);
+    }
+}
 
-function loadProjectFromHtmlString(content) {
+function loadProjectFromHtmlString(content, merge=false) {
 
 	document.getElementById("generalCode").style.display="flex";
 	document.getElementById("buildCode").style.display="flex";
@@ -4738,18 +4738,8 @@ function loadProjectFromHtmlString(content) {
 	var splitHTML = content.split("<!--- ✂✂✂ --->");
 
 	var generalCode = splitCode[1];
-/*	var settings = extractSettingsFromCode(content);
-	
-	if (Project.settings) {
-	if (Project.settings.stageWidth != null) settings.StageWidth = Project.settings.stageWidth;
-	if (Project.settings.stageHeight != null) settings.StageHeight = Project.settings.stageHeight;
-	if (Project.settings.scaling != null) settings.Scaling = Project.settings.scaling;
-	if (Project.settings.overflow != null) settings.Overflow = Project.settings.overflow;
-	if (Project.settings.scorm != null) settings.SCORMTracking = Project.settings.scorm;
-	if (Project.settings.followSL != null) settings.FollowSL = Project.settings.followSL;
-	}
-*/
-	applyProjectSettingsToUI()	
+
+	//applyProjectSettingsToUI();	
 	var buildCode = splitCode[3];
 	var tweenCode = splitCode[4];
 	var updateCode = splitCode[6];
@@ -4757,13 +4747,73 @@ function loadProjectFromHtmlString(content) {
 	var resizeCode = splitCode[10];
 	var headCode = splitHTML[1];
 
-	GeneralCode.setValue(generalCode);
-	BuildCode.setValue(buildCode);
-	AllTweens = tweenCode.split("//Tween");
-	UpdateCode.setValue(updateCode);
-	ScenestartCode.setValue(scenestartCode);
-	ResizeCode.setValue(resizeCode);
-	HEADCode.setValue(headCode);
+	//GeneralCode.setValue(generalCode);
+	//BuildCode.setValue(buildCode);
+	//AllTweens = tweenCode.split("//Tween");
+	//UpdateCode.setValue(updateCode);
+	//ScenestartCode.setValue(scenestartCode);
+	//ResizeCode.setValue(resizeCode);
+	//HEADCode.setValue(headCode);
+	
+	if (merge) {
+
+    // Merge imported project into current project
+		//applyProjectSettingsToUI();
+		
+		GeneralCode.setValue(
+			GeneralCode.getValue() + "\n" + generalCode
+		);
+
+		BuildCode.setValue(
+			BuildCode.getValue() + "\n" + buildCode
+		);
+
+		UpdateCode.setValue(
+			UpdateCode.getValue() + "\n" + updateCode
+		);
+
+		ScenestartCode.setValue(
+			ScenestartCode.getValue() + "\n" + scenestartCode
+		);
+
+		ResizeCode.setValue(
+			ResizeCode.getValue() + "\n" + resizeCode
+		);
+
+		HEADCode.setValue(
+			HEADCode.getValue() + "\n" + headCode
+		);
+
+		AllTweens = AllTweens.concat(
+			tweenCode.split("//Tween")
+		);
+
+		const importedTriggers = extractTriggersFromHTML(content);
+
+		console.log("BEFORE merge:", parent.GeneratedTriggers);
+		console.log("IMPORTED:", importedTriggers);
+
+		parent.GeneratedTriggers =
+			parent.GeneratedTriggers.concat(importedTriggers);
+
+		console.log("AFTER merge:", parent.GeneratedTriggers);	
+		
+
+	} else {
+
+		// Normal load: replace current project
+		applyProjectSettingsToUI();
+		GeneralCode.setValue(generalCode);
+		BuildCode.setValue(buildCode);
+		AllTweens = tweenCode.split("//Tween");
+		UpdateCode.setValue(updateCode);
+		ScenestartCode.setValue(scenestartCode);
+		ResizeCode.setValue(resizeCode);
+		HEADCode.setValue(headCode);
+
+		parent.GeneratedTriggers =
+			extractTriggersFromHTML(content);
+	}
 
 	document.getElementById("generalCode").style.display="none";
 	document.getElementById("buildCode").style.display="none";
@@ -4774,9 +4824,9 @@ function loadProjectFromHtmlString(content) {
 
 	ShowSelectedScript(BuildSpecial,'Actors',BuildSpecial);
 
-	parent.GeneratedTriggers = extractTriggersFromHTML(content);
+	//parent.GeneratedTriggers = extractTriggersFromHTML(content);
 	//console.log("Loaded triggers:", parent.GeneratedTriggers);
-//parent.renderTriggerEditor("triggerEditor");	
+	//parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
 	parent.renderTriggerEditor("triggerEditor");	
@@ -5787,6 +5837,36 @@ ActorProps(thisActor, {
 saveProjectAsZip();`,
   Color: "",
   Text: "Save ZIP",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
+Actor('MergePackageBtn','button');
+ActorProps(thisActor, {
+  Parent: "fileMenu",
+  Width: 120,
+  Height: 30,
+  X: 0,
+  Y: 120,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  Draggable: false,
+  MouseUp: `fileMenu.Opacity=0;
+loadProjectFromZip(true);`,
+  Color: "",
+  Text: "Merge ZIP",
   FontSize: 16,
   Opacity: 100,
   TranslateX: 0,
