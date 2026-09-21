@@ -7,6 +7,7 @@
 
 <script src="js/SCORM_API_wrapper.js"></script>
 <script src="js/eventdefinitions.js"></script>
+<script src="js/readymadedefinitions.js"></script>
 <script src="js/eventdefinitionsSTRING.js"></script>
 <script src="js/gsapSTRING.js"></script>
 <script src="js/engineSTRING.js"></script>
@@ -508,10 +509,123 @@ addActorBtn.addEventListener("click", () => {
   openPropertyEditor(newActor);
 });
 
+const addReadyMadeBtn = document.createElement("button"); 
+addReadyMadeBtn.textContent = "➕ New Ready Made"; 
+addReadyMadeBtn.addEventListener("click", () => { 
+let id = prompt("ID for new Ready Made:"); 
+if (!id) return; id = id.trim(); 
+const validID = /^[A-Za-z][A-Za-z0-9_]*$/; 
+if (!validID.test(id)) { alert("Invalid ID. Use letters, numbers, and underscore only, and start with a letter."); return; } 
+if (AllScenes.some(s => s.ID === id) || AllActors.some(a => a.ID === id)) { alert("ID already exists!"); return; }
+openReadyMadeEditor(id); 
+});
+
 controlDiv.appendChild(addSceneBtn);
 controlDiv.appendChild(addActorBtn);
+controlDiv.appendChild(addReadyMadeBtn);
 container.appendChild(controlDiv);
 
+}
+
+let readyMadeArgs = [];
+
+function openReadyMadeEditor(id) {
+
+  ReadyMadeEditor.Opacity = 100;
+
+  const editor = document.getElementById("ReadyMadeEditor");
+
+  editor.innerHTML = "";
+
+  const title = document.createElement("h3");
+  title.textContent = "New Ready Made";
+  editor.appendChild(title);
+
+  const typeLabel = document.createElement("label");
+  typeLabel.textContent = "Ready Made:";
+  editor.appendChild(typeLabel);
+
+  const typeSelect = document.createElement("select");
+  typeSelect.id = "readyMadeType";
+
+  const emptyOption = document.createElement("option");
+  emptyOption.value = "";
+  emptyOption.textContent = "-- Select --";
+  typeSelect.appendChild(emptyOption);
+
+  ReadyMades.forEach(readyMade => {
+
+    const option = document.createElement("option");
+
+    option.value = readyMade.id;
+    option.textContent = readyMade.name;
+
+    typeSelect.appendChild(option);
+
+  });
+
+  const argsContainer = document.createElement("div");
+  editor.appendChild(argsContainer);
+
+  typeSelect.onchange = () => {
+
+    const readyMade = ReadyMades.find(
+      rm => rm.id === typeSelect.value
+    );
+
+    argsContainer.innerHTML = "";
+    readyMadeArgs = [];
+
+    if (!readyMade || !readyMade.args) return;
+
+    readyMadeArgs = readyMade.args.map(
+      arg => arg.defaultValue ?? ""
+    );
+
+    const inputs = renderArgsInputs(
+      readyMade.args,
+      readyMadeArgs,
+      updatedArgs => {
+        readyMadeArgs = updatedArgs;
+      }
+    );
+
+    argsContainer.appendChild(inputs);
+  };
+
+  editor.appendChild(typeSelect);
+  
+  const createButton = document.createElement("button");
+	createButton.textContent = "Create";
+
+	createButton.addEventListener("click", () => {
+
+	  const selected = ReadyMades.find(
+		readyMade => readyMade.id === typeSelect.value
+	  );
+
+	  if (!selected) return;
+
+	  selected.create(id, readyMadeArgs);
+
+	  ReadyMadeEditor.Opacity=0;
+	  setTimeout(function(){ showPreview(); }, 1000);
+	showPreview();
+
+	});
+	editor.appendChild(createButton);
+
+	const cancelButton = document.createElement("button");
+	cancelButton.textContent = "Cancel";
+
+	cancelButton.addEventListener("click", () => {
+	  ReadyMadeEditor.Opacity=0;
+	});
+
+	editor.appendChild(cancelButton);
+
+	editor.style.display = "block";
+	
 }
 
 function cloneActor(actor) {
@@ -5577,6 +5691,17 @@ thisActor.Text=`<div id="LibraryUsageContainer" style="padding:6px;">
   </div>
 </div><div id="libraryDropzone">Drop files here</div> <ul id="libraryList"></ul>`;
 thisActor.Color="white"
+
+Actor("ReadyMadeEditor","div")
+thisActor.Y=30
+thisActor.Height=StageHeight
+thisActor.Width=400
+thisActor.Overflow="auto"
+thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.FontSize=12;
+thisActor.Text=`ReadyMadeEditor`;
+thisActor.Color="lightgray"
+thisActor.Opacity=0;
 
 
 Actor("SelectScript","button")
