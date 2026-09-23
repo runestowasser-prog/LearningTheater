@@ -23,6 +23,7 @@ ReadyMades.push({
       {
         type: "color",
         label: "Color",
+        defaultValue: "black"
       }
     ],
 
@@ -216,10 +217,12 @@ ReadyMades.push({
       {
         type: "color",
         label: "Progress Color",
+        defaultValue: "black"
       },
        {
         type: "color",
         label: "Background Color",
+        defaultValue: "gray"
       },
     ],
 
@@ -394,6 +397,7 @@ ReadyMades.push({
       {
         type: "color",
         label: "Color",
+        defaultValue:"black"
       },
     ],
 
