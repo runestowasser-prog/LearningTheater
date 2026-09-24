@@ -599,3 +599,240 @@ ActorProps(thisActor, {
 
 }
 
+ReadyMades.push({
+    id: "menu",
+    name: "Menu",
+
+    args: [
+     
+  
+      {
+        type: "color",
+        label: "Background color",
+        defaultValue:"black"
+      },
+      {
+        type: "color",
+        label: "Text color",
+        defaultValue:"white"
+      },
+      {
+        type: "number",
+        label: "Item height",
+        defaultValue:"110"
+      },
+      {
+        type: "number",
+        label: "Menu width",
+        defaultValue:"400"
+      },
+    ],
+
+    create: CreateMenu
+  }
+)
+
+function CreateMenu(id, readyMadeArgs) {
+
+var ScenesBackwards=AllScenes.reverse();
+
+  BuildCode.setValue(BuildCode.getValue()+
+  `
+  Actor('${id}','div');
+ActorProps(thisActor, {
+  Parent: "stage",
+  Width: 80,
+  Height: 70,
+  Style: \`border-bottom-right-radius:2em;
+border-bottom-left-radius:2em;\`,
+  Color: "${readyMadeArgs[0]}",
+});
+
+Actor('${id}MenuArrow','div');
+ActorProps(thisActor, {
+  Parent: "${id}",
+  Width: 40,
+  Height: 40,
+  X: 20,
+  Y: 10,
+  Angle: 180,
+  Color: "${readyMadeArgs[1]}",
+  Shape: "Triangle",
+});
+
+Actor('${id}MenuBtn','div');
+ActorProps(thisActor, {
+  Parent: "${id}",
+  Width: 80,
+  Height: 70,
+  Style: "cursor:pointer",
+});
+
+`);
+
+for (let i = 0; i < ScenesBackwards.length; i++) {
+  BuildCode.setValue(BuildCode.getValue()+
+  `
+  Actor("${ScenesBackwards[i].ID}MenuBtn","div");
+ActorProps(thisActor, {
+  Parent: "${id}",
+  Width: ${readyMadeArgs[3]},
+  Height: ${readyMadeArgs[2]}+2,
+  X: 0,
+  Y: -(${readyMadeArgs[2]})*(${i}+1)-2,
+  Style: \`padding-left:1em;
+cursor:pointer\`,
+  Color: "${readyMadeArgs[0]}",
+  Text: \`<p><span style="color: ${readyMadeArgs[1]};">${ScenesBackwards[i].ID}</span></p>\`,
+  FontSize: 33,
+  });
+  `);
+}
+
+  
+   GeneratedTriggers.push(
+   {
+    "event": "MouseUp",
+    "target": id+"MenuBtn",
+    "comment": "Show Menu",
+    "conditions": [
+      {
+        "fn": "GetProperty",
+        "args": [
+          id,
+          "Y",
+          "<=",
+          "0"
+        ],
+        "code": id+".Y<=0"
+      }
+    ],
+    "actions": [
+      {
+        "fn": "MoveActor",
+        "args": [
+          id,
+          "Y",
+          ""+ScenesBackwards.length*readyMadeArgs[2],
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+",{Y:349,ease:\"power1.out\",duration:0.5,delay:0})"
+      },
+      {
+        "fn": "MoveActor",
+        "args": [
+          id+"MenuArrow",
+          "Angle",
+          "0",
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+"MenuArrow,{Angle:0,ease:\"power1.out\",duration:0.5,delay:0})"
+      }
+    ],
+    "key": "KeyM"
+  },
+  {
+    "event": "MouseUp",
+    "target": id+"MenuBtn",
+    "comment": "Hide Menu",
+    "conditions": [
+      {
+        "fn": "GetProperty",
+        "args": [
+          id,
+          "Y",
+          ">",
+          "0"
+        ],
+        "code": id+".Y>0"
+      }
+    ],
+    "actions": [
+      {
+        "fn": "MoveActor",
+        "args": [
+          id,
+          "Y",
+          "0",
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
+      },
+      {
+        "fn": "MoveActor",
+        "args": [
+          id+"MenuArrow",
+          "Angle",
+          "180",
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+"MenuArrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
+      }
+    ],
+    "key": "KeyM"
+  },
+  
+  );
+for (let i = 0; i < ScenesBackwards.length; i++) {
+  GeneratedTriggers.push({ 
+      event: "MouseUp", 
+      target: ScenesBackwards[i].ID+"MenuBtn", 
+	  key: "",
+      comment: "menu to"+ScenesBackwards[i].ID, 
+      conditions: [], 
+      "actions": [
+      {
+        "fn": "MoveActor",
+        "args": [
+          id,
+          "Y",
+          "0",
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
+      },
+      {
+        "fn": "MoveActor",
+        "args": [
+          id+"MenuArrow",
+          "Angle",
+          "180",
+          "power1.out",
+          "0.5",
+          "0"
+        ],
+        "code": "Move.to("+id+"MenuArrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
+      },
+      {
+        "fn": "GotoScene",
+        "args": [
+          "0.3",
+          "Fade",
+          "Left",
+          ScenesBackwards[i].ID
+        ],
+        "code": "GotoScene(\"Fade\",0.3,\"Left\","+ScenesBackwards[i].ID+")"
+      },
+    ],
+    
+    });
+
+
+}
+
+  showPreview();
+  ReadyMadeEditor.Opacity=0;
+  
+
+}
+
