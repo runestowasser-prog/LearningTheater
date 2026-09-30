@@ -15,7 +15,7 @@ Ensemble2 = [];
 
 
 
-var StageWidth=640,StageHeight=360;
+var StageWidth=1920,StageHeight=1080;
 var Scene;
 Elements = new Array();
 var Scaling="FitTop";
@@ -218,6 +218,14 @@ function PointerPosition(event){
 
     MouseX = (x / StageScale) - ((window.innerWidth - (StageWidth * StageScale)) / 2) / StageScale;
     MouseY = y / StageScale;
+    
+    if(Scaling=="FitCenter"){
+    MouseY = (y / StageScale) - ((window.innerHeight - (StageHeight * StageScale)) / 2) / StageScale;
+    }
+    if(Scaling=="None"){
+      MouseX= x;
+      MouseY = y;
+    }
 }
 
 function PointerStart(event){
@@ -227,6 +235,13 @@ function PointerStart(event){
 
     MouseX = (x / StageScale) - ((window.innerWidth - (StageWidth * StageScale)) / 2) / StageScale;
     MouseY = y / StageScale;
+    
+    if(Scaling=="FitCenter"){
+    MouseY = (y / StageScale) - ((window.innerHeight - (StageHeight * StageScale)) / 2) / StageScale;
+    }
+    if(Scaling=="None"){
+    MouseY = y;
+    }
 }
 
 
