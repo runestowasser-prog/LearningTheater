@@ -9,16 +9,9 @@ ReadyMades.push({
     args: [
      
       {
-        type: "dropdown",
-        label: "Horisontal Position",
-        options: ["Left", "Center", "Right"],
-        defaultValue: "Right"
-      },
-      {
-        type: "dropdown",
-        label: "Vertical Position",
-        options: ["Top", "Bottom"],
-        defaultValue: "Bottom"
+        type: "text",
+        label: "ID: ",
+        defaultValue: "Navigation"
       },
       {
         type: "color",
@@ -32,26 +25,15 @@ ReadyMades.push({
 )
 
 
-function CreateNavigationButtons(id, readyMadeArgs) {
+function CreateNavigationButtons(readyMadeArgs) {
 
-var Xposition=0;
+var Xposition=StageWidthInput.value-200;;
 var Yposition=StageHeightInput.value-80;
 
-if(readyMadeArgs[1]=="Top"){
-  Yposition=0;
-}
-
-
-if(readyMadeArgs[0]=="Center"){
-  Xposition=(StageWidthInput.value/2)-100;
-}
-if(readyMadeArgs[0]=="Right"){
-  Xposition=StageWidthInput.value-200;
-}
 
   BuildCode.setValue(BuildCode.getValue()+
   `
-  Actor('${id}','div');
+  Actor('${readyMadeArgs[0]}','div');
   ActorProps(thisActor, {
     Parent: "stage",
     Width: 200,
@@ -60,29 +42,29 @@ if(readyMadeArgs[0]=="Right"){
     Y: ${Yposition},
     });
     
-  Actor('${id}BackButton','div');
+  Actor('${readyMadeArgs[0]}BackButton','div');
     ActorProps(thisActor, {
-    Parent: "${id}",
+    Parent: "${readyMadeArgs[0]}",
     Width: 50,
     Height: 50,
     X: 10,
     Y: 10,
     Angle: -90,
     Style: 'cursor:pointer;',
-    Color: "${readyMadeArgs[2]}",
+    Color: "${readyMadeArgs[1]}",
     Shape: "Triangle",
   });
   
-  Actor('${id}ForwardButton','div');
+  Actor('${readyMadeArgs[0]}ForwardButton','div');
   ActorProps(thisActor, {
-    Parent: "${id}",
+    Parent: "${readyMadeArgs[0]}",
     Width: 50,
     Height: 50,
     X: 140,
     Y: 10,
     Angle: 90,
     Style: 'cursor:pointer;',
-    Color: "${readyMadeArgs[2]}",
+    Color: "${readyMadeArgs[1]}",
     Shape: "Triangle",
   });  
   `
@@ -95,22 +77,22 @@ if(readyMadeArgs[0]=="Right"){
       {
         "fn": "SetProperty",
         "args": [
-          id+"BackButton",
+          readyMadeArgs[0]+"BackButton",
           "Opacity",
           "=",
           "100"
         ],
-        "code": id+"BackButton.Opacity = 100"
+        "code": readyMadeArgs[0]+"BackButton.Opacity = 100"
       },
       {
         "fn": "SetProperty",
         "args": [
-          id+"ForwardButton",
+          readyMadeArgs[0]+"ForwardButton",
           "Opacity",
           "=",
           "100"
         ],
-        "code": id+"ForwardButton.Opacity = 100"
+        "code": readyMadeArgs[0]+"ForwardButton.Opacity = 100"
       }
     ]
   },
@@ -128,12 +110,12 @@ if(readyMadeArgs[0]=="Right"){
       {
         "fn": "SetProperty",
         "args": [
-          id+"ForwardButton",
+          readyMadeArgs[0]+"ForwardButton",
           "Opacity",
           "=",
           "0"
         ],
-        "code": id+"ForwardButton.Opacity = 0"
+        "code": readyMadeArgs[0]+"ForwardButton.Opacity = 0"
       }
     ],
     "fireMode": "onceWhileTrue"
@@ -152,19 +134,19 @@ if(readyMadeArgs[0]=="Right"){
       {
         "fn": "SetProperty",
         "args": [
-          id+"BackButton",
+          readyMadeArgs[0]+"BackButton",
           "Opacity",
           "=",
           "0"
         ],
-        "code": id+"BackButton.Opacity = 0"
+        "code": readyMadeArgs[0]+"BackButton.Opacity = 0"
       }
     ],
     "fireMode": "onceWhileTrue"
   },
   {
     "event": "MouseUp",
-    "target": id+"ForwardButton",
+    "target": readyMadeArgs[0]+"ForwardButton",
     "comment": "When pushing Forward Button",
     "conditions": [],
     "actions": [
@@ -182,7 +164,7 @@ if(readyMadeArgs[0]=="Right"){
   },
   {
     "event": "MouseUp",
-    "target": id+"BackButton",
+    "target": readyMadeArgs[0]+"BackButton",
     "comment": "When pushing BackButton",
     "conditions": [],
     "actions": [
@@ -213,7 +195,11 @@ ReadyMades.push({
 
     args: [
      
-  
+       {
+        type: "text",
+        label: "ID:",
+        defaultValue: "SeekBar"
+      },
       {
         type: "color",
         label: "Progress Color",
@@ -230,14 +216,14 @@ ReadyMades.push({
   }
 )
 
-function CreateSeekBar(id, readyMadeArgs) {
+function CreateSeekBar(readyMadeArgs) {
 
   var Yposition=StageHeightInput.value-60;
   var WidthAdjusted=StageWidthInput.value-500;
 
   BuildCode.setValue(BuildCode.getValue()+
   `
-  Actor('${id}','div');
+  Actor('${readyMadeArgs[0]}','div');
   ActorProps(thisActor, {
   Parent: "stage",
   Width: ${WidthAdjusted},
@@ -250,13 +236,13 @@ function CreateSeekBar(id, readyMadeArgs) {
   seeking: false,
   });
 
-  Actor('${id}Seekbar','div');
+  Actor('${readyMadeArgs[0]}Bar','div');
   ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: ${WidthAdjusted},
   Height: 30,
   Style: "border-radius:10em",
-  Color: "${readyMadeArgs[1]}",
+  Color: "${readyMadeArgs[2]}",
   Shape: "Square",
   CustomProps: [
     { name: "progress", value: "0", type:"number" },
@@ -264,18 +250,18 @@ function CreateSeekBar(id, readyMadeArgs) {
   progress: 0,
   });
 
-  Actor('${id}SeekbarIndicator','div');
+  Actor('${readyMadeArgs[0]}Indicator','div');
   ActorProps(thisActor, {
-  Parent: "${id}Seekbar",
+  Parent: "${readyMadeArgs[0]}Bar",
   Width: 0,
   Height: 30,
   Style: "border-radius:10em",
-  Color: "${readyMadeArgs[0]}",
+  Color: "${readyMadeArgs[1]}",
   });
 
-  Actor('${id}SeekbarInteraction','div');
+  Actor('${readyMadeArgs[0]}Interaction','div');
   ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: ${WidthAdjusted},
   Height: 30,
   Style: "cursor:pointer",
@@ -296,50 +282,50 @@ function CreateSeekBar(id, readyMadeArgs) {
       {
         "fn": "SetProperty",
         "args": [
-          id+"SeekbarIndicator",
+          readyMadeArgs[0]+"Indicator",
           "Width",
           "=",
-          "(GetScene().Timeline.time() / GetScene().Timeline.duration()) * "+id+"Seekbar.Width"
+          "(GetScene().Timeline.time() / GetScene().Timeline.duration()) * "+readyMadeArgs[0]+"Bar.Width"
         ],
-        "code": +id+"SeekbarIndicator.Width = (GetScene().Timeline.time() / GetScene().Timeline.duration()) * "+id+"Seekbar.Width"
+        "code": +readyMadeArgs[0]+"Indicator.Width = (GetScene().Timeline.time() / GetScene().Timeline.duration()) * "+readyMadeArgs[0]+"Bar.Width"
       }
     ],
     "fireMode": "whiletrue"
   },
   {
     "event": "MouseDown",
-    "target": id+"SeekbarInteraction",
+    "target": readyMadeArgs[0]+"Interaction",
     "comment": "Push the Seekbar",
     "conditions": [],
     "actions": [
       {
         "fn": "SetProperty",
         "args": [
-          id+"SeekbarInteraction",
+          readyMadeArgs[0]+"Interaction",
           "seeking",
           "=",
           "true"
         ],
-        "code": id+"SeekbarInteraction.seeking = true"
+        "code": readyMadeArgs[0]+"Interaction.seeking = true"
       }
     ],
     "key": ""
   },
   {
     "event": "MouseUp",
-    "target": id+"SeekbarInteraction",
+    "target": readyMadeArgs[0]+"Interaction",
     "comment": "Release the Seekbar",
     "conditions": [],
     "actions": [
       {
         "fn": "SetProperty",
         "args": [
-          id+"SeekbarInteraction",
+          readyMadeArgs[0]+"Interaction",
           "seeking",
           "=",
           "false"
         ],
-        "code": id+"SeekbarInteraction.seeking = false"
+        "code": readyMadeArgs[0]+"Interaction.seeking = false"
       }
     ],
     "key": ""
@@ -351,29 +337,29 @@ function CreateSeekBar(id, readyMadeArgs) {
       {
         "fn": "GetProperty",
         "args": [
-          id+"SeekbarInteraction",
+          readyMadeArgs[0]+"Interaction",
           "seeking",
           "==",
           "true"
         ],
-        "code": id+"SeekbarInteraction.seeking==true"
+        "code": readyMadeArgs[0]+"Interaction.seeking==true"
       }
     ],
     "actions": [
       {
         "fn": "SetProperty",
         "args": [
-          id+"Seekbar",
+          readyMadeArgs[0]+"Bar",
           "progress",
           "=",
-          "(MouseX - "+id+".X) / "+id+"Seekbar.Width"
+          "(MouseX - "+readyMadeArgs[0]+".X) / "+readyMadeArgs[0]+"Bar.Width"
         ],
-        "code": id+"Seekbar.progress = (MouseX - "+id+".X) / "+id+"Seekbar.Width"
+        "code": readyMadeArgs[0]+"Bar.progress = (MouseX - "+readyMadeArgs[0]+".X) / "+readyMadeArgs[0]+"Bar.Width"
       },
       {
         "fn": "",
         "args": [],
-        "code": "GetScene().Timeline.time("+id+"Seekbar.progress * GetScene().Timeline.duration())"
+        "code": "GetScene().Timeline.time("+readyMadeArgs[0]+"Bar.progress * GetScene().Timeline.duration())"
       }
     ],
     "fireMode": "whiletrue"
@@ -393,7 +379,11 @@ ReadyMades.push({
 
     args: [
      
-  
+       {
+        type: "text",
+        label: "ID: ",
+        defaultValue:"PlayPause"
+      },
       {
         type: "color",
         label: "Color",
@@ -405,13 +395,13 @@ ReadyMades.push({
   }
 )
 
-function CreatePlayPause(id, readyMadeArgs) {
+function CreatePlayPause(readyMadeArgs) {
 
   var Yposition=StageHeightInput.value-90;
 
   BuildCode.setValue(BuildCode.getValue()+
   `
-  Actor('${id}','div');
+  Actor('${readyMadeArgs[0]}','div');
   ActorProps(thisActor, {
   Parent: "stage",
   Width: 90,
@@ -420,31 +410,31 @@ function CreatePlayPause(id, readyMadeArgs) {
   Y: ${Yposition},
 });
 
-Actor('${id}PlayBtn','div');
+Actor('${readyMadeArgs[0]}PlayBtn','div');
 ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: 50,
   Height: 50,
   X: 20,
   Y: 20,
-  Color: "${readyMadeArgs[0]}",
+  Color: "${readyMadeArgs[1]}",
   Shape: "Play",
 });
 
-Actor('${id}PauseBtn','div');
+Actor('${readyMadeArgs[0]}PauseBtn','div');
 ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: 50,
   Height: 50,
   X: 20,
   Y: 20,
-  Color: "${readyMadeArgs[0]}",
+  Color: "${readyMadeArgs[1]}",
   Shape: "Pause",
 });
 
-Actor('${id}PlayPauseSwitch','div');
+Actor('${readyMadeArgs[0]}Switch','div');
 ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: 90,
   Height: 100,
   Style: "cursor:pointer",
@@ -455,29 +445,29 @@ ActorProps(thisActor, {
    GeneratedTriggers.push(
     {
     "event": "MouseUp",
-    "target": id+"PlayPauseSwitch",
+    "target": readyMadeArgs[0]+"Switch",
     "comment": "Switch Play/Pause Button",
     "conditions": [],
     "actions": [
       {
         "fn": "ToggleProperty",
         "args": [
-          id+"PlayBtn",
+          readyMadeArgs[0]+"PlayBtn",
           "Opacity",
           "100",
           "0"
         ],
-        "code": "if ("+id+"PlayBtn.Opacity == 100) {   "+id+"PlayBtn.Opacity = 0;  } else {    "+id+"PlayBtn.Opacity = 100;      }    "
+        "code": "if ("+readyMadeArgs[0]+"PlayBtn.Opacity == 100) {   "+readyMadeArgs[0]+"PlayBtn.Opacity = 0;  } else {    "+readyMadeArgs[0]+"PlayBtn.Opacity = 100;      }    "
       },
       {
         "fn": "ToggleProperty",
         "args": [
-          id+"PauseBtn",
+          readyMadeArgs[0]+"PauseBtn",
           "Opacity",
           "0",
           "100"
         ],
-        "code": "if ("+id+"PauseBtn.Opacity == 0) {   "+id+"PauseBtn.Opacity = 100;  } else {    "+id+"PauseBtn.Opacity = 0;      }    "
+        "code": "if ("+readyMadeArgs[0]+"PauseBtn.Opacity == 0) {   "+readyMadeArgs[0]+"PauseBtn.Opacity = 100;  } else {    "+readyMadeArgs[0]+"PauseBtn.Opacity = 0;      }    "
       }
     ],
     "key": "Space"
@@ -496,22 +486,22 @@ ActorProps(thisActor, {
       {
         "fn": "ToggleProperty",
         "args": [
-          id+"PlayBtn",
+          readyMadeArgs[0]+"PlayBtn",
           "Opacity",
           "100",
           "0"
         ],
-        "code": "if ("+id+"PlayBtn.Opacity == 100) {   "+id+"PlayBtn.Opacity = 0;  } else {    "+id+"PlayBtn.Opacity = 100;      }    "
+        "code": "if ("+readyMadeArgs[0]+"PlayBtn.Opacity == 100) {   "+readyMadeArgs[0]+"PlayBtn.Opacity = 0;  } else {    "+readyMadeArgs[0]+"PlayBtn.Opacity = 100;      }    "
       },
       {
         "fn": "ToggleProperty",
         "args": [
-          id+"PauseBtn",
+          readyMadeArgs[0]+"PauseBtn",
           "Opacity",
           "0",
           "100"
         ],
-        "code": "if ("+id+"PauseBtn.Opacity == 0) {   "+id+"PauseBtn.Opacity = 100;  } else {    "+id+"PauseBtn.Opacity = 0;      }    "
+        "code": "if ("+readyMadeArgs[0]+"PauseBtn.Opacity == 0) {   "+readyMadeArgs[0]+"PauseBtn.Opacity = 100;  } else {    "+readyMadeArgs[0]+"PauseBtn.Opacity = 0;      }    "
       }
     ],
     "fireMode": "onceWhileTrue"
@@ -523,12 +513,12 @@ ActorProps(thisActor, {
       {
         "fn": "GetProperty",
         "args": [
-          id+"PlayBtn",
+          readyMadeArgs[0]+"PlayBtn",
           "Opacity",
           "==",
           "100"
         ],
-        "code": id+"PlayBtn.Opacity==100"
+        "code": readyMadeArgs[0]+"PlayBtn.Opacity==100"
       }
     ],
     "actions": [
@@ -547,12 +537,12 @@ ActorProps(thisActor, {
       {
         "fn": "GetProperty",
         "args": [
-          id+"PlayBtn",
+          readyMadeArgs[0]+"PlayBtn",
           "Opacity",
           "==",
           "0"
         ],
-        "code": id+"PlayBtn.Opacity==0"
+        "code": readyMadeArgs[0]+"PlayBtn.Opacity==0"
       }
     ],
     "actions": [
@@ -572,22 +562,22 @@ ActorProps(thisActor, {
       {
         "fn": "SetProperty",
         "args": [
-          id+"PlayBtn",
+          readyMadeArgs[0]+"PlayBtn",
           "Opacity",
           "=",
           "0"
         ],
-        "code": id+"PlayBtn.Opacity = 0"
+        "code": readyMadeArgs[0]+"PlayBtn.Opacity = 0"
       },
       {
         "fn": "SetProperty",
         "args": [
-          id+"PauseBtn",
+          readyMadeArgs[0]+"PauseBtn",
           "Opacity",
           "=",
           "100"
         ],
-        "code": id+"PauseBtn.Opacity = 100"
+        "code": readyMadeArgs[0]+"PauseBtn.Opacity = 100"
       }
     ]
   }
@@ -605,7 +595,11 @@ ReadyMades.push({
 
     args: [
      
-  
+      {
+        type: "test",
+        label: "ID: ",
+        defaultValue:"Menu"
+      },
       {
         type: "color",
         label: "Background color",
@@ -632,37 +626,37 @@ ReadyMades.push({
   }
 )
 
-function CreateMenu(id, readyMadeArgs) {
+function CreateMenu(readyMadeArgs) {
 
 var ScenesBackwards=AllScenes.reverse();
 
   BuildCode.setValue(BuildCode.getValue()+
   `
-  Actor('${id}','div');
+  Actor('${readyMadeArgs[0]}','div');
 ActorProps(thisActor, {
   Parent: "stage",
   Width: 80,
   Height: 70,
   Style: \`border-bottom-right-radius:2em;
 border-bottom-left-radius:2em;\`,
-  Color: "${readyMadeArgs[0]}",
+  Color: "${readyMadeArgs[1]}",
 });
 
-Actor('${id}MenuArrow','div');
+Actor('${readyMadeArgs[0]}Arrow','div');
 ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: 40,
   Height: 40,
   X: 20,
   Y: 10,
   Angle: 180,
-  Color: "${readyMadeArgs[1]}",
+  Color: "${readyMadeArgs[2]}",
   Shape: "Triangle",
 });
 
-Actor('${id}MenuBtn','div');
+Actor('${readyMadeArgs[0]}Btn','div');
 ActorProps(thisActor, {
-  Parent: "${id}",
+  Parent: "${readyMadeArgs[0]}",
   Width: 80,
   Height: 70,
   Style: "cursor:pointer",
@@ -675,15 +669,15 @@ for (let i = 0; i < ScenesBackwards.length; i++) {
   `
   Actor("${ScenesBackwards[i].ID}MenuBtn","div");
 ActorProps(thisActor, {
-  Parent: "${id}",
-  Width: ${readyMadeArgs[3]},
-  Height: ${readyMadeArgs[2]}+2,
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[4]},
+  Height: ${readyMadeArgs[3]}+2,
   X: 0,
-  Y: -(${readyMadeArgs[2]})*(${i}+1)-2,
+  Y: -(${readyMadeArgs[3]})*(${i}+1)-2,
   Style: \`padding-left:1em;
 cursor:pointer\`,
-  Color: "${readyMadeArgs[0]}",
-  Text: \`<p><span style="color: ${readyMadeArgs[1]};">${ScenesBackwards[i].ID}</span></p>\`,
+  Color: "${readyMadeArgs[1]}",
+  Text: \`<p><span style="color: ${readyMadeArgs[2]};">${ScenesBackwards[i].ID}</span></p>\`,
   FontSize: 33,
   });
   `);
@@ -693,88 +687,88 @@ cursor:pointer\`,
    GeneratedTriggers.push(
    {
     "event": "MouseUp",
-    "target": id+"MenuBtn",
+    "target": readyMadeArgs[0]+"Btn",
     "comment": "Show Menu",
     "conditions": [
       {
         "fn": "GetProperty",
         "args": [
-          id,
+          readyMadeArgs[0],
           "Y",
           "<=",
           "0"
         ],
-        "code": id+".Y<=0"
+        "code": readyMadeArgs[0]+".Y<=0"
       }
     ],
     "actions": [
       {
         "fn": "MoveActor",
         "args": [
-          id,
+          readyMadeArgs[0],
           "Y",
-          ""+ScenesBackwards.length*readyMadeArgs[2],
+          ""+ScenesBackwards.length*readyMadeArgs[3],
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+",{Y:349,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+",{Y:349,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
         "fn": "MoveActor",
         "args": [
-          id+"MenuArrow",
+          readyMadeArgs[0]+"Arrow",
           "Angle",
           "0",
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+"MenuArrow,{Angle:0,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+"Arrow,{Angle:0,ease:\"power1.out\",duration:0.5,delay:0})"
       }
     ],
     "key": "KeyM"
   },
   {
     "event": "MouseUp",
-    "target": id+"MenuBtn",
+    "target": readyMadeArgs[0]+"Btn",
     "comment": "Hide Menu",
     "conditions": [
       {
         "fn": "GetProperty",
         "args": [
-          id,
+          readyMadeArgs[0],
           "Y",
           ">",
           "0"
         ],
-        "code": id+".Y>0"
+        "code": readyMadeArgs[0]+".Y>0"
       }
     ],
     "actions": [
       {
         "fn": "MoveActor",
         "args": [
-          id,
+          readyMadeArgs[0],
           "Y",
           "0",
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
         "fn": "MoveActor",
         "args": [
-          id+"MenuArrow",
+          readyMadeArgs[0]+"Arrow",
           "Angle",
           "180",
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+"MenuArrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+"Arrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
       }
     ],
     "key": "KeyM"
@@ -792,26 +786,26 @@ for (let i = 0; i < ScenesBackwards.length; i++) {
       {
         "fn": "MoveActor",
         "args": [
-          id,
+          readyMadeArgs[0],
           "Y",
           "0",
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
         "fn": "MoveActor",
         "args": [
-          id+"MenuArrow",
+          readyMadeArgs[0]+"Arrow",
           "Angle",
           "180",
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+id+"MenuArrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+"Arrow,{Angle:180,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
         "fn": "GotoScene",
