@@ -2,7 +2,25 @@
 const ConditionFunctions = {
  
  
- 
+  "MouseDown": {
+    label: "Mouse is down",
+	category:"Mouse",
+    args: [
+      { type: "actor", label: "Actor"},
+
+    ],
+    build: (args) => `${args[0]}.MouseIsDown==true`
+  },
+
+   "MouseUp": {
+    label: "Mouse is up",
+	category:"Mouse",
+    args: [
+      { type: "actor", label: "Actor"},
+
+    ],
+    build: (args) => `${args[0]}.MouseIsDown==false`
+  },
  
  
  "GetVolume": {
@@ -94,7 +112,7 @@ const ConditionFunctions = {
       return `Collision(${a}, ${b}, ${modX}, ${modY})`;
     }
 
-    // Filtrér på valgte sider
+    // Filtrï¿½r pï¿½ valgte sider
     const checks = [];
     if (top === true || top === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "top"`);
     if (bottom === true || bottom === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "bottom"`);
@@ -2049,7 +2067,7 @@ if (${args[0]}.VolumeData) {
 	
 	
 	  "PushQuestion": {
-	  label: "Tilføj Spørgsmål",
+	  label: "Tilfï¿½j Spï¿½rgsmï¿½l",
 	  category: "Lykkehjul",
 	  args: [
 		{
@@ -2058,7 +2076,7 @@ if (${args[0]}.VolumeData) {
 		  options: ["0", "1", "2"]
 		},
 		{
-		  label: "Spørgsmål",
+		  label: "Spï¿½rgsmï¿½l",
 		  type: "quill"
 		},
 		{

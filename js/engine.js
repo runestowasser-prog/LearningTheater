@@ -868,11 +868,10 @@ function GenerateElement(id){
 		if(id.InputType!=undefined){
 			x.type=id.InputType;
 		}
-			
+			//x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
 		if(id.Draggable==true){
-			x.setAttribute("onmousedown","mouseDown("+id.ID+");  "+id.MouseDown+";");
-			x.setAttribute("onmouseup","mouseUp("+id.ID+"); "+id.MouseUp+";"+id.DropFunction);
-			//x.style.cursor="pointer";
+			x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
+			x.setAttribute("onpointerup","AllMouseUps(); "+id.MouseUp+";"+id.DropFunction);
 		}
   Div1.appendChild(x);
   x.style.position="absolute";
@@ -896,25 +895,35 @@ function GenerateElement(id){
   UpdateElement(id);
 }
 
-function mouseDown(e){
+function mouseDown(e,event){
+  PointerPosition(event);
+  e.MouseIsDown=true;
 	if(e.Draggable==true){
-		e.dragging=true;
+		//PointerPosition();
 		e.initX=MouseX-e.X;
 		e.initY=MouseY-e.Y;
+    e.dragging=true;
 	}
-}
-function touchStart(e){
-	if(e.Draggable==true){
-		e.dragging=true;
-		e.initX=e.Width/2;
-		e.initY=e.Height/2;
-//		e.X=MouseX-(e.Width/2);
-//		e.Y=MouseY-(e.Height/2);
-	}
+  
 }
 
+
 function mouseUp(e){
+  //elementId(e.ID).pointerCancel(event.pointerId);
+  e.MouseIsDown=false;
 	e.dragging=false;
+}
+
+function AllMouseUps(){
+  for (let i = 0; i < Actors.length; i++) {
+    if(Actors[i].MouseIsDown==true){
+      mouseUp(Actors[i]);
+      //Actors[i].MouseUp;
+      Actors[i].MouseIsDown=false;
+      console.log(Actors[i].ID+": "+Actors[i].MouseIsDown);
+    }
+  }
+
 }
 
 
@@ -1402,118 +1411,12 @@ function Burst(actorID, options = {}) {
 function SceneStartTrigger() {
   runTriggers("SceneStart");
 }
-/*
-function runTriggers(eventName) {
-	
-  if (!Array.isArray(Triggers)) return;
 
-  for (const trigger of Triggers) {
-    if (trigger.event !== eventName) continue;
-
-    let conditionMet = true;
-    const conditions = trigger.conditions || ["true"];
-
-    // Evaluer alle conditions
-    for (let cond of conditions) {
-      if (!cond) continue;
-      const code = typeof cond === "string" ? cond : cond.code;
-      try {
-        if (!new Function("return (" + code + ")")()) {
-          conditionMet = false;
-          break;
-        }
-      } catch (err) {
-        console.warn("Trigger fejl:", err);
-        conditionMet = false;
-        break;
-      }
-    }
-
-    // ✅ FireMode håndtering
-    trigger._hasFired = trigger._hasFired || false; // init flag
-
-    if (conditionMet) {
-      if (trigger.fireMode === "once") {
-        if (!trigger._hasFired) {
-          trigger.actions?.forEach(act => {
-            const code = typeof act === "string" ? act : act.code;
-            if (!code) return;
-            try { new Function(code)(); } 
-            catch (err) { console.warn("Trigger action fejl:", err); }
-          });
-          trigger._hasFired = true; // sat permanent
-        }
-      } else if (trigger.fireMode === "onceWhileTrue") {
-        if (!trigger._hasFired) {
-          trigger.actions?.forEach(act => {
-            const code = typeof act === "string" ? act : act.code;
-            if (!code) return;
-            try { new Function(code)(); } 
-            catch (err) { console.warn("Trigger action fejl:", err); }
-          });
-          trigger._hasFired = true;
-        }
-      } else { // fx standard / while true
-        trigger.actions?.forEach(act => {
-          const code = typeof act === "string" ? act : act.code;
-          if (!code) return;
-          try { new Function(code)(); } 
-          catch (err) { console.warn("Trigger action fejl:", err); }
-        });
-      }
-    } else {
-      // nulstil kun onceWhileTrue, ikke once
-      if (trigger.fireMode === "onceWhileTrue") {
-        trigger._hasFired = false;
-      }
-    }
-  }
-}
-*/
   // global state
   window._MouseState = {
     isDown: false,
     actor: null
   };
-
-function MouseListener(){
-
-  const container = document.getElementById("stage");
-
-  container.addEventListener("mousedown", (e) => {
-    const targetEl = e.target.closest("[data-actor-id]");
-    if (!targetEl) return;
-
-    const actorId = targetEl.getAttribute("data-actor-id");
-
-    window._MouseState.isDown = true;
-    window._MouseState.actor = actorId;
-	
-	
-
-    window.TriggerTarget = actorId;
-    runTriggers("MouseDown");
-    window.TriggerTarget = null;
-  });
-
-  // ⚠️ lyt på document, ikke kun container
-  document.addEventListener("mouseup", (e) => {
-
-    const targetEl = e.target.closest("[data-actor-id]");
-    const actorId = targetEl
-      ? targetEl.getAttribute("data-actor-id")
-      : window._MouseState.actor;
-
-    window._MouseState.isDown = false;
-    window._MouseState.actor = actorId;
-
-    if(actorId){
-      window.TriggerTarget = actorId;
-      runTriggers("MouseUp");
-      window.TriggerTarget = null;
-    }
-  });
-}
 
 function KeyboardListener() {
   window._KeyState = window._KeyState || {};
@@ -1539,7 +1442,7 @@ function KeyboardListener() {
   });
 }
 
-function runKeyTriggers(eventName, keyCode) {
+function runKeyTriggers(eventName, keyCode,event) {
   if (!Array.isArray(Triggers)) return;
 
   for (const trigger of Triggers) {
@@ -1554,17 +1457,36 @@ function runKeyTriggers(eventName, keyCode) {
 
   window.TriggerTarget = null;
 }
-
+function getDOMEventType(eventType){
+  switch(eventType){
+    case "MouseDown":
+      return "pointerdown";
+    case "MouseUp":
+      return "pointerup";
+      default: return eventType.toLowerCase();
+  }
+}
 function attachTriggerListener(containerId, eventType) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  container.addEventListener(eventType.toLowerCase(), (e) => {
+  const domEvent=getDOMEventType(eventType);
+
+  container.addEventListener(domEvent, (e) => {
     const targetEl = e.target.closest("[data-actor-id]");
     if (!targetEl) return;
 
     const actorId = targetEl.getAttribute("data-actor-id");
     const actorObj = window[actorId];
+    if(eventType=="MouseDown" && actorObj){
+      actorObj.MouseIsDown=true;
+      PointerPosition(event);
+    }
+    if(eventType=="MouseUp" && actorObj){
+      AllMouseUps();
+    }
+
+  
 
     // Actorens egen MouseDown / MouseUp
     if (actorObj && actorObj[eventType]) {
