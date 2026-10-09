@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="height:100%; touch-action:none;" >
+<html style="height:100%;" >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -115,7 +115,7 @@ function showTimelines(){
 	//AllSceneTweens=frame.contentwindow.GetScene().value.Timeline.getChildren();
 	//console.log("Which scene: "+currentSelect);
 	
-	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden; touch-action:none;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
+	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
 
 	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"lightgrey\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\nthisActor.Overflow=\"scroll\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){Scene1.Opacity=100;\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
 	
@@ -2026,7 +2026,204 @@ function updateDropdown() {
 
 	  break;
 	
-        
+      
+	case "target": {
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.gap = "6px";
+  wrapper.style.width = "100%";
+
+  // Vælg referencetype
+  const typeSelect = document.createElement("select");
+  typeSelect.className = "arg-input";
+
+  [
+    { value: "actor", label: "Actor" },
+    { value: "ensemble", label: "Ensemble" },
+    { value: "raw", label: "Raw" }
+  ].forEach(type => {
+    const option = document.createElement("option");
+    option.value = type.value;
+    option.textContent = type.label;
+    typeSelect.appendChild(option);
+  });
+
+  // Værdifeltet
+  const valueContainer = document.createElement("div");
+  valueContainer.style.flex = "1";
+  valueContainer.style.minWidth = "0";
+
+  // Gem begge dele i ét argument som JSON.
+  // Dette er kun editorens interne repræsentation.
+  let target = {
+    type: "actor",
+    value: ""
+  };
+
+  const savedValue = argsValues[index];
+
+  if (savedValue) {
+    try {
+      const parsed = JSON.parse(savedValue);
+
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type) &&
+        typeof parsed.value === "string"
+      ) {
+        target = parsed;
+      }
+    } catch (e) {
+      // Understøt eksisterende actor-ID'er som startværdi.
+      target = {
+        type: "actor",
+        value: String(savedValue)
+      };
+    }
+  }
+
+  typeSelect.value = target.type;
+
+  function saveTarget() {
+    argsValues[index] = JSON.stringify(target);
+    onChange([...argsValues]);
+  }
+
+  function getPreviewWindow() {
+    const iframe = document.getElementById("PreviewWindow");
+
+    if (!iframe) return window;
+
+    try {
+      return iframe.contentWindow || window;
+    } catch (e) {
+      return window;
+    }
+  }
+
+  function findEnsembles(pw) {
+    const exclude = [
+      "Actors", "Scenes", "Triggers", "_triggerEnsembles",
+      "Ensembles", "Ensemble", "Ensemble2", "gsapVersions",
+      "", "Elements", "LT_IFrameMessageQueue"
+    ];
+
+    return Object.keys(pw || {}).filter(k => {
+      try {
+        return Array.isArray(pw[k]) && !exclude.includes(k);
+      } catch (e) {
+        return false;
+      }
+    });
+  }
+
+  function renderValueInput() {
+    valueContainer.innerHTML = "";
+
+    let valueInput;
+
+    if (target.type === "actor") {
+      valueInput = document.createElement("select");
+      valueInput.className = "arg-input";
+
+      AllActors.forEach(actor => {
+        if (
+          arg.actorTypes &&
+          !arg.actorTypes.includes(actor.Type)
+        ) return;
+
+        const option = document.createElement("option");
+        option.value = actor.ID;
+        option.textContent = actor.ID;
+        valueInput.appendChild(option);
+      });
+
+    } else if (target.type === "ensemble") {
+      valueInput = document.createElement("select");
+      valueInput.className = "arg-input";
+
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = "(none)";
+      valueInput.appendChild(none);
+
+      findEnsembles(getPreviewWindow()).forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        valueInput.appendChild(option);
+      });
+
+      // Opdatér listen, når dropdown åbnes.
+      valueInput.addEventListener("mousedown", () => {
+        const current = valueInput.value;
+        const candidates = findEnsembles(getPreviewWindow());
+
+        valueInput.innerHTML = "";
+
+        const empty = document.createElement("option");
+        empty.value = "";
+        empty.textContent = "(none)";
+        valueInput.appendChild(empty);
+
+        candidates.forEach(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          valueInput.appendChild(option);
+        });
+
+        valueInput.value = candidates.includes(current) ? current : "";
+      });
+
+    } else {
+      valueInput = document.createElement("input");
+      valueInput.type = "text";
+      valueInput.style.width = "100%";
+
+      attachHelperMenu(valueInput, val => {
+        valueInput.value = val;
+        target.value = val;
+        saveTarget();
+      });
+    }
+
+    valueInput.value = target.value;
+
+    valueInput.addEventListener("change", () => {
+      target.value = valueInput.value;
+      saveTarget();
+    });
+
+    if (target.type === "raw") {
+      valueInput.addEventListener("input", () => {
+        target.value = valueInput.value;
+        saveTarget();
+      });
+    }
+
+    valueContainer.appendChild(valueInput);
+  }
+
+  typeSelect.addEventListener("change", () => {
+    target.type = typeSelect.value;
+
+    // Bevar den tidligere værdi, hvis muligt.
+    // Dropdown-typer valideres, når deres input oprettes.
+    target.value = "";
+
+    renderValueInput();
+    saveTarget();
+  });
+
+  wrapper.appendChild(typeSelect);
+  wrapper.appendChild(valueContainer);
+  input = wrapper;
+
+  renderValueInput();
+
+  break;
+}  
 	case "linebreak":
         lineBreak = document.createElement("br");
 		
@@ -2049,7 +2246,7 @@ function updateDropdown() {
 
     }
 
-	if (arg.type !== "quill") {
+	if (arg.type !== "quill" && arg.type !== "target") {
 	  input.onchange = () => {
 		if (arg.type === "boolean") {
 		  argsValues[index] = input.checked;
@@ -3299,7 +3496,7 @@ LT_TRIGGERS_END -->\n`;
 
 const fonts=getProjectFontCSS(mode = "preview");
   
-  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="PointerPosition(event); AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event); AllMouseUps();" onpointerup="PointerPosition(event); AllMouseUps();" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
   
   document.getElementById("Scenes").value=currentSelect;
 	
@@ -3492,7 +3689,7 @@ function saveTextAsFile(){
 
 SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
-	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-none;" onpointerup="AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 	
 	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
@@ -3666,7 +3863,7 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
-    HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+    HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 
     const JsCode =
       "<scri" + "pt>\n var Move=gsap;\n" +
@@ -3900,7 +4097,7 @@ LT_TRIGGERS_END -->\n`;
       '\n</s'+'cript>\n';
 
     HTMLCode =
-      '<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();">\n<head>\n' +
+      '<!DOCTYPE html>\n<html style="height:100%;">\n<head>\n' +
       '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n' +
       '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n' +
       '<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n' +
@@ -3925,8 +4122,8 @@ LT_TRIGGERS_END -->\n`;
       '<scr' + 'ipt>\n' +
       SCORMAPI + '\n' +
       '</scr' + 'ipt>\n' +
-      '</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; touch-action:none;">\n' +
-      '<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n' +
+      '</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents;">\n' +
+      '<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n' +
       ' <!--- ✂✂✂ ---' + '>';
 
     const JsCode =
@@ -5619,49 +5816,49 @@ generalCode.Y=30
 generalCode.Height=StageHeight
 generalCode.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("buildCode","DIV");
 buildCode.Y=30
 buildCode.Height=StageHeight
 buildCode.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("updateCode","DIV");
 updateCode.Y=30
 updateCode.Height=StageHeight
 updateCode.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("scenestartCode","DIV");
 scenestartCode.Y=30
 scenestartCode.Height=StageHeight
 scenestartCode.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("resizeCode","DIV");
 resizeCode.Y=30
 resizeCode.Height=StageHeight
 resizeCode.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("HEAD","DIV");
 HEAD.Y=30
 HEAD.Height=StageHeight
 HEAD.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 
 Actor("BuildSpecial","DIV");
 thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="addControls">
   <button id="addSceneBtn">➕ New Scene</button>
@@ -5673,7 +5870,7 @@ thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="triggerEditor"></div>`;
 
@@ -5682,7 +5879,7 @@ thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="LibraryUsageContainer" style="padding:6px;">
   <div id="LibraryUsageLabel">0 GB / 1.8 GB</div>
@@ -5697,7 +5894,7 @@ thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.MouseUp="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`ReadyMadeEditor`;
 thisActor.Color="lightgray"
@@ -5707,66 +5904,66 @@ thisActor.Opacity=0;
 Actor("SelectScript","button")
 SelectScript.Height=30
 SelectScript.Parent="KeyframeOptions"
-SelectScript.Click="ShowScriptMenu()";
+SelectScript.MouseUp="ShowScriptMenu()";
 
 Actor("ScriptMenu","DIV")
 ScriptMenu.Y=30
 ScriptMenu.Opacity=0
 
 Actor("ScriptOption1","button");
-ScriptOption1.Click="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
+ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
 ScriptOption1.Height=30
 ScriptOption1.Y=120
 ScriptOption1.Parent="ScriptMenu"
 ScriptOption1.Text="Code"
 Actor("ScriptOption2","button"); 
-ScriptOption2.Click="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
+ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
 ScriptOption2.Height=30
 ScriptOption2.Y=210
 ScriptOption2.Parent="ScriptMenu"
 ScriptOption2.Text="Build (code)"
 ScriptOption2.Opacity=0
 Actor("ScriptOption3","button"); 
-ScriptOption3.Click="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
+ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
 ScriptOption3.Height=30
 ScriptOption3.Y=180
 ScriptOption3.Parent="ScriptMenu"
 ScriptOption3.Text="Update (code)"
 ScriptOption3.Opacity=0
 Actor("ScriptOption4","button");
-ScriptOption4.Click="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
+ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
 ScriptOption4.Height=30
 ScriptOption4.Y=150
 ScriptOption4.Parent="ScriptMenu"
 ScriptOption4.Text="Scene Start (code)"
 ScriptOption4.Opacity=0
 Actor("ScriptOption5","button"); 
-ScriptOption5.Click="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
+ScriptOption5.MouseUp="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
 ScriptOption5.Height=30
 ScriptOption5.Y=120
 ScriptOption5.Parent="ScriptMenu"
 ScriptOption5.Text="Resize"
 ScriptOption5.Opacity=0
 Actor("ScriptOption6","button"); 
-ScriptOption6.Click="ShowSelectedScript(HEAD,'HEAD',HEAD)"
+ScriptOption6.MouseUp="ShowSelectedScript(HEAD,'HEAD',HEAD)"
 ScriptOption6.Height=30
 ScriptOption6.Y=90
 ScriptOption6.Parent="ScriptMenu"
 ScriptOption6.Text="HEAD"
 Actor("ScriptOption7","button"); 
-ScriptOption7.Click="ShowSelectedScript(BuildSpecial,'ACTORS',BuildSpecial)"
+ScriptOption7.MouseUp="ShowSelectedScript(BuildSpecial,'ACTORS',BuildSpecial)"
 ScriptOption7.Height=30
 ScriptOption7.Y=0
 ScriptOption7.Parent="ScriptMenu"
 ScriptOption7.Text="ACTORS"
 Actor("ScriptOption8","button"); 
-ScriptOption8.Click="ShowSelectedScript(EventEditor,'EVENTS',EventEditor)"
+ScriptOption8.MouseUp="ShowSelectedScript(EventEditor,'EVENTS',EventEditor)"
 ScriptOption8.Height=30
 ScriptOption8.Y=30
 ScriptOption8.Parent="ScriptMenu"
 ScriptOption8.Text="EVENTS"
 Actor("ScriptOption9","button"); 
-ScriptOption9.Click="ShowSelectedScript(Library,'LIBRARY',Library)"
+ScriptOption9.MouseUp="ShowSelectedScript(Library,'LIBRARY',Library)"
 ScriptOption9.Height=30
 ScriptOption9.Y=60
 ScriptOption9.Parent="ScriptMenu"
@@ -5776,7 +5973,7 @@ Actor('settingsBtn','button')
 thisActor.Text="Settings ⚙"
 //thisActor.Width=142
 thisActor.Height=30
-thisActor.Click="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false; populateFontSelect();"
+thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false; populateFontSelect();"
 thisActor.Parent="ScriptMenu"
 thisActor.Y=150
 
@@ -5806,7 +6003,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `if(fileMenu.Opacity==0){
+  MouseUp: `if(fileMenu.Opacity==0){
 fileMenu.Opacity=100;
 }
 else{
@@ -5868,7 +6065,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `fileMenu.Opacity=0;
+  MouseUp: `fileMenu.Opacity=0;
 saveProjectAsSingleHTML();`,
   Color: "",
   Text: "Export HTML",
@@ -5898,7 +6095,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `fileMenu.Opacity=0;
+  MouseUp: `fileMenu.Opacity=0;
 loadProjectFromSingleHTML();`,
   Color: "",
   Text: "Import HTML",
@@ -5928,7 +6125,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `fileMenu.Opacity=0;
+  MouseUp: `fileMenu.Opacity=0;
 loadProjectFromZip();`,
   Color: "",
   Text: "Load ZIP",
@@ -5958,7 +6155,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `fileMenu.Opacity=0;
+  MouseUp: `fileMenu.Opacity=0;
 saveProjectAsZip();`,
   Color: "",
   Text: "Save ZIP",
@@ -5988,7 +6185,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  Click: `fileMenu.Opacity=0;
+  MouseUp: `fileMenu.Opacity=0;
 loadProjectFromZip(true);`,
   Color: "",
   Text: "Merge ZIP",
@@ -6020,7 +6217,7 @@ thisActor.MouseUp=""
 
 Actor("UpdateBtn","button")
 UpdateBtn.Text="&#8635;"
-UpdateBtn.Click="showPreview();"
+UpdateBtn.MouseUp="showPreview();"
 UpdateBtn.Width=30
 UpdateBtn.Height=30
 UpdateBtn.X=400
@@ -6046,7 +6243,7 @@ NewActorBtn2.Text="Create Actor"
 NewActorBtn2.Y=StageHeight-90
 NewActorBtn2.Height=30
 NewActorBtn2.X=0
-NewActorBtn2.Click="ActorOptions.Opacity=100"
+NewActorBtn2.MouseUp="ActorOptions.Opacity=100"
 thisActor.Opacity=0;
 
 Actor("NewTweenBtn","button");
@@ -6055,7 +6252,7 @@ thisActor.Text="Create Movement";
 thisActor.Y=StageHeight-90
 thisActor.Height=30
 thisActor.X=200
-thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
+thisActor.MouseUp="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
 
 Actor("ActorOptions","DIV");
 ActorOptions.Opacity=0;
@@ -7065,7 +7262,7 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
 
 </script>
 </head>
-<body onload="init();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif; touch-action:none;">
+<body onload="init();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <div id="stage" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative;"></div>
 <div id="propertyEditor" style="
