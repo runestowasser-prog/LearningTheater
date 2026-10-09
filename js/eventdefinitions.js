@@ -2,25 +2,7 @@
 const ConditionFunctions = {
  
  
-  "MouseDown": {
-    label: "Mouse is down",
-	category:"Mouse",
-    args: [
-      { type: "actor", label: "Actor"},
-
-    ],
-    build: (args) => `${args[0]}.MouseIsDown==true`
-  },
-
-   "MouseUp": {
-    label: "Mouse is up",
-	category:"Mouse",
-    args: [
-      { type: "actor", label: "Actor"},
-
-    ],
-    build: (args) => `${args[0]}.MouseIsDown==false`
-  },
+ 
  
  
  "GetVolume": {
@@ -112,7 +94,7 @@ const ConditionFunctions = {
       return `Collision(${a}, ${b}, ${modX}, ${modY})`;
     }
 
-    // Filtrï¿½r pï¿½ valgte sider
+    // Filtrér på valgte sider
     const checks = [];
     if (top === true || top === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "top"`);
     if (bottom === true || bottom === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "bottom"`);
@@ -382,7 +364,7 @@ const ActionFunctions = {
 	category:"Actor",
 
     args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
+      { type: "target", label: "Target ", defaultValue:"Actors[0]" },
       { type: "string", label: "New text" },
     ],
     build: (args) => `SetText(${args[0]},"${args[1]}")`
@@ -2067,7 +2049,7 @@ if (${args[0]}.VolumeData) {
 	
 	
 	  "PushQuestion": {
-	  label: "Tilfï¿½j Spï¿½rgsmï¿½l",
+	  label: "Tilføj Spørgsmål",
 	  category: "Lykkehjul",
 	  args: [
 		{
@@ -2076,7 +2058,7 @@ if (${args[0]}.VolumeData) {
 		  options: ["0", "1", "2"]
 		},
 		{
-		  label: "Spï¿½rgsmï¿½l",
+		  label: "Spørgsmål",
 		  type: "quill"
 		},
 		{
@@ -2093,7 +2075,59 @@ if (${args[0]}.VolumeData) {
 
 		return `ResponsePool[${categoryIndex}].push(${JSON.stringify(html)});`
 	  }
-	}
+	},
+	
+	
+"SetProperty": {
+  label: "Set property",
+  category: ["Actor", "Ensemble","target"],
+
+  args: [
+    { type: "target", label: "Target" },
+    {
+      type: "property",
+      label: "Property",
+      exclude: [
+        "BackgroundImage", "Click", "Controls",
+        "DropFunction", "MouseDown", "MouseUp",
+        "OverFlow", "ShowOrigin"
+      ],
+      defaultValue: "X"
+    },
+    { type: "adjust", label: "Adjustment", defaultValue: "=" },
+    { type: "raw", label: "Value", defaultValue: "0" }
+  ],
+
+  build: (args) => {
+    let target = args[0];
+    let property = args[1];
+    let adjustment = args[2];
+    let value = args[3];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => a["${property}"] ${adjustment} ${value})`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `${target}.${property} ${adjustment} ${value}`;
+  }
+},
 
 };
 
