@@ -1,7 +1,76 @@
 // ðŸ› ï¸ Funktionsdefinitioner til conditions
 const ConditionFunctions = {
  
- 
+  "MouseDown": {
+    label: "Mouse is down",
+	category:"Mouse",
+    args: [
+      { type: "target", label: "Actor"},
+
+    ],
+    build: (args) => {
+    let target = args[0];
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => a.MouseIsDown==true)`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `${target}.MouseIsDown==true`;
+  }
+
+  },
+
+   "MouseUp": {
+    label: "Mouse is up",
+	category:"Mouse",
+    args: [
+      { type: "target", label: "Actor"},
+
+    ],
+     build: (args) => {
+    let target = args[0];
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => a.MouseIsDown==false)`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `${target}.MouseIsDown==false`;
+  }
+  },
  
  
  
@@ -41,23 +110,7 @@ const ConditionFunctions = {
     build: (args) => `GetCurrentTime(${args[0]})${args[1]}${args[2]}`
   },
 
- 
 
-/*
- "ActorPosition": {
-    label: "Actor position is",
-	category:"Actor",
-
-    args: [ 
-	{ type: "actor", label: "Actor ", defaultValue: "Actors[0]" },
-	{ type: "property", label: "", include:["X","Y"], defaultValue: "X"},
-	{ type: "compare", label: "", defaultValue: "=="},
-    { type: "raw", label: "", defaultValue: "0"},
-	
-    ],
-    build: (args) => `${args[0]}.${args[1]} ${args[2]} ${args[3]}`
-  },
-*/
 
   "GetProperty": {
     label: "Actor property is",
@@ -74,7 +127,7 @@ const ConditionFunctions = {
 
 "Collision": {
   label: "Collision between two actors",
-  category: ["Actor","Gamification"],
+  category: ["Actor"],
   args: [
     { type: "actor", label: "Actor 1" },
     { type: "actor", label: "Actor 2" },
@@ -94,7 +147,7 @@ const ConditionFunctions = {
       return `Collision(${a}, ${b}, ${modX}, ${modY})`;
     }
 
-    // Filtrér på valgte sider
+    // Filtrï¿½r pï¿½ valgte sider
     const checks = [];
     if (top === true || top === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "top"`);
     if (bottom === true || bottom === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "bottom"`);
@@ -104,13 +157,6 @@ const ConditionFunctions = {
     return `Collision(${a}, ${b}, ${modX}, ${modY}) && (${checks.join(" || ")})`;
   }
 },
-
-
-
-
-
-
-
 
 
   "GetScene": {
@@ -148,43 +194,6 @@ const ConditionFunctions = {
     `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} ${args[3]})`
 },
 
-
-
-
-
-
-/*
- "ActorEnsembleCollision": {
-  label: "Actor collides with any in Ensemble",
-  category: "Ensemble",
-  args: [
-    { type: "actor", label: "Actor" },
-	{ type: "ensemble", label: "Ensemble" },
-    { type: "boolean", label: "Top", defaultValue: "true" },
-    { type: "boolean", label: "Bottom", defaultValue: "true" },
-    { type: "boolean", label: "Left", defaultValue: "true" },
-    { type: "boolean", label: "Right", defaultValue: "true" },
-    { type: "raw", label: "X modifier (optional)", defaultValue: "0" },
-    { type: "raw", label: "Y modifier (optional)", defaultValue: "0" }
-  ],
-  build: (args) => {
-    const [actor, top, bottom, left, right, modX, modY] = args;
-
-    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
-    if (allSidesSelected) {
-      return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a, ${modX}, ${modY}))`;
-    }
-
-    const checks = [];
-    if (top === true || top === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "top"`);
-    if (bottom === true || bottom === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "bottom"`);
-    if (left === true || left === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "left"`);
-    if (right === true || right === "true") checks.push(`Collision(${actor}, a, ${modX}, ${modY}).side === "right"`);
-
-    return `${ensemble} = ${ensemble}.filter(a => Collision(${actor}, a, ${modX}, ${modY}) && (${checks.join(" || ")}))`;
-  }
-},
-*/
 
 "EnsemblesCollide": {
   label: "Ensembles collide",
@@ -325,30 +334,6 @@ const ConditionFunctions = {
     build: (args) => `${args[0]}.Timeline.time() ${args[1]} ${args[2]}`
   },
 
-
-/*  
-"MouseState": {
-  label: "Mouse State",
-  category: "Mouse",
-  args: [
-    { type: "dropdown", label: "State", options: ["MouseDown","MouseUp"] },
-    { type: "actor", label: "Actor", optional: true }
-  ],
-
-  build: (args) => {
-
-    const stateCheck = args[0] === "MouseDown"
-      ? `window._MouseState.isDown`
-      : `!window._MouseState.isDown`;
-
-    if(args[1]){
-      return `(${stateCheck} && window._MouseState.actor === "${args[1]}")`;
-    }
-
-    return stateCheck;
-  }
-}
-  */
   
   
   
@@ -357,42 +342,8 @@ const ConditionFunctions = {
 
 // ðŸ› ï¸ Funktionsdefinitioner til actions
 const ActionFunctions = {
-
-
-  "SetText": {
-    label: "Set text",
-	category:"Actor",
-
-    args: [
-      { type: "target", label: "Target ", defaultValue:"Actors[0]" },
-      { type: "string", label: "New text" },
-    ],
-    build: (args) => `SetText(${args[0]},"${args[1]}")`
-  },
   
-    "SetTextQuill": {
-    label: "Set text (editor)",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "quill", label: "New text" },
-    ],
-    build: (args) => `SetText(${args[0]},"${args[1]}")`
-  },
-  
-   "ReplaceText": {
-    label: "Replace text",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "string", label: "find" },
-	  { type: "raw", label: "and replace with" },
-    ],
-    build: (args) => `ReplaceText(${args[0]},"${args[1]}","${args[2]}")`
-  },
-
+// Media
   "Play": {
     label: "Play media",
 	category:"Media",
@@ -440,7 +391,7 @@ const ActionFunctions = {
   
 
 
-
+//Scenes
   "NextScene": {
     label: "Go to next scene",
 	category:"Scene",
@@ -476,16 +427,8 @@ const ActionFunctions = {
    ],
     build: (args) => `GotoScene("${args[1]}",${args[0]},"${args[2]}",${args[3]})`
   },
-    "Fade Out": {
-    label: "Fade out actor",
-	category:["Actor","Animation"],
 
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "number", label: "Fade time", defaultValue:"1"}
-    ],
-    build: (args) => `Move.to(${args[0]},{Opacity:0,duration:${args[1]}})`
-  },
+
     "FollowMouseX": {
     label: "Follow mouse X",
 	category:"Actor",
@@ -496,21 +439,6 @@ const ActionFunctions = {
       { type: "raw", label: "Slopiness",defaultValue:"0"}
     ],
     build: (args) => `Move.to(${args[0]},{X:MouseX+${args[1]},duration:${args[2]}})`
-  },
-  "MoveActor": {
-    label: "Move actor",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "animationproperties", label: "Property", defaultValue: "X" },
-      { type: "raw", label: "", defaultValue: "0"},
-	{ type: "easing", label: "easing", defaultValue: "power1.out"},
-      { type: "raw", label: "duration", defaultValue: "1"},
-      { type: "raw", label: "delay", defaultValue: "0"},
-
-    ],
-    build: (args) => `Move.to(${args[0]},{${args[1]}:${args[2]},ease:"${args[3]}",duration:${args[4]},delay:${args[5]}})`
   },
 
    "FollowMouseY": {
@@ -524,36 +452,11 @@ const ActionFunctions = {
     ],
     build: (args) => `Move.to(${args[0]},{Y:MouseY+${args[1]},duration:${args[2]}})`
   },
-  /*
-  "Reverse property": {
-    label: "Reverse value",
-	category:"Calculation",
-
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
-    ],
-    build: (args) => `${args[0]}.${args[1]}=-${args[0]}.${args[1]}`
-  },
-  */
-  "SetEnsembleProperty": {
-  label: "Set property on Ensemble",
-	category:"Ensemble",
-
-  args: [
-	{ type: "ensemble", label: "Ensemble name"},
-    { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
-    { type: "adjust", label: "Adjustment", defaultValue:"=" },
-    { type: "raw", label: "New value" }
-  ],
-  build: (args) => `${args[0]}.forEach(a => a["${args[1]}"] ${args[2]} ${args[3]})`
-  },
-  
   
 
   "ShuffleEnsembleProperty": {
   label: "Shuffle property on Ensemble",
-  category: "Ensemble",
+  category: ["Ensemble", "Properties"],
   args: [
     { type: "ensemble", label: "Ensemble name" },
     { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
@@ -597,18 +500,6 @@ const ActionFunctions = {
   build: (args) => `SetSource(${args[0]},"${args[1]}")`
   },
 
-  "SetProperty": {
-    label: "Set a property on an actor",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
-      { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
-      { type: "adjust", label: "Adjustment", defaultValue:"=" },
-      { type: "raw", label: "Value", defaultValue:"0" }
-    ],
-    build: (args) => `${args[0]}.${args[1]} ${args[2]} ${args[3]}`
-  },
   
    "SetPropertyOnParent": {
     label: "Set a property on an actor in parent",
@@ -754,37 +645,7 @@ const ActionFunctions = {
     build: (args) => `${args[0]}.forEach(a => DeleteActor(a))`
   },
 
-   "DuplicateActor": {
-    label: "Duplicate an Actor",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: " Actor: ",defaultValue:"Actors[0]" },
-      { type: "number", label: " times: ",defaultValue:"1" },
-	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
-      
-
-
-    ],
-    build: (args) => `DuplicateActor("${args[0]}",${args[1]},{${args[2]}})`
-  },
-  
-     "DuplicateEnsemble": {
-    label: "Duplicate Ensemble",
-	category:"Ensemble",
-
-    args: [
-      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors" },
-      { type: "number", label: " times: ",defaultValue:"1" },
-	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
-      
-
-
-    ],
-    build: (args) => `${args[0]}.forEach(a => DuplicateActor(a,${args[1]},{${args[2]}})`
-  },
-
-
+ 
 
    "Initialize SCORM": {
   label: "Initialize SCORM connection",
@@ -2049,7 +1910,7 @@ if (${args[0]}.VolumeData) {
 	
 	
 	  "PushQuestion": {
-	  label: "Tilføj Spørgsmål",
+	  label: "Tilfï¿½j Spï¿½rgsmï¿½l",
 	  category: "Lykkehjul",
 	  args: [
 		{
@@ -2058,7 +1919,7 @@ if (${args[0]}.VolumeData) {
 		  options: ["0", "1", "2"]
 		},
 		{
-		  label: "Spørgsmål",
+		  label: "Spï¿½rgsmï¿½l",
 		  type: "quill"
 		},
 		{
@@ -2080,7 +1941,7 @@ if (${args[0]}.VolumeData) {
 	
 "SetProperty": {
   label: "Set property",
-  category: ["Actor", "Ensemble","target"],
+  category: ["Properties"],
 
   args: [
     { type: "target", label: "Target" },
@@ -2129,6 +1990,295 @@ if (${args[0]}.VolumeData) {
   }
 },
 
+  "Duplicate": {
+    label: "Duplicate",
+	category:"Structure",
+
+    args: [
+      { type: "target", label: " Target: " },
+      { type: "number", label: " times: ",defaultValue:"1" },
+	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
+
+    ],
+    build: (args) => {
+    let target = args[0];
+    let times = args[1];
+    let properties = args[2];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => DuplicateActor(a.ID,${times},{${properties}}))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `DuplicateActor("${target}",${times},{${properties}})`;
+  }
+  },
+
+  "Move": {
+    label: "Move",
+	category:"Animation",
+
+    args: [
+      { type: "target", label: "Target:" },
+      { type: "animationproperties", label: "Property", defaultValue: "X" },
+      { type: "raw", label: "", defaultValue: "0"},
+	{ type: "easing", label: "easing", defaultValue: "power1.out"},
+      { type: "raw", label: "duration", defaultValue: "1"},
+      { type: "raw", label: "delay", defaultValue: "0"},
+
+    ],
+    build: (args) => {
+    let target = args[0];
+    let property= args[1];
+    let destination = args[2];
+    let easing = args[3];
+    let duration = args[4];
+    let delay = args[5];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => Move.to(a,{${property}:${destination},ease:"${easing}",duration:${duration},delay:${delay}}))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `Move.to(${target},{${property}:${destination},ease:"${easing}",duration:${duration},delay:${delay}})`;
+  }
+},
+
+ "SetText": {
+    label: "Set text",
+	category:"Text",
+
+    args: [
+      { type: "target", label: "Target "},
+      { type: "string", label: "New text" },
+    ],
+    build: (args) => {
+    let target = args[0];
+    let text= args[1];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => SetText(a,"${args[1]}"))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `SetText(${target},"${args[1]}")`;
+  }
+    
+  },
+
+   "SetTextQuill": {
+    label: "Set text (editor)",
+	category:"Text",
+
+    args: [
+      { type: "target", label: "Target " },
+      { type: "quill", label: "New text" },
+    ],
+       build: (args) => {
+    let target = args[0];
+    let text= args[1];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => SetText(a,"${args[1]}"))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `SetText(${target},"${args[1]}")`;
+  }
+  },
+
+    "ReplaceText": {
+    label: "Replace text",
+	category:"Text",
+
+    args: [
+      { type: "target", label: "Target ", defaultValue:"Actors[0]" },
+      { type: "string", label: "find" },
+	  { type: "raw", label: "and replace with" },
+    ],
+         build: (args) => {
+    let target = args[0];
+    let findtext= args[1];
+    let replacetext= args[1];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => ReplaceText(a,"${args[1]}","${args[2]}"))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `ReplaceText(${target},"${args[1]}","${args[2]}")`;
+  }
+  },
+
+      "Sack": {
+    label: "Sack",
+	category:"Structure",
+
+    args: [
+      { type: "target", label: "Target " },
+      
+
+
+    ],
+         build: (args) => {
+    let target = args[0];
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => DeleteActor(a))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `DeleteActor(${target})`;
+  }
+    
+  },
+
+   "ToggleProperty": {
+	label: "Toggle Property",
+	category: "Properties",
+  
+	args: [
+		{ label: "Target", type: "target" },
+		{ label: "Property", type: "property",},
+		{ label: "Value A", type: "raw" },
+		{ label: "Value B", type: "raw" },
+	],
+	   build: (args) => {
+    let target = args[0];
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+
+    if (targetType === "ensemble") {
+//      return `${target}.forEach(a => if (a.${args[1]} == ${args[2]}) {   a.${args[1]} = ${args[3]};  } else {    a.${args[1]} = ${args[2]};      }    )`;
+      return `for (var i =0; i < ${target}.length++; i++){
+    if (${target}[i].${args[1]} == ${args[2]}) {   
+    ${target}[i].${args[1]} = ${args[3]};  
+} 
+else {    
+    ${target}[i].${args[1]} = ${args[2]};      
+}    
+}`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `if (${target}.${args[1]} == ${args[2]}) {   ${target}.${args[1]} = ${args[3]};  } else {    ${target}.${args[1]} = ${args[2]};      }    `;
+  }
+  
+	
+  },
 };
 
 
