@@ -332,6 +332,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.ShowOrigin=false;
 	S.InputType=undefined;
 	S.Mask=Mask;
+  S.MouseIsDown=undefined;
     return S;
 	
 }
