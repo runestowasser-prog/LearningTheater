@@ -1,6 +1,98 @@
 // 🛠️ Funktionsdefinitioner til conditions
 const ConditionFunctions = {
  
+  
+	"CollisionTargets": {
+	  label: "Collision between targets",
+	  category: ["Actor", "Ensemble"],
+
+	  args: [
+		{ type: "target", label: "Target 1" },
+		{ type: "target", label: "Target 2" },
+		{ type: "boolean", label: "Top", defaultValue: "true" },
+		{ type: "boolean", label: "Bottom", defaultValue: "true" },
+		{ type: "boolean", label: "Left", defaultValue: "true" },
+		{ type: "boolean", label: "Right", defaultValue: "true" },
+		{ type: "raw", label: "X modifier", defaultValue: "0" },
+		{ type: "raw", label: "Y modifier", defaultValue: "0" }
+	  ],
+
+	  build: (args) => {
+		let [target1, target2, top, bottom, left, right, modX, modY] = args;
+
+		function parseTarget(value) {
+		  try {
+			const parsed = JSON.parse(value);
+			if (
+			  parsed &&
+			  ["actor", "ensemble", "raw"].includes(parsed.type)
+			) {
+			  return parsed;
+			}
+		  } catch (e) {}
+
+		  // Bagudkompatibilitet med gamle argumenter
+		  return { type: "actor", value: String(value) };
+		}
+
+		const t1 = parseTarget(target1);
+		const t2 = parseTarget(target2);
+
+		const a = t1.value;
+		const b = t2.value;
+
+		const allSidesSelected = [top, bottom, left, right]
+		  .every(v => v === true || v === "true");
+
+		function collisionCheck(x, y) {
+		  const collision =
+			`Collision(${x}, ${y}, ${modX}, ${modY})`;
+
+		  if (allSidesSelected) return collision;
+
+		  const checks = [];
+
+		  if (top === true || top === "true")
+			checks.push(`${collision}.side === "top"`);
+
+		  if (bottom === true || bottom === "true")
+			checks.push(`${collision}.side === "bottom"`);
+
+		  if (left === true || left === "true")
+			checks.push(`${collision}.side === "left"`);
+
+		  if (right === true || right === "true")
+			checks.push(`${collision}.side === "right"`);
+
+		  return checks.length
+			? `${collision} && (${checks.join(" || ")})`
+			: "false";
+		}
+
+		// Target 1 er et ensemble: filtrér dets actors
+		if (t1.type === "ensemble") {
+		  const check = collisionCheck(
+			"a",
+			t2.type === "ensemble" ? "b" : b
+		  );
+
+		  if (t2.type === "ensemble") {
+			return `${a} = ${a}.filter(a => ${b}.some(b => ${check}))`;
+		  }
+
+		  return `${a} = ${a}.filter(a => ${check})`;
+		}
+
+		// Target 2 er et ensemble: undersøg om nogen af
+		// dets actors kolliderer med target 1
+		if (t2.type === "ensemble") {
+		  return `${b}.some(b => ${collisionCheck(a, "b")})`;
+		}
+
+		// Actor og Raw bruger samme logik
+		return collisionCheck(a, b);
+	  }
+	},
   "MouseDown": {
     label: "Mouse is down",
 	category:"Mouse",
