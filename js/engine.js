@@ -891,6 +891,7 @@ function GenerateElement(id){
 		x.appendChild(CreateOrigin);
 		}
 		}
+    
  
   
   UpdateElement(id);
@@ -1196,7 +1197,7 @@ function duplicateActorRecursive(actor, newParentID, overrides = {}, copyIndex =
 
   // Dupliker børn rekursivt, med deres nye parent = denne klones ID
   for (const child of children) {
-    duplicateActorRecursive(child, clone.ID, overrides, copyIndex);
+    duplicateActorRecursive(child, clone.ID, copyIndex);
   }
 
   return clone;

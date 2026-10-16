@@ -3,18 +3,18 @@ const ConditionFunctions = {
  
   
 	"CollisionTargets": {
-	  label: "Collision between targets",
-	  category: ["Actor", "Ensemble"],
+	  label: "Collision",
+	  category: ["Mechanics"],
 
 	  args: [
-		{ type: "target", label: "Target 1" },
-		{ type: "target", label: "Target 2" },
-		{ type: "boolean", label: "Top", defaultValue: "true" },
-		{ type: "boolean", label: "Bottom", defaultValue: "true" },
-		{ type: "boolean", label: "Left", defaultValue: "true" },
-		{ type: "boolean", label: "Right", defaultValue: "true" },
-		{ type: "raw", label: "X modifier", defaultValue: "0" },
-		{ type: "raw", label: "Y modifier", defaultValue: "0" }
+		{ type: "target", label: " Target 1 " },
+		{ type: "target", label: " Target 2 " },
+		{ type: "boolean", label: " Top", defaultValue: "true" },
+		{ type: "boolean", label: " Bottom", defaultValue: "true" },
+		{ type: "boolean", label: " Left", defaultValue: "true" },
+		{ type: "boolean", label: " Right", defaultValue: "true" },
+		{ type: "raw", label: " X modifier", defaultValue: "0" },
+		{ type: "raw", label: " Y modifier", defaultValue: "0" }
 	  ],
 
 	  build: (args) => {
@@ -205,50 +205,45 @@ const ConditionFunctions = {
 
 
   "GetProperty": {
-    label: "Actor property is",
-	category:"Actor",
+    label: "Property is",
+	category:"Properties",
 
     args: [
-      { type: "actor", label: "Actor",defaultValue:"Actors[0]" },
+      { type: "target", label: " target: " },
       { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
 	  { type: "compare", label: "", defaultValue: "=="},
 	  { type: "raw", label: "", defaultValue: "0"},
     ],
-    build: (args) => `${args[0]}.${args[1]}${args[2]}${args[3]}`
-  },
+    
+     build: (args) => {
+    let target = args[0];
+    // Det nye target-format fra editoren
+    let targetType = "actor";
 
-"Collision": {
-  label: "Collision between two actors",
-  category: ["Actor"],
-  args: [
-    { type: "actor", label: "Actor 1" },
-    { type: "actor", label: "Actor 2" },
-    { type: "boolean", label: "Top", defaultValue: "true" },
-    { type: "boolean", label: "Bottom", defaultValue: "true" },
-    { type: "boolean", label: "Left", defaultValue: "true" },
-    { type: "boolean", label: "Right", defaultValue: "true" },
-    { type: "raw", label: "X modifier", defaultValue: "0" },
-    { type: "raw", label: "Y modifier", defaultValue: "0" }
-  ],
-  build: (args) => {
-    const [a, b, top, bottom, left, right, modX, modY] = args;
-
-    // Hvis alle sider er valgt ? klassisk collision
-    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
-    if (allSidesSelected) {
-      return `Collision(${a}, ${b}, ${modX}, ${modY})`;
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
     }
 
-    // Filtr�r p� valgte sider
-    const checks = [];
-    if (top === true || top === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "top"`);
-    if (bottom === true || bottom === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "bottom"`);
-    if (left === true || left === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "left"`);
-    if (right === true || right === "true") checks.push(`Collision(${a}, ${b}, ${modX}, ${modY}).side === "right"`);
 
-    return `Collision(${a}, ${b}, ${modX}, ${modY}) && (${checks.join(" || ")})`;
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a => a.${args[1]}${args[2]}${args[3]})`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `${target}.${args[1]}${args[2]}${args[3]}`;
   }
-},
+  },
+
+
 
 
   "GetScene": {
@@ -286,37 +281,6 @@ const ConditionFunctions = {
     `${args[0]} = ${args[0]}.filter(a => a["${args[1]}"] ${args[2]} ${args[3]})`
 },
 
-
-"EnsemblesCollide": {
-  label: "Ensembles collide",
-  category: "Ensemble",
-  args: [
-    { type: "ensemble", label: "Ensemble" },
-    { type: "ensemble", label: "2nd Ensemble" },
-    { type: "boolean", label: "Top", defaultValue: "true" },
-    { type: "boolean", label: "Bottom", defaultValue: "true" },
-    { type: "boolean", label: "Left", defaultValue: "true" },
-    { type: "boolean", label: "Right", defaultValue: "true" },
-    { type: "raw", label: "X modifier (optional)", defaultValue: "0" },
-    { type: "raw", label: "Y modifier (optional)", defaultValue: "0" }
-  ],
-  build: (args) => {
-    const [ensemble, ensemble2, top, bottom, left, right, modX, modY] = args;
-
-    const allSidesSelected = [top, bottom, left, right].every(v => v === true || v === "true");
-    if (allSidesSelected) {
-      return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a, b, ${modX}, ${modY})))`;
-    }
-
-    const checks = [];
-    if (top === true || top === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "top"`);
-    if (bottom === true || bottom === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "bottom"`);
-    if (left === true || left === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "left"`);
-    if (right === true || right === "true") checks.push(`Collision(a,b,${modX},${modY}).side === "right"`);
-
-    return `${ensemble} = ${ensemble}.filter(a => ${ensemble2}.some(b => Collision(a,b,${modX},${modY}) && (${checks.join(" || ")})))`
-  }
-},
 
 
 
@@ -395,7 +359,7 @@ const ConditionFunctions = {
 
   "TimelineStateIs": {
     label: "Timeline state is",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       {
@@ -417,7 +381,7 @@ const ConditionFunctions = {
 
   "TimelineTimeCompare": {
     label: "Timeline time is",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "compare", label: "Compare", defaultValue: ">" },
@@ -523,7 +487,7 @@ const ActionFunctions = {
 
     "FollowMouseX": {
     label: "Follow mouse X",
-	category:"Actor",
+	category:"Behavior",
 
     args: [
       { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
@@ -535,7 +499,7 @@ const ActionFunctions = {
 
    "FollowMouseY": {
     label: "Follow mouse Y",
-	category:"Actor",
+	category:"Behavior",
 
     args: [
       { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
@@ -582,7 +546,7 @@ const ActionFunctions = {
 
   "SetSource": {
    label: "Set a new source on actor",
-	category:"Actor",
+	category:"Structure",
 
   args: [
        { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
@@ -620,7 +584,7 @@ const ActionFunctions = {
   
   "SnapToActor": {
     label: "Snap an actor to another",
-	category:"Actor",
+	category:"Behavior",
 
     args: [
       { type: "actor", label: "Actor 1",defaultValue:"Actors[0]" },
@@ -637,7 +601,7 @@ const ActionFunctions = {
   
   "ToggleProperty": {
 	label: "Toggle Property",
-	category: "Actor",
+	category: "Properties",
   
 	args: [
 		{ label: "Actor", type: "actor" },
@@ -652,90 +616,102 @@ const ActionFunctions = {
   },
 
   "ChangeColor": {
-    label: "Change the color of an actor",
-	category:"Actor",
+    label: "Color",
+	category:"Effects",
 
     args: [
-      { type: "actor", label: " Actor: ",defaultValue:"Actors[0]" },
-      { type: "color", label: " Color: ", defaultValue: "#ffffff" },
-      { type: "number", label: " Fadetime: ", defaultValue: "1" },
+      { type: "target", label: " Target " },
+      { type: "color", label: " Color ", defaultValue: "#ffffff" },
+      { type: "raw", label: " Fadetime ", defaultValue: "1" },
       
 
 
     ],
-    build: (args) => `Move.to("#${args[0]}",{"background-color":"${args[1]}", duration:${args[2]}}); Move.to(${args[0]},{Color:"${args[1]}", duration:${args[2]}})`
+      build: (args) => {
+    let target = args[0];
+    let color = args[1];
+    let fadetime = args[2];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a =>
+        Move.to("#"+a.ID,{
+        "background-color":"${args[1]}", 
+        duration:${args[2]}}
+        )
+        )`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `Move.to("#${target}",{"background-color":"${args[1]}", duration:${args[2]}}); Move.to(${args[0]},{Color:"${args[1]}", duration:${args[2]}})`;
+  }
   },
   
-   "ChangeColorEnsemble": {
-    label: "Change the color of an ensemble",
-	category:"Ensemble",
-
-    args: [
-      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors[0]" },
-      { type: "color", label: " Color: ", defaultValue: "#ffffff" },
-      { type: "number", label: " Fadetime: ", defaultValue: "1" },
-      
-
-
-    ],
-    build: (args) => `${args[0]}.forEach(a =>Move.to("#"+a.ID,{"background-color":"${args[1]}", duration:${args[2]}}; Move.to("a,{Color:"${args[1]}", duration:${args[2]}}))`
-  },
-
   "ChangeBlur": {
-    label: "Change the blur of an actor",
-	category:"Actor",
+    label: "Blur",
+	category:"Effects",
 
     args: [
-      { type: "actor", label: " Actor: ",defaultValue:"Actors[0]" },
-      { type: "number", label: " amount: ", defaultValue: "1" },
-      { type: "number", label: " Fadetime: ", defaultValue: "1" },
+      { type: "target", label: " Actor: ", },
+      { type: "raw", label: " amount: ", defaultValue: "1" },
+      { type: "raw", label: " Fadetime: ", defaultValue: "1" },
       
 
 
     ],
-    build: (args) => `Move.to("#${args[0]}",{"filter":"blur(${args[1]}em)", duration:${args[2]}})`
+
+      build: (args) => {
+    let target = args[0];
+    let amount = args[1];
+    let fadetime = args[2];
+    let value = args[3];
+
+    // Det nye target-format fra editoren
+    let targetType = "actor";
+
+    try {
+      const parsed = JSON.parse(target);
+      if (
+        parsed &&
+        ["actor", "ensemble", "raw"].includes(parsed.type)
+      ) {
+        targetType = parsed.type;
+        target = parsed.value;
+      }
+    } catch (e) {
+      // Bagudkompatibilitet med gamle actor-ID'er
+    }
+
+    if (targetType === "ensemble") {
+      return `${target}.forEach(a =>
+        Move.to("#"+a.ID,{
+        "filter":"blur(${amount}em)", 
+        duration:${fadetime}}
+        ))`;
+    }
+
+    // Actor og Raw bruger samme kodegenerering
+    return `Move.to("#${target}",{"filter":"blur(${amount}em)", duration:${fadetime}})`;
+  }
   },
   
-   "ChangeBlurEnsemble": {
-    label: "Change the blur of an Ensemble",
-	category:"Ensemble",
-
-    args: [
-      { type: "ensemble", label: "Ensemble: ",defaultValue:"Actors[0]" },
-      { type: "number", label: " amount: ", defaultValue: "1" },
-      { type: "number", label: " Fadetime: ", defaultValue: "1" },
-      
 
 
-    ],
-    build: (args) => `${args[0]}.forEach(a => Move.to(elementId(a.ID),{"filter::"blur(${args[1]}em)", duration:${args[2]}}))`
-  },
-
-    "FireActor": {
-    label: "Sack an Actor",
-	category:"Actor",
-
-    args: [
-      { type: "actor", label: " Actor: ",defaultValue:"Actors[0]" },
-      
-
-
-    ],
-    build: (args) => `DeleteActor("${args[0]}")`
-  },
-  
-      "SackEnsemble": {
-    label: "Sack an Actor fom ensemble",
-	category:"Ensemble",
-
-    args: [
-      { type: "ensemble", label: " Ensemble: ",defaultValue:"Actors" },
-      
-
-
-    ],
-    build: (args) => `${args[0]}.forEach(a => DeleteActor(a))`
-  },
 
  
 
@@ -1130,7 +1106,7 @@ const ActionFunctions = {
   // PLAY
   "PlayTimeline": {
     label: "Play timeline",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "From time (optional)", defaultValue: "" }
@@ -1146,7 +1122,7 @@ const ActionFunctions = {
   // PAUSE
   "PauseTimeline": {
     label: "Pause timeline",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1156,7 +1132,7 @@ const ActionFunctions = {
   // TOGGLE
   "ToggleTimeline": {
     label: "Toggle play/pause",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1167,7 +1143,7 @@ const ActionFunctions = {
   // SET TIME
   "SetTimelineTime": {
     label: "Set timeline time",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "Time (sec)", defaultValue: "0" }
@@ -1178,7 +1154,7 @@ const ActionFunctions = {
   // PLAY RANGE
   "PlayTimelinePart": {
     label: "Play timeline part",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "Start", defaultValue: "0" },
@@ -1191,7 +1167,7 @@ const ActionFunctions = {
   // RESTART
   "RestartTimeline": {
     label: "Restart timeline",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1201,84 +1177,13 @@ const ActionFunctions = {
   // REVERSE
   "ReverseTimeline": {
     label: "Reverse timeline",
-    category: "Timeline",
+    category: "Scene",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
     build: (args) => `${args[0]}.Timeline.reverse()`
   },
 
-/*
-"AudioLipSync": {
-  label: "Audio LipSync",
-  category: ["Audio", "Media"],
-
-  args: [
-    { label: "Audio Actor", type: "actor" },
-    { label: "Silent Actor", type: "actor" },
-    { label: "Talk 1", type: "actor" },
-    { label: "Talk 2", type: "actor" },
-    { label: "Talk 3", type: "actor" },
-    { label: "Talk 4", type: "actor" },
-	{ label: "Tempo", type: "raw", defaultValue:"1" }
-  ],
-
-  build: (args) => `
-if (${args[0]}.VolumeData) {
-
-  const audio = elementId("${args[0]}");
-  if (!audio) return;
-
-  const fps = ${args[0]}.VolumeData.fps;
-  const now = audio.currentTime;
-
-  // ?? Detect scrub / loop (time went backwards)
-  ${args[0]}._lipLastTime = ${args[0]}._lipLastTime ?? now;
-
-  if (now < ${args[0]}._lipLastTime) {
-    ${args[0]}._lipLastSwitch = 0;
-    ${args[0]}._lipLastState = 0;
-    ${args[0]}._lastVolume = 0;
-  }
-
-  ${args[0]}._lipLastTime = now;
-
-  const tempo = ${args[6] || 1};
-  const frame = Math.floor(now * fps * tempo);
-  let volume = ${args[0]}.VolumeData.data[frame] || 0;
-
-  // ?? Simple smoothing
-  ${args[0]}._lastVolume = ${args[0]}._lastVolume ?? volume;
-  volume = (volume + ${args[0]}._lastVolume) * 0.5;
-  ${args[0]}._lastVolume = volume;
-
-  let newState = 0;
-
-  if (volume > 0.15) {
-    newState = 1 + Math.floor(Math.random() * 4);
-  }
-
-  ${args[0]}._lipLastSwitch = ${args[0]}._lipLastSwitch ?? 0;
-  ${args[0]}._lipLastState = ${args[0]}._lipLastState ?? 0;
-
-  // ?? Limit switching
-  if (now - ${args[0]}._lipLastSwitch > 0.08) {
-    ${args[0]}._lipLastState = newState;
-    ${args[0]}._lipLastSwitch = now;
-  }
-
-  const state = ${args[0]}._lipLastState;
-
-  ${args[1]}.Opacity = (state === 0) ? 100 : 0;
-  ${args[2]}.Opacity = (state === 1) ? 100 : 0;
-  ${args[3]}.Opacity = (state === 2) ? 100 : 0;
-  ${args[4]}.Opacity = (state === 3) ? 100 : 0;
-  ${args[5]}.Opacity = (state === 4) ? 100 : 0;
-
-}
-`
-},
-*/
 
 "AnimateFromVolume": {
   label: "Animate Property From Volume",
@@ -1640,7 +1545,7 @@ if (${args[0]}.VolumeData) {
 
 "SyncMediaToSceneTimeline": {
   label: "Sync Media To Scene Timeline",
-  category: ["Media", "Audio", "Video", "Timeline"],
+  category: ["Media", "Audio", "Video", "Scene"],
 
   args: [
     { label: "Media Actor", type: "actor", actorTypes: ["audio", "video"] },
@@ -1754,7 +1659,7 @@ if (${args[0]}.VolumeData) {
 
 "SyncAudioToSceneTimeline": {
   label: "Sync Audio To Scene Timeline",
-  category: ["Media", "Audio", "Timeline"],
+  category: ["Media", "Audio", "Scene"],
 
   args: [
     { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
@@ -2001,34 +1906,6 @@ if (${args[0]}.VolumeData) {
 	},
 	
 	
-	  "PushQuestion": {
-	  label: "Tilf�j Sp�rgsm�l",
-	  category: "Lykkehjul",
-	  args: [
-		{
-		  label: "Kategori",
-		  type: "dropdown",
-		  options: ["0", "1", "2"]
-		},
-		{
-		  label: "Sp�rgsm�l",
-		  type: "quill"
-		},
-		{
-		  label: "Svar",
-		  type: "quill"
-		}
-	  ],
-	  build(args){
-		const categoryIndex = Number(args[0]);
-		const question = args[1] || "";
-		const answer = args[2] || "";
-
-		const html = question + "<details><summary>Vis svar</summary>" + answer + "</details>";
-
-		return `ResponsePool[${categoryIndex}].push(${JSON.stringify(html)});`
-	  }
-	},
 	
 	
 "SetProperty": {
@@ -2088,7 +1965,7 @@ if (${args[0]}.VolumeData) {
 
     args: [
       { type: "target", label: " Target: " },
-      { type: "number", label: " times: ",defaultValue:"1" },
+      { type: "raw", label: " times: ",defaultValue:"1" },
 	  { type: "raw", label: "Duplicate properties: ", defaultValue:'X: "+200", Y:"0"'}
 
     ],
@@ -2123,12 +2000,21 @@ if (${args[0]}.VolumeData) {
   },
 
   "Move": {
-    label: "Move",
-	category:"Animation",
+    label: "Move property",
+	category:["Animation","Properties"],
 
     args: [
       { type: "target", label: "Target:" },
-      { type: "animationproperties", label: "Property", defaultValue: "X" },
+      {type: "property",
+      label: "Property",
+      exclude: [
+        "BackgroundImage", "Click", "Controls",
+        "DropFunction", "MouseDown", "MouseUp",
+        "OverFlow", "ShowOrigin", "Class", "Color", "Draggable","ID",
+        "InputType", "Loaded", "Mask", "MouseIsDown","Overflow","Parent",
+        "Shape","Source","Style","Text","TextColor","Type","dragging"
+      ],},
+      { type: "adjust", label: "Adjustment", defaultValue: "=" },
       { type: "raw", label: "", defaultValue: "0"},
 	{ type: "easing", label: "easing", defaultValue: "power1.out"},
       { type: "raw", label: "duration", defaultValue: "1"},
@@ -2138,10 +2024,15 @@ if (${args[0]}.VolumeData) {
     build: (args) => {
     let target = args[0];
     let property= args[1];
-    let destination = args[2];
-    let easing = args[3];
-    let duration = args[4];
-    let delay = args[5];
+    let adjustment= args[2]
+    let destination = args[3];
+    let easing = args[4];
+    let duration = args[5];
+    let delay = args[6];
+
+    if(adjustment=="="){
+      adjustment="";
+    }
 
     // Det nye target-format fra editoren
     let targetType = "actor";
@@ -2160,11 +2051,11 @@ if (${args[0]}.VolumeData) {
     }
 
     if (targetType === "ensemble") {
-      return `${target}.forEach(a => Move.to(a,{${property}:${destination},ease:"${easing}",duration:${duration},delay:${delay}}))`;
+      return `${target}.forEach(a => Move.to(a,{${property}:"${adjustment}"+${destination},ease:"${easing}",duration:${duration},delay:${delay}}))`;
     }
 
     // Actor og Raw bruger samme kodegenerering
-    return `Move.to(${target},{${property}:${destination},ease:"${easing}",duration:${duration},delay:${delay}})`;
+    return `Move.to(${target},{${property}:"${adjustment}"+${destination},ease:"${easing}",duration:${duration},delay:${delay}})`;
   }
 },
 
