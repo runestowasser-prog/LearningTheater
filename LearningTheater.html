@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="height:100%;" >
+<html style="height:100%; touch-action:none;" >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -69,9 +69,9 @@ function setCheckboxValue(checkbox,value) {
 var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length; i++){"+
 	
 "Actor(\"TimelineTween\"+i,\"div\");thisActor.Parent=\"TimelineBox\";"+
-"thisActor.Color='#f7f7f7';"+
+"thisActor.Color='#999999';"+
 "thisActor.Resizing=false;"+
-"thisActor.Style='filter:drop-shadow(0.1em 0.1em 0.1em); cursor:grab;';"+
+"thisActor.Style='filter:drop-shadow(0.1em 0.1em 0.1em); cursor:grab; font-family:arial';"+
 "thisActor.Draggable=true;"+
 "thisActor.MouseUp=\" let ax=\"+thisActor.ID+\".X; ax=Math.round(ax/10)*10; \"+thisActor.ID+\".X=ax; parent.elementId('startTime').value=ax/100; parent.elementId('startTime').dispatchEvent(new Event('input')); startX=ax;\";"+
 "thisActor.MouseDown=\"parent.TweenOptions.Opacity=100; parent.CurrentlyEditingTween=parent.AllSceneTweens[\"+i+\"].vars.id;"+
@@ -104,7 +104,7 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".Draggable=false;\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft; \"+thisActor.ID+\".Width=Math.round(w/10)*10; }});' onmouseup='\"+thisActor.ID+\".Draggable=true; clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
 "if(parent.AllSceneTweens[i].vars.data==\"set\"){thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"\"}"+
 "AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){thisActor.Y=AllTweensY[i-1]+15;} AllTweensY.push(thisActor.Y);"+
-"Actor('TweenGhost'+i,'div');thisActor.Parent=\"TimelineBox\";thisActor.Color='lightgray';thisActor.Opacity=100;thisActor.Y=AllTweensY[i]; thisActor.Height=13;thisActor.Z=-1;thisActor.X=AllTweensX[i];let d=AllTweens[i].parent.duration()*100;let r=AllTweens[i].parent._repeat;let rd=AllTweens[i].parent._rDelay*100;thisActor.Width=d+(r*(d+rd));"+
+"Actor('TweenGhost'+i,'div');thisActor.Parent=\"TimelineBox\";thisActor.Color='#555555';thisActor.Opacity=100;thisActor.Y=AllTweensY[i]; thisActor.Height=13;thisActor.Z=-1;thisActor.X=AllTweensX[i];let d=AllTweens[i].parent.duration()*100;let r=AllTweens[i].parent._repeat;let rd=AllTweens[i].parent._rDelay*100;thisActor.Width=d+(r*(d+rd));"+
 "thisActor.Text = (function(){    let html = \"\";    let offset = d+rd;    for(let k = 1; k <= r; k++){        html += \"<div style='position:absolute; top:0; left:\" + offset + \"px; height:100%; width:\" + d + \"px; background:rgba(255,255,255,0.8); border-left:1px solid #aaa;'></div>\";        offset += d + rd;    }    return html;})();"
 +
 "}}";
@@ -115,9 +115,9 @@ function showTimelines(){
 	//AllSceneTweens=frame.contentwindow.GetScene().value.Timeline.getChildren();
 	//console.log("Which scene: "+currentSelect);
 	
-	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden;"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
+	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden; touch-action:none; font-family:arial"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
 
-	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"lightgrey\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\nthisActor.Overflow=\"scroll\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){Scene1.Opacity=100;\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
+	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"#bbbbbb\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\n thisActor.Overflow=\"auto\"; thisActor.Style=\"overflow:auto\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){Scene1.Opacity=100;\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
 	
 	frame=elementId("TimelineVisual").contentWindow.document;
 	frame.open();
@@ -1922,7 +1922,7 @@ case "ensemble": {
   }
 
   function findEnsembles(pw) {
-    const exclude = ["Actors", "Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements", "LT_IFrameMessageQueue"];
+    const exclude = ["Scenes", "Triggers", "_triggerEnsembles", "Ensembles","Ensemble","Ensemble2","gsapVersions","", "Elements", "LT_IFrameMessageQueue"];
     return Object.keys(pw || {}).filter(k => {
       try {
         const v = pw[k];
@@ -2026,8 +2026,7 @@ function updateDropdown() {
 
 	  break;
 	
-      
-	case "target": {
+  	case "target": {
   const wrapper = document.createElement("div");
   wrapper.style.display = "flex";
   wrapper.style.gap = "6px";
@@ -2224,6 +2223,7 @@ function updateDropdown() {
 
   break;
 }  
+    
 	case "linebreak":
         lineBreak = document.createElement("br");
 		
@@ -3496,7 +3496,7 @@ LT_TRIGGERS_END -->\n`;
 
 const fonts=getProjectFontCSS(mode = "preview");
   
-  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="PointerPosition(event); AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event); AllMouseUps();" onpointerup="PointerPosition(event); AllMouseUps();" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
   
   document.getElementById("Scenes").value=currentSelect;
 	
@@ -3508,7 +3508,7 @@ const fonts=getProjectFontCSS(mode = "preview");
 "/*window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };*/\n" +
 "var Move=gsap;\n"+
 exportTriggersToCode() +
-GeneralCode.getValue() + "\n \n\n "+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+GeneralCode.getValue() + "\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n  function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
 
   
@@ -3611,7 +3611,7 @@ LT_TRIGGERS_END -->\n`;
 
 const fonts=getProjectFontCSS(mode = "preview");
 
-    var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+    var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+"\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
     try {
         const previewString = HTMLCode + triggerBlock + JsCode;
@@ -3689,9 +3689,9 @@ function saveTextAsFile(){
 
 SettingsGenerated='SCORMTracking='+elementId("ScormInput").checked+';\nFollowSL='+elementId("SLInput").checked+';\nStageWidth='+elementId("StageWidthInput").value+', StageHeight='+elementId("StageHeightInput").value+';\nScaling="'+elementId("ScalingInput").value+'";\nOverflow="'+elementId("OverflowInput").value+'";\n ' 
 	
-	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+	  HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 	
-	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+	var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+"\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
 	const triggerJSON = JSON.stringify(parent.GeneratedTriggers);
 
@@ -3812,7 +3812,7 @@ async function saveProjectAsZip() {
 
     SavingOverlay.Opacity = 100;
     //if (typeof SavingOverlayText !== "undefined") {
-      SetText(SavingOverlay, "Preparing project...");
+      SetText(SavingOverlay, "Preparing project... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     //}
 
     // Giv browseren et frame til at vise overlayet
@@ -3863,11 +3863,11 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
-    HTMLCode='<!DOCTYPE html>\n<html style="height:100%; " >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
+    HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 
     const JsCode =
-      "<scri" + "pt>\n var Move=gsap;\n" +
-      " //✂✂✂\n" +
+      "<scri" + "pt>\n var Move=gsap;\n" + 
+      " //✂✂✂\n" +"\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+
       GeneralCode.getValue() +
       "\n//✂✂✂ \n" +
       SettingsGenerated + "\n" + exportTriggersToCode() +
@@ -3910,7 +3910,7 @@ LT_TRIGGERS_END -->\n`;
 
     //if (typeof SavingOverlayText !== "undefined") {
     //  SavingOverlayText.Text = "Adding files to zip...";
-	  SetText(SavingOverlay,"Adding files to zip...");
+	  SetText(SavingOverlay,"Adding files to zip... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     //}
 
     zip.file("index.html", finalHTML);
@@ -3932,7 +3932,7 @@ LT_TRIGGERS_END -->\n`;
 
     //if (typeof SavingOverlayText !== "undefined") {
      // SavingOverlayText.Text = "Building zip... 0%";
-	  SetText(SavingOverlay,"Building zip... 0%")
+	  SetText(SavingOverlay,"Building zip... 0% <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!")
     //}
 
     const zipBlob = await zip.generateAsync(
@@ -3947,7 +3947,7 @@ LT_TRIGGERS_END -->\n`;
 
        // if (typeof SavingOverlayText !== "undefined") {
        SavingOverlayText= 
-              `Saving project... ${percent}%`;
+              `Saving project... ${percent}% <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!`;
 			
 			SetText(SavingOverlay, SavingOverlayText);
 		//}
@@ -3956,7 +3956,7 @@ LT_TRIGGERS_END -->\n`;
     );
 
     //if (typeof SavingOverlayText !== "undefined") {
-      SetText(SavingOverlay, "Writing file...");
+      SetText(SavingOverlay, "Writing file...  <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     //}
 
     if (writable) {
@@ -4051,7 +4051,7 @@ async function saveProjectAsSingleHTML() {
     }
 
     SavingOverlay.Opacity = 100;
-    SetText(SavingOverlay, "Preparing single-file export...");
+    SetText(SavingOverlay, "Preparing single-file export... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     await new Promise(requestAnimationFrame);
 
     SettingsGenerated =
@@ -4097,7 +4097,7 @@ LT_TRIGGERS_END -->\n`;
       '\n</s'+'cript>\n';
 
     HTMLCode =
-      '<!DOCTYPE html>\n<html style="height:100%;">\n<head>\n' +
+      '<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();">\n<head>\n' +
       '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n' +
       '<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n' +
       '<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n' +
@@ -4122,13 +4122,13 @@ LT_TRIGGERS_END -->\n`;
       '<scr' + 'ipt>\n' +
       SCORMAPI + '\n' +
       '</scr' + 'ipt>\n' +
-      '</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents;">\n' +
-      '<div id="stage" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n' +
+      '</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; touch-action:none;">\n' +
+      '<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n' +
       ' <!--- ✂✂✂ ---' + '>';
 
     const JsCode =
-      "<scri" + "pt>\nvar Move=gsap;\n" +
-      "//✂✂✂\n" +
+      "<scri" + "pt>\nvar Move=gsap;\n" + 
+      "//✂✂✂\n" +"\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+
       GeneralCode.getValue() +
       "\n//✂✂✂\n" +
       SettingsGenerated + "\n" + exportTriggersToCode() +
@@ -4150,7 +4150,7 @@ LT_TRIGGERS_END -->\n`;
 
     let finalHTML = HTMLCode + embeddedProjectBlock + triggerBlock + JsCode;
 
-    SetText(SavingOverlay, "Converting assets to data URLs...");
+    SetText(SavingOverlay, "Converting assets to data URLs... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     await new Promise(requestAnimationFrame);
 
     const assetMap = {};
@@ -4166,7 +4166,7 @@ LT_TRIGGERS_END -->\n`;
           const normalizedName = normalizePath(fileName);
           const percent = Math.round((i / Math.max(assetNames.length, 1)) * 100);
 
-          SetText(SavingOverlay, `Embedding assets... ${percent}%`);
+          SetText(SavingOverlay, `Embedding assets... ${percent}% <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!`);
           await new Promise(requestAnimationFrame);
 
           assetMap[normalizedName] = await blobToDataURL(asset.blob);
@@ -4174,12 +4174,12 @@ LT_TRIGGERS_END -->\n`;
       }
     }
 
-    SetText(SavingOverlay, "Replacing asset paths...");
+    SetText(SavingOverlay, "Replacing asset paths... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     await new Promise(requestAnimationFrame);
 
     finalHTML = replaceAssetPathsWithDataUrls(finalHTML, assetMap);
 
-    SetText(SavingOverlay, "Writing HTML file...");
+    SetText(SavingOverlay, "Writing HTML file... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     await new Promise(requestAnimationFrame);
 
     const htmlBlob = new Blob([finalHTML], {
@@ -5797,13 +5797,14 @@ Overflow="visible";
 Actor("KeyframeOptions","DIV");
 KeyframeOptions.Width=400;
 
-Actor('SettingsWindow','div');thisActor.Color="#dedede";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="FitTop" oninput="showPreview()"><option>FitTop</option><option>FitCenter</option><option>None</option><option>Width</option><option>WidthVerticalScroll</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br>Font:<select id="FontInput" oninput="showPreview()"></select><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
+Actor('SettingsWindow','div');thisActor.Color="darkgray";thisActor.Width=400;thisActor.Height=StageHeight;thisActor.Y=0;thisActor.Text='<br>Stage Width:<input id="StageWidthInput" type="number" value="1920" oninput="showPreview()"><br>Stage Height:<input id="StageHeightInput" type="number" value="1080" oninput="showPreview()"><br>Scaling:<select id="ScalingInput" value="FitTop" oninput="showPreview()"><option>FitTop</option><option>FitCenter</option><option>None</option><option>Width</option><option>WidthVerticalScroll</option><option>Height</option></select><br>Overflow:<select id="OverflowInput" value="hidden" oninput="showPreview()"><option>hidden</option><option>visible</option></select><br>Scorm Tracking:<input id="ScormInput" type="checkbox" oninput="showPreview()"><br>Follow Storyline playhead:<input id="SLInput" type="checkbox" oninput="showPreview()"><br>Font:<select id="FontInput" oninput="showPreview()"></select><br><button onclick="SettingsWindow.Opacity=0">Close</button>';
 thisActor.Opacity=0;
 thisActor.Z=1;
 
 Actor("PreviewWindow","IFRAME")
 PreviewWindow.Y=30
 PreviewWindow.X=400
+PreviewWindow.Color="white";
 
 Actor("PreviewOverlay","DIV")
 PreviewOverlay.Color="grey"
@@ -5816,49 +5817,49 @@ generalCode.Y=30
 generalCode.Height=StageHeight
 generalCode.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("buildCode","DIV");
 buildCode.Y=30
 buildCode.Height=StageHeight
 buildCode.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("updateCode","DIV");
 updateCode.Y=30
 updateCode.Height=StageHeight
 updateCode.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("scenestartCode","DIV");
 scenestartCode.Y=30
 scenestartCode.Height=StageHeight
 scenestartCode.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("resizeCode","DIV");
 resizeCode.Y=30
 resizeCode.Height=StageHeight
 resizeCode.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("HEAD","DIV");
 HEAD.Y=30
 HEAD.Height=StageHeight
 HEAD.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 
 Actor("BuildSpecial","DIV");
 thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="addControls">
   <button id="addSceneBtn">➕ New Scene</button>
@@ -5870,7 +5871,7 @@ thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="triggerEditor"></div>`;
 
@@ -5879,7 +5880,7 @@ thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`<div id="LibraryUsageContainer" style="padding:6px;">
   <div id="LibraryUsageLabel">0 GB / 1.8 GB</div>
@@ -5887,14 +5888,14 @@ thisActor.Text=`<div id="LibraryUsageContainer" style="padding:6px;">
     <div id="LibraryUsageBar" style="height:100%; width:0%; background:limegreen;"></div>
   </div>
 </div><div id="libraryDropzone">Drop files here</div> <ul id="libraryList"></ul>`;
-thisActor.Color="white"
+thisActor.Color="darkgray"
 
 Actor("ReadyMadeEditor","div")
 thisActor.Y=30
 thisActor.Height=StageHeight
 thisActor.Width=400
 thisActor.Overflow="auto"
-thisActor.MouseUp="ContextMenu.Opacity=0;";
+thisActor.Click="ContextMenu.Opacity=0;";
 thisActor.FontSize=12;
 thisActor.Text=`ReadyMadeEditor`;
 thisActor.Color="lightgray"
@@ -5904,66 +5905,66 @@ thisActor.Opacity=0;
 Actor("SelectScript","button")
 SelectScript.Height=30
 SelectScript.Parent="KeyframeOptions"
-SelectScript.MouseUp="ShowScriptMenu()";
+SelectScript.Click="ShowScriptMenu()";
 
 Actor("ScriptMenu","DIV")
 ScriptMenu.Y=30
 ScriptMenu.Opacity=0
 
 Actor("ScriptOption1","button");
-ScriptOption1.MouseUp="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
+ScriptOption1.Click="ShowSelectedScript(generalCode,'General (code)',GeneralCode)"
 ScriptOption1.Height=30
 ScriptOption1.Y=120
 ScriptOption1.Parent="ScriptMenu"
 ScriptOption1.Text="Code"
 Actor("ScriptOption2","button"); 
-ScriptOption2.MouseUp="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
+ScriptOption2.Click="ShowSelectedScript(buildCode,'Build (code)',BuildCode)"
 ScriptOption2.Height=30
 ScriptOption2.Y=210
 ScriptOption2.Parent="ScriptMenu"
 ScriptOption2.Text="Build (code)"
 ScriptOption2.Opacity=0
 Actor("ScriptOption3","button"); 
-ScriptOption3.MouseUp="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
+ScriptOption3.Click="ShowSelectedScript(updateCode,'Update (code)',UpdateCode)"
 ScriptOption3.Height=30
 ScriptOption3.Y=180
 ScriptOption3.Parent="ScriptMenu"
 ScriptOption3.Text="Update (code)"
 ScriptOption3.Opacity=0
 Actor("ScriptOption4","button");
-ScriptOption4.MouseUp="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
+ScriptOption4.Click="ShowSelectedScript(scenestartCode,'Scene Start (code)',ScenestartCode)"
 ScriptOption4.Height=30
 ScriptOption4.Y=150
 ScriptOption4.Parent="ScriptMenu"
 ScriptOption4.Text="Scene Start (code)"
 ScriptOption4.Opacity=0
 Actor("ScriptOption5","button"); 
-ScriptOption5.MouseUp="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
+ScriptOption5.Click="ShowSelectedScript(resizeCode,'Resize',ResizeCode)"
 ScriptOption5.Height=30
 ScriptOption5.Y=120
 ScriptOption5.Parent="ScriptMenu"
 ScriptOption5.Text="Resize"
 ScriptOption5.Opacity=0
 Actor("ScriptOption6","button"); 
-ScriptOption6.MouseUp="ShowSelectedScript(HEAD,'HEAD',HEAD)"
+ScriptOption6.Click="ShowSelectedScript(HEAD,'HEAD',HEAD)"
 ScriptOption6.Height=30
 ScriptOption6.Y=90
 ScriptOption6.Parent="ScriptMenu"
 ScriptOption6.Text="HEAD"
 Actor("ScriptOption7","button"); 
-ScriptOption7.MouseUp="ShowSelectedScript(BuildSpecial,'ACTORS',BuildSpecial)"
+ScriptOption7.Click="ShowSelectedScript(BuildSpecial,'ACTORS',BuildSpecial)"
 ScriptOption7.Height=30
 ScriptOption7.Y=0
 ScriptOption7.Parent="ScriptMenu"
 ScriptOption7.Text="ACTORS"
 Actor("ScriptOption8","button"); 
-ScriptOption8.MouseUp="ShowSelectedScript(EventEditor,'EVENTS',EventEditor)"
+ScriptOption8.Click="ShowSelectedScript(EventEditor,'EVENTS',EventEditor)"
 ScriptOption8.Height=30
 ScriptOption8.Y=30
 ScriptOption8.Parent="ScriptMenu"
 ScriptOption8.Text="EVENTS"
 Actor("ScriptOption9","button"); 
-ScriptOption9.MouseUp="ShowSelectedScript(Library,'LIBRARY',Library)"
+ScriptOption9.Click="ShowSelectedScript(Library,'LIBRARY',Library)"
 ScriptOption9.Height=30
 ScriptOption9.Y=60
 ScriptOption9.Parent="ScriptMenu"
@@ -5973,7 +5974,7 @@ Actor('settingsBtn','button')
 thisActor.Text="Settings ⚙"
 //thisActor.Width=142
 thisActor.Height=30
-thisActor.MouseUp="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false; populateFontSelect();"
+thisActor.Click="SettingsWindow.Opacity=100; ScriptMenu.Opacity=0; ScriptMenuVisible=false; populateFontSelect();"
 thisActor.Parent="ScriptMenu"
 thisActor.Y=150
 
@@ -6003,7 +6004,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `if(fileMenu.Opacity==0){
+  Click: `if(fileMenu.Opacity==0){
 fileMenu.Opacity=100;
 }
 else{
@@ -6065,7 +6066,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `fileMenu.Opacity=0;
+  Click: `fileMenu.Opacity=0;
 saveProjectAsSingleHTML();`,
   Color: "",
   Text: "Export HTML",
@@ -6095,7 +6096,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `fileMenu.Opacity=0;
+  Click: `fileMenu.Opacity=0;
 loadProjectFromSingleHTML();`,
   Color: "",
   Text: "Import HTML",
@@ -6125,7 +6126,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `fileMenu.Opacity=0;
+  Click: `fileMenu.Opacity=0;
 loadProjectFromZip();`,
   Color: "",
   Text: "Load ZIP",
@@ -6155,7 +6156,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `fileMenu.Opacity=0;
+  Click: `fileMenu.Opacity=0;
 saveProjectAsZip();`,
   Color: "",
   Text: "Save ZIP",
@@ -6185,7 +6186,7 @@ ActorProps(thisActor, {
   RotateZ: 0,
   ShowOrigin: false,
   Draggable: false,
-  MouseUp: `fileMenu.Opacity=0;
+  Click: `fileMenu.Opacity=0;
 loadProjectFromZip(true);`,
   Color: "",
   Text: "Merge ZIP",
@@ -6200,6 +6201,14 @@ loadProjectFromZip(true);`,
   Overflow: "visible",
   Controls: false,
 });
+
+Actor("Coordinates","div");
+thisActor.X=450;
+thisActor.Height=10;
+thisActor.Y=10;
+thisActor.FontSize=10;
+
+thisActor.Text="X: 0, Y: 0";
 
 
 Actor("RefSound","audio");
@@ -6217,7 +6226,7 @@ thisActor.MouseUp=""
 
 Actor("UpdateBtn","button")
 UpdateBtn.Text="&#8635;"
-UpdateBtn.MouseUp="showPreview();"
+UpdateBtn.Click="showPreview();"
 UpdateBtn.Width=30
 UpdateBtn.Height=30
 UpdateBtn.X=400
@@ -6243,7 +6252,7 @@ NewActorBtn2.Text="Create Actor"
 NewActorBtn2.Y=StageHeight-90
 NewActorBtn2.Height=30
 NewActorBtn2.X=0
-NewActorBtn2.MouseUp="ActorOptions.Opacity=100"
+NewActorBtn2.Click="ActorOptions.Opacity=100"
 thisActor.Opacity=0;
 
 Actor("NewTweenBtn","button");
@@ -6252,7 +6261,7 @@ thisActor.Text="Create Movement";
 thisActor.Y=StageHeight-90
 thisActor.Height=30
 thisActor.X=200
-thisActor.MouseUp="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
+thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
 
 Actor("ActorOptions","DIV");
 ActorOptions.Opacity=0;
@@ -6336,7 +6345,8 @@ ActorOptions.Text="Grid: <input id=\"grid\" type=\"number\" value=\"1\" onchange
 Actor("TweenOptions","DIV");
 thisActor.Opacity=0;
 thisActor.Y=0;
-thisActor.Color="lightgrey"
+thisActor.Color="darkgray";
+thisActor.FontColor="white";
 thisActor.Height=StageHeight;
 thisActor.Width=400
 thisActor.Overflow="auto" 
@@ -6395,7 +6405,10 @@ Actor("SavingOverlay","div");
 //thisActor.Color="Gray";
 thisActor.X=500;
 thisActor.Width=500;
-thisActor.Height=60;
+thisActor.Height=120;
+thisActor.Y=100;
+thisActor.Color="darkgray";
+thisActor.Style="border-radius:1em; padding:1em;";
 thisActor.Text="Saving project. Do not leave this page until this text dissappeares!";
 thisActor.Opacity=0;
 
@@ -6497,6 +6510,8 @@ thisActor.FontSize=16;
 }
 
 function Update(){
+
+SetText(Coordinates,"X: "+Math.round(elementId("PreviewWindow").contentWindow.MouseX)+", Y: "+Math.round(elementId("PreviewWindow").contentWindow.MouseY));
 
 StageWidth=window.innerWidth, StageHeight=window.innerHeight;
 	
@@ -6816,7 +6831,7 @@ BuildCode.focus();
 
 tryRestoreAutosave();
 
-var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
+var JsCode = "<scri"+"pt>\n var Move=gsap;\n //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+"\n \n\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 
 	var build=BuildCode.getValue();
   var GetSceneName = build.split('Scene("');
@@ -6959,12 +6974,12 @@ border-style:solid;
 
 button {
       /* background-color: #f1f1f1; */
-    color: black;
+    background-color: #292929;
+    color: #fff;
     border: 2px solid #00000054;
     transition-duration: 0.1s;
     border-radius: 6px;
-    
-  transition-duration: 0.1s;
+    transition-duration: 0.1s;
 }
 
 button:hover {
@@ -7089,7 +7104,7 @@ summary .icon-btn {
   padding: 0;
   border: none;
   border-radius: 4px;
-  background: #ddd;
+  background: darkgray
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -7262,16 +7277,16 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
 
 </script>
 </head>
-<body onload="init();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif;">
+<body onload="init();" ondragstart="return false;" onkeydown="" onkeyup="" style="display:contents; font-family:sans-serif; touch-action:none;">
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<div id="stage" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative;"></div>
+<div id="stage" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="background-color:darkgray; width:640px; height:360px; overflow:hidden; position:relative;"></div>
 <div id="propertyEditor" style="
   display:none;
   position:absolute;
   top:0px;
   left:0px;
   width:369px;
-  background:lightgray;
+  background:darkgray;
   //border:1px solid #ccc;
   //box-shadow:0 2px 10px rgba(0,0,0,0.2);
   //border-radius:8px;
@@ -7283,7 +7298,7 @@ CodeMirror.registerHelper("hint", "javascript", function (editor) {
 ">
   <h3 style="margin-top:0;">Rediger objekt</h3>
   <form id="propertyForm"></form>
-  <button id="closeEditor" onclick="document.getElementById("propertyEditor").style.display = "none"">Luk</button>
+  <button id="closeEditor" onclick="document.getElementById('propertyEditor').style.display = 'none'">Luk</button>
 </div>
 </body>
 
