@@ -3102,19 +3102,28 @@ actionsContainer.appendChild(actionWrapper);
 if (actionObj.fn) {
   const def = ActionFunctions[actionObj.fn];
 
-  const category = Array.isArray(def.category)
-    ? def.category[0]
-    : def.category || "Other";
+  if (!def) {
+    console.warn(
+      `Unknown action definition: "${actionObj.fn}"`
+    );
 
-  isRehydrating = true;
+    // Fall back to the raw-code editor.
+    actionInput.value = actionObj.code || "";
+  } else {
+    const category = Array.isArray(def.category)
+      ? def.category[0]
+      : def.category || "Other";
 
-  categorySelect.value = category;
-  rebuildActionSelect(category);
+    isRehydrating = true;
 
-  actionFnSelect.value = actionObj.fn;
-  actionFnSelect.dispatchEvent(new Event("change"));
+    categorySelect.value = category;
+    rebuildActionSelect(category);
 
-  isRehydrating = false;
+    actionFnSelect.value = actionObj.fn;
+    actionFnSelect.dispatchEvent(new Event("change"));
+
+    isRehydrating = false;
+  }
 } else {
   actionInput.value = actionObj.code || "";
 }
