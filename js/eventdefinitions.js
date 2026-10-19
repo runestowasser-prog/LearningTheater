@@ -4,7 +4,7 @@ const ConditionFunctions = {
   
 	"CollisionTargets": {
 	  label: "Collision",
-	  category: ["Mechanics"],
+	  category: ["Actor"],
 
 	  args: [
 		{ type: "target", label: " Target 1 " },
@@ -95,7 +95,7 @@ const ConditionFunctions = {
 	},
   "MouseDown": {
     label: "Mouse is down",
-	category:"Mouse",
+	category:"Interaction",
     args: [
       { type: "target", label: "Actor"},
 
@@ -131,7 +131,7 @@ const ConditionFunctions = {
 
    "MouseUp": {
     label: "Mouse is up",
-	category:"Mouse",
+	category:"Interaction",
     args: [
       { type: "target", label: "Actor"},
 
@@ -206,7 +206,7 @@ const ConditionFunctions = {
 
   "GetProperty": {
     label: "Property is",
-	category:"Properties",
+	category:"Actor",
 
     args: [
       { type: "target", label: " target: " },
@@ -338,7 +338,7 @@ const ConditionFunctions = {
 
 
    "Get SCORM Objective Status": {
-  label: "Get SCORM objective status",
+  label: "SCORM objective status is",
   category: "SCORM",
   args: [
     { type: "number", label: "Objective index" }
@@ -347,7 +347,7 @@ const ConditionFunctions = {
 },
 
    "Read SCORM Comment": {
-  label: "Get SCORM comments",
+  label: "SCORM comment is",
   category: "SCORM",
   args: [],
   build: () => `ReadComment()`
@@ -359,7 +359,7 @@ const ConditionFunctions = {
 
   "TimelineStateIs": {
     label: "Timeline state is",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       {
@@ -381,7 +381,7 @@ const ConditionFunctions = {
 
   "TimelineTimeCompare": {
     label: "Timeline time is",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "compare", label: "Compare", defaultValue: ">" },
@@ -425,7 +425,7 @@ const ActionFunctions = {
     build: (args) => `Stop(${args[0]})`
   },
   "SetCurrentTime": {
-    label: "Set time of media",
+    label: "Set media time",
 	category:"Media",
     args: [
       { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] },
@@ -435,7 +435,7 @@ const ActionFunctions = {
     build: (args) => `SetCurrentTime(${args[0]},${args[1]})`
   },
   "SetVolume": {
-    label: "Set Volume of media",
+    label: "Set media volume",
 	category:"Media",
     args: [
       { type: "actor", label: "media Actor", defaultValue:"Actors[0]", actorTypes: ["audio","video"] },
@@ -449,7 +449,7 @@ const ActionFunctions = {
 
 //Scenes
   "NextScene": {
-    label: "Go to next scene",
+    label: "Go to next Scene",
 	category:"Scene",
 
      args: [
@@ -461,7 +461,7 @@ const ActionFunctions = {
     build: (args) => `NextScene("${args[1]}",${args[0]},"${args[2]}")`
   },
     "PreviousScene": {
-    label: "Go to previous scene",
+    label: "Go to previous Scene",
 	category:"Scene",
 
     args: [
@@ -473,7 +473,7 @@ const ActionFunctions = {
     build: (args) => `PrevScene("${args[1]}",${args[0]},"${args[2]}")`
   },
   "GotoScene": {
-    label: "Go to scene",
+    label: "Go to Scene",
 	category:"Scene",
 	args: [
 	{ type: "raw", label: "Duration", defaultValue:"0" },	
@@ -546,7 +546,7 @@ const ActionFunctions = {
 
   "SetSource": {
    label: "Set a new source on actor",
-	category:"Structure",
+	category:"Actor",
 
   args: [
        { type: "actor", label: "Actor", defaultValue:"Actors[0]" },
@@ -601,7 +601,7 @@ const ActionFunctions = {
   
   "ToggleProperty": {
 	label: "Toggle Property",
-	category: "Properties",
+	category: "Actor",
   
 	args: [
 		{ label: "Actor", type: "actor" },
@@ -1106,7 +1106,7 @@ const ActionFunctions = {
   // PLAY
   "PlayTimeline": {
     label: "Play timeline",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "From time (optional)", defaultValue: "" }
@@ -1122,7 +1122,7 @@ const ActionFunctions = {
   // PAUSE
   "PauseTimeline": {
     label: "Pause timeline",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1132,7 +1132,7 @@ const ActionFunctions = {
   // TOGGLE
   "ToggleTimeline": {
     label: "Toggle play/pause",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1143,7 +1143,7 @@ const ActionFunctions = {
   // SET TIME
   "SetTimelineTime": {
     label: "Set timeline time",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "Time (sec)", defaultValue: "0" }
@@ -1154,7 +1154,7 @@ const ActionFunctions = {
   // PLAY RANGE
   "PlayTimelinePart": {
     label: "Play timeline part",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
       { type: "raw", label: "Start", defaultValue: "0" },
@@ -1167,7 +1167,7 @@ const ActionFunctions = {
   // RESTART
   "RestartTimeline": {
     label: "Restart timeline",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1177,7 +1177,7 @@ const ActionFunctions = {
   // REVERSE
   "ReverseTimeline": {
     label: "Reverse timeline",
-    category: "Scene",
+    category: "Animation",
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" }
     ],
@@ -1187,7 +1187,7 @@ const ActionFunctions = {
 
 "AnimateFromVolume": {
   label: "Animate Property From Volume",
-  category: ["Audio", "Media"],
+  category: ["Animation"],
 
   args: [
     { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
@@ -1232,7 +1232,7 @@ if (${args[0]}.VolumeData) {
 
 "LipSyncV2": {
   label: "LipSync",
-  category: ["Audio", "Media"],
+  category: ["Animation"],
 
   args: [
     { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
@@ -1377,7 +1377,7 @@ if (${args[0]}.VolumeData) {
 
 "LipSyncEnsemble": {
   label: "LipSync from Ensemble",
-  category: ["Audio", "Media", "Ensemble"],
+  category: ["Animation"],
 
   args: [
     { label: "Audio Ensemble", type: "ensemble" },
@@ -1545,7 +1545,7 @@ if (${args[0]}.VolumeData) {
 
 "SyncMediaToSceneTimeline": {
   label: "Sync Media To Scene Timeline",
-  category: ["Media", "Audio", "Video", "Scene"],
+  category: ["Media"],
 
   args: [
     { label: "Media Actor", type: "actor", actorTypes: ["audio", "video"] },
@@ -1659,7 +1659,7 @@ if (${args[0]}.VolumeData) {
 
 "SyncAudioToSceneTimeline": {
   label: "Sync Audio To Scene Timeline",
-  category: ["Media", "Audio", "Scene"],
+  category: ["Media"],
 
   args: [
     { label: "Audio Actor", type: "actor", actorTypes: ["audio"] },
@@ -1758,7 +1758,7 @@ if (${args[0]}.VolumeData) {
   // EMBED
   "EmbedScene": {
     label: "Embed a Scene in an Actor",
-    category: ["Scene", "Animation"],
+    category: ["Actor"],
     args: [
       { type: "scene", label: "Scene", defaultValue: "Scene1" },
 	  { type: "actor", label: "Target Actor", defaultValue: "Actor[0]" },
@@ -1910,7 +1910,7 @@ if (${args[0]}.VolumeData) {
 	
 "SetProperty": {
   label: "Set property",
-  category: ["Properties"],
+  category: ["Actor"],
 
   args: [
     { type: "target", label: "Target" },
@@ -1961,7 +1961,7 @@ if (${args[0]}.VolumeData) {
 
   "Duplicate": {
     label: "Duplicate",
-	category:"Structure",
+	category:"Actor",
 
     args: [
       { type: "target", label: " Target: " },
@@ -2001,7 +2001,7 @@ if (${args[0]}.VolumeData) {
 
   "Move": {
     label: "Move property",
-	category:["Animation","Properties"],
+	category:["Actor"],
 
     args: [
       { type: "target", label: "Target:" },
@@ -2177,8 +2177,8 @@ if (${args[0]}.VolumeData) {
   },
 
       "Sack": {
-    label: "Sack",
-	category:"Structure",
+    label: "Delete",
+	category:"Actor",
 
     args: [
       { type: "target", label: "Target " },
@@ -2217,7 +2217,7 @@ if (${args[0]}.VolumeData) {
 
    "ToggleProperty": {
 	label: "Toggle Property",
-	category: "Properties",
+	category: "Actor",
   
 	args: [
 		{ label: "Target", type: "target" },
