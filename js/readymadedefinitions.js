@@ -703,21 +703,22 @@ cursor:pointer\`,
     ],
     "actions": [
       {
-        "fn": "MoveActor",
+        "fn": "Move",
         "args": [
           readyMadeArgs[0],
           "Y",
+		  "=",
           ""+ScenesBackwards.length*readyMadeArgs[3],
           "power1.out",
           "0.5",
           "0"
         ],
-        "code": "Move.to("+readyMadeArgs[0]+",{Y:349,ease:\"power1.out\",duration:0.5,delay:0})"
+        "code": "Move.to("+readyMadeArgs[0]+",{Y:"+ScenesBackwards.length*readyMadeArgs[3]+",ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
-        "fn": "MoveActor",
+        "fn": "",
         "args": [
-          readyMadeArgs[0]+"Arrow",
+          "{\"type\":\"actor\",\"value\":\""+readyMadeArgs[0]+"Arrow"+"\"}",
           "Angle",
           "0",
           "power1.out",
@@ -747,10 +748,11 @@ cursor:pointer\`,
     ],
     "actions": [
       {
-        "fn": "MoveActor",
+        "fn": "Move",
         "args": [
-          readyMadeArgs[0],
+          "{\"type\":\"actor\",\"value\":\""+readyMadeArgs[0]+"\"}",
           "Y",
+		  "=",
           "0",
           "power1.out",
           "0.5",
@@ -759,10 +761,11 @@ cursor:pointer\`,
         "code": "Move.to("+readyMadeArgs[0]+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
-        "fn": "MoveActor",
+        "fn": "Move",
         "args": [
           readyMadeArgs[0]+"Arrow",
           "Angle",
+		  "=",
           "180",
           "power1.out",
           "0.5",
@@ -784,10 +787,11 @@ for (let i = 0; i < ScenesBackwards.length; i++) {
       conditions: [], 
       "actions": [
       {
-        "fn": "MoveActor",
+        "fn": "Move",
         "args": [
-          readyMadeArgs[0],
+          "{\"type\":\"actor\",\"value\":\""+readyMadeArgs[0]+"\"}",
           "Y",
+		  "=",
           "0",
           "power1.out",
           "0.5",
@@ -796,10 +800,11 @@ for (let i = 0; i < ScenesBackwards.length; i++) {
         "code": "Move.to("+readyMadeArgs[0]+",{Y:0,ease:\"power1.out\",duration:0.5,delay:0})"
       },
       {
-        "fn": "MoveActor",
+        "fn": "Move",
         "args": [
-          readyMadeArgs[0]+"Arrow",
+          "{\"type\":\"actor\",\"value\":\""+readyMadeArgs[0]+"Arrow"+"\"}",
           "Angle",
+		  "=",
           "180",
           "power1.out",
           "0.5",
