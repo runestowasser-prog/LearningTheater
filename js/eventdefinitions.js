@@ -120,7 +120,7 @@ const ConditionFunctions = {
 
 
     if (targetType === "ensemble") {
-      return `${target}.forEach(a => a.MouseIsDown==true)`;
+      return `${target} = ${target}.filter(a => a.MouseIsDown==true)`;
     }
 
     // Actor og Raw bruger samme kodegenerering
@@ -156,7 +156,7 @@ const ConditionFunctions = {
 
 
     if (targetType === "ensemble") {
-      return `${target}.forEach(a => a.MouseIsDown==false)`;
+      return `${target} = ${target}.filter(a => a.MouseIsDown==false)`;
     }
 
     // Actor og Raw bruger samme kodegenerering
@@ -235,7 +235,7 @@ const ConditionFunctions = {
 
 
     if (targetType === "ensemble") {
-      return `${target}.forEach(a => a.${args[1]}${args[2]}${args[3]})`;
+      return `${target} = ${target}.filter(a => a.${args[1]}${args[2]}${args[3]})`;
     }
 
     // Actor og Raw bruger samme kodegenerering
@@ -512,7 +512,7 @@ const ActionFunctions = {
 
   "ShuffleEnsembleProperty": {
   label: "Shuffle property on Ensemble",
-  category: ["Ensemble", "Properties"],
+  category: ["Ensemble"],
   args: [
     { type: "ensemble", label: "Ensemble name" },
     { type: "property", label: "Property", exclude:["BackgroundImage","Click", "Controls","DropFunction","MouseDown","MouseUp","OverFlow","ShowOrigin"], defaultValue:"X" },
