@@ -1637,4 +1637,6 @@ function FilterEnsemble(name, property, compare, value) {
 }
 
 
-
+function GetParent(a){
+ return window[a.Parent]; 
+}
