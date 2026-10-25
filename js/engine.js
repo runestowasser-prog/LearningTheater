@@ -331,7 +331,8 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.ShowOrigin=false;
 	S.InputType=undefined;
 	S.Mask=Mask;
-  S.MouseIsDown=undefined;
+	S.MouseIsDown=undefined;
+	S.ClickThrough=false;
     return S;
 	
 }
@@ -341,13 +342,13 @@ var SceneNumber=0;
 var CurrentScene=0;
 var thisScene="stage"
 
-function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale){
+function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale,ClickThrough){
 	
 	var hash = id;
 	var name = window[hash];
 	//var name = eval("Scene"+n);
 	//console.log(""+window[hash]);
-	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1);
+	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1,false);
 	Scenes.push(window[hash]);
 	//console.log(Scenes.length);
 	thisScene=id;
@@ -468,8 +469,9 @@ function ReplaceText(e, find, replace){
 
   e.Text = e.Text.split(find).join(replace);
 
-  var x = elementId(e.ID);
-  if (x) x.innerHTML = e.Text;
+  //var x = elementId(e.ID);
+  //if (x) x.innerHTML = e.Text;
+  SetText(e,e.Text)
 }
 
 function Play(video){
@@ -874,6 +876,9 @@ function GenerateElement(id){
 			x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
 			x.setAttribute("onpointerup","AllMouseUps(); "+id.MouseUp+";"+id.DropFunction);
 		}
+		if(id.ClickThrough!=false){
+			x.style.pointerEvents="none";
+		} else{x.style.pointerEvents="auto";}
   Div1.appendChild(x);
   x.style.position="absolute";
   x.style.transformStyle="preserve-3d";

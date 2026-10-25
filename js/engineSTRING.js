@@ -875,6 +875,10 @@ function GenerateElement(id){
 			x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
 			x.setAttribute("onpointerup","AllMouseUps(); "+id.MouseUp+";"+id.DropFunction);
 		}
+				if(id.ClickThrough!=false){
+			x.style.pointerEvents="none";
+		} else{x.style.pointerEvents="auto";}
+		
   Div1.appendChild(x);
   x.style.position="absolute";
   x.style.transformStyle="preserve-3d";
