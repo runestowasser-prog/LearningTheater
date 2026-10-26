@@ -873,7 +873,7 @@ gridInput.addEventListener("input", () => {
   // Opdater step på alle number inputs i editoren
   const numberInputs = editor.querySelectorAll('input[type="number"]');
   numberInputs.forEach(input => {
-    input.step = EditorGrid;
+    //input.step = EditorGrid;
 	gridInput.step = "1";
   });
 });
@@ -1280,13 +1280,21 @@ editor.appendChild(gridWrapper);
 
     // Numbers
     } else if (
-      ["Width", "Height", "X", "Y", "Scale", "Opacity", "Angle", "SkewX", "SkewY",
-       "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY", "TranslateZ",
+      ["Width", "Height", "X", "Y", "TranslateZ",
+      ].includes(prop)
+    ) {
+      input = document.createElement("input");
+      input.type = "number";
+	  input.step = EditorGrid;
+      input.value = value;
+	} else if (
+      ["Scale", "Opacity", "Angle", "SkewX", "SkewY",
+       "RotateX", "RotateY", "RotateZ", "TranslateX", "TranslateY",
        "FontSize", "TransformOriginX", "TransformOriginY"].includes(prop)
     ) {
       input = document.createElement("input");
       input.type = "number";
-	input.step = EditorGrid;
+	  input.step = 1;
       input.value = value;
     // Fallback text input
     } else {
