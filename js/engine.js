@@ -333,6 +333,12 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.Mask=Mask;
 	S.MouseIsDown=undefined;
 	S.ClickThrough=false;
+  S.MouseX=0;
+  S.MouseY=0;
+  S.ParentX=0;
+  S.ParentY=0;
+  S.GlobalX=0;
+  S.GlobalY=0;
     return S;
 	
 }
@@ -437,11 +443,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask,MouseX,MouseY){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null,0,0);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	//console.log(thisActor.Text)
@@ -612,7 +618,20 @@ function UpdateElement(e){
 		//CreateOrigin.style=OriginMarker;
 		e._originMarker.style=OriginMarker;
 		
+
 		}
+    if(e.Parent=="stage"){
+      e.MouseX=MouseX;
+      e.MouseY=MouseY;
+      e.GlobalX=e.X;
+      e.GlobalY=e.Y;
+    }else{
+    e.MouseX=MouseX-e.X;
+    e.MouseY=MouseY-e.Y;
+    e.GlobalX=(e.X+GetParent(e).GlobalX)/GetParent(e).Scale;
+    e.GlobalY=(e.Y+GetParent(e).GlobalY)/GetParent(e).Scale;
+    }
+
 	
 	
 }
@@ -1644,4 +1663,12 @@ function FilterEnsemble(name, property, compare, value) {
 
 function GetParent(a){
  return window[a.Parent]; 
+}
+
+function SetGlobalX(a, value){
+  a.X=(value - GetParent(a).GlobalX)/GetParent(a).Scale;
+}
+
+function SetGlobalY(a, value){
+  a.Y=(value - GetParent(a).GlobalY)/GetParent(a).Scale;
 }
