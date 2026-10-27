@@ -873,7 +873,7 @@ gridInput.addEventListener("input", () => {
   // Opdater step på alle number inputs i editoren
   const numberInputs = editor.querySelectorAll('input[type="number"]');
   numberInputs.forEach(input => {
-    //input.step = EditorGrid;
+    input.step = EditorGrid;
 	gridInput.step = "1";
   });
 });
@@ -1294,7 +1294,7 @@ editor.appendChild(gridWrapper);
     ) {
       input = document.createElement("input");
       input.type = "number";
-	  input.step = 1;
+	  input.step = "1";
       input.value = value;
     // Fallback text input
     } else {
