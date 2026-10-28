@@ -48,6 +48,9 @@ var EditorGrid=16;
 var StoryLinePlayer="";
 var FollowSL=false;
 var GeneratedTriggers=[];
+var manipulatorCode = "";
+var manipulatorCodeTriggers="";
+var currentlyEditingActor;
 
 
 const editorOverlay = document.getElementById("propertyEditor");
@@ -846,7 +849,120 @@ function createMaskSelect(actor) {
 	return wrapper;
 }
 
+function generateManipulatorCode(item) {
+return `
+
+Actor('LT_manipulator','div');
+ActorProps(thisActor, {
+//console.log(${item.Parent});
+  Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
+  X: ${item.X},
+  Y: ${item.Y},
+  Width: ${item.Width},
+  Height: ${item.Height},
+  Style: \`box-sizing: border-box;
+border: 3px solid #ff00ff;
+background: rgba(255, 0, 255, 0.0);
+cursor:pointer;\`,
+  initX: 0,
+  initY: 0,
+});
+GenerateElement(LT_manipulator);
+
+Actor('LT_sizeManipulator','div');
+ActorProps(thisActor, {
+  Parent: "LT_manipulator",
+  X: ${item.Width},
+  Y: ${item.Height},
+  Width: 20,
+  Height: 20,
+  Style: \`cursor:pointer;\`,
+  Color: "#ff00ff",
+  Shape: "Circle",
+});
+GenerateElement(LT_sizeManipulator);
+
+`;
+}
+
+function generateManipulatorCodeTriggers(item){
+return `
+
+
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [], 
+      actions: [{"fn":"","args":[],"code":"stage.MouseX=MouseX"},{"fn":"","args":[],"code":"stage.MouseY=MouseY"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)==stage"}], 
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"console.log('parent is stage'); LT_manipulator.initX = MouseX-LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      fireMode: "onceWhileTrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)!=stage"}], 
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"console.log('Mouse:', MouseX, MouseY,'Actor:', LT_manipulator.MouseX, LT_manipulator.MouseY); LT_manipulator.initX = LT_manipulator.MouseX"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = LT_manipulator.MouseY"}],
+      fireMode: "onceWhileTrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"}], 
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"X","="," Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_manipulator.X = Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_manipulator.Y = Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"X","=","LT_manipulator.X"],"code":"`+item.ID+`.X = LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Y","=","LT_manipulator.Y"],"code":"`+item.ID+`.Y = LT_manipulator.Y"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseUp","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==false"}], 
+      actions: [{"fn":"","args":[],"code":"parent.AllActors.find(a => a.ID === '`+item.ID+`').X = LT_manipulator.X;"},{"fn":"","args":[],"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  editorActor.X = LT_manipulator.X; editorActor.Y = LT_manipulator.Y;"},{"fn":"","args":[],"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},{"fn":"","args":[],"code":"//parent.openPropertyEditor(`+item.ID+`)"},{"fn":"","args":[],"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
+      fireMode: "onceWhileTrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"}],"code":"LT_sizeManipulator.MouseIsDown==true"}], 
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"X","=","Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.X = Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.Y = Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Width","=","LT_sizeManipulator.X"],"code":"LT_manipulator.Width = LT_sizeManipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Height","=","LT_sizeManipulator.Y"],"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Width","=","LT_manipulator.Width"],"code":"`+item.ID+`.Width = LT_manipulator.Width"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Height","=","LT_manipulator.Height"],"code":"`+item.ID+`.Height = LT_manipulator.Height"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"fn":"MouseUp","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"}],"code":"LT_sizeManipulator.MouseIsDown==false"}], 
+      actions: [{"fn":"","args":[],"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  editorActor.Width = LT_manipulator.Width; editorActor.Height = LT_manipulator.Height;"},{"fn":"","args":[],"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},{"fn":"","args":[],"code":"//parent.openPropertyEditor(`+item.ID+`)"},{"fn":"","args":[],"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
+      fireMode: "onceWhileTrue"
+    });
+`
+}
+
+
+
 function openPropertyEditor(item) {
+
+      manipulatorCode = generateManipulatorCode(item);
+    manipulatorCodeTriggers = generateManipulatorCodeTriggers(item);
+    showPreview();
+
 if (!item._original) item._original = { ...item };
 //showPreview()
   const editor = document.getElementById("propertyEditor");
@@ -1431,6 +1547,7 @@ if (item.Type?.toLowerCase() === "audio") {
 
   volumeWrapper.appendChild(generateBtn);
   editor.appendChild(volumeWrapper);
+
 }
 
 
@@ -1509,7 +1626,17 @@ valueInput.addEventListener("input", () => {
 
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "🗙";
-  closeBtn.onclick = () => editor.style.display="none";
+  closeBtn.onclick = () => {
+    editor.style.display="none";
+    manipulatorCode = "";
+    manipulatorCodeTriggers="";
+     
+      showPreview();
+
+
+  
+
+  }
   quill = null;
 	//input.innerHTML = "";
   editor.appendChild(closeBtn);
@@ -1544,8 +1671,8 @@ function normalizeQuillHTMLForExport(html) {
 
 
 
-function exportToCode() {
-  let output = "";
+/*function exportToCode() {
+    let output = "";
 
   const exported = new Set();
 
@@ -1569,6 +1696,33 @@ function exportToCode() {
     output += `Scene("${scene.ID}");\n\n`;
 
     const sceneRootActors = AllActors.filter(actor => actor.Parent === scene.ID);
+    sceneRootActors.forEach(actor => exportActorAndChildren(actor));
+  });
+
+  return output;
+}*/
+
+function exportToCode(actors = AllActors) {
+  let output = "";
+
+  const exported = new Set();
+
+  function exportActorAndChildren(actor) {
+    if (exported.has(actor.ID)) return;
+    output += generateActorCode(actor);
+    exported.add(actor.ID);
+
+    const children = actors.filter(a => a.Parent === actor.ID);
+    children.forEach(child => exportActorAndChildren(child));
+  }
+
+  const rootActors = actors.filter(actor => actor.Parent === "stage");
+  rootActors.forEach(actor => exportActorAndChildren(actor));
+
+  AllScenes.forEach(scene => {
+    output += `Scene("${scene.ID}");\n\n`;
+
+    const sceneRootActors = actors.filter(actor => actor.Parent === scene.ID);
     sceneRootActors.forEach(actor => exportActorAndChildren(actor));
   });
 
@@ -3534,7 +3688,7 @@ const fonts=getProjectFontCSS(mode = "preview");
 "/*window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };*/\n" +
 "var Move=gsap;\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+
 exportTriggersToCode() +
-GeneralCode.getValue() + "\n \n\n"+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/ "+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+"\n requestAnimationFrame(() => {document.documentElement.scrollTop = parent.ScrollPosition;} ); \n function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines();} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+GeneralCode.getValue() +"\n \n\n"+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/"+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+ "\n requestAnimationFrame(() => {document.documentElement.scrollTop = parent.ScrollPosition;} ); \n function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines(); "+manipulatorCode+manipulatorCodeTriggers+"} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
 
   
@@ -6663,10 +6817,23 @@ InsertCodeBtn("Set Course as 'Completed'","\`CompleteCourse();\`")+
 ;
 thisActor.FontSize=16;
 
+callShowPreviewFromPreview=false;
 
 }
 
 function Update(){
+
+if(callShowPreviewFromPreview==true){
+  callShowPreviewFromPreview=false;
+
+  //console.log("Before preview:", AllActors.find(a => a.ID === currentlyEditingActor.ID).X);
+   openPropertyEditor(currentlyEditingActor);
+  showPreview();
+
+  //console.log("After preview:", AllActors.find(a => a.ID === currentlyEditingActor.ID).X);
+
+  //openPropertyEditor(currentlyEditingActor);
+}
 
 SetText(Coordinates,"X: "+Math.round(elementId("PreviewWindow").contentWindow.MouseX)+", Y: "+Math.round(elementId("PreviewWindow").contentWindow.MouseY));
 
