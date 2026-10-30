@@ -650,6 +650,7 @@ function updateOriginalArray(item, updates) {
     arr[index] = { ...arr[index], ...updates };
   }
 	BuildCode.setValue(exportToCode());
+  manipulatorCode = generateManipulatorCode(item);
 	showPreview()
 }
 
@@ -860,6 +861,8 @@ ActorProps(thisActor, {
   Y: ${item.Y},
   Width: ${item.Width},
   Height: ${item.Height},
+  Scale: ${item.Scale},
+  TranslateZ: ${item.TranslateZ},
   Style: \`box-sizing: border-box;
 border: 3px solid #ff00ff;
 background: rgba(255, 0, 255, 0.0);
@@ -889,7 +892,7 @@ function generateManipulatorCodeTriggers(item){
 return `
 
 
-Triggers.push({ 
+/*Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
@@ -897,14 +900,14 @@ Triggers.push({
       conditions: [], 
       actions: [{"fn":"","args":[],"code":"stage.MouseX=MouseX"},{"fn":"","args":[],"code":"stage.MouseY=MouseY"}],
       fireMode: "whiletrue"
-    });
+    });*/
 Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
       comment: "", 
       conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)==stage"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"console.log('parent is stage'); LT_manipulator.initX = MouseX-LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"LT_manipulator.initX = MouseX-LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
       fireMode: "onceWhileTrue"
     });
     Triggers.push({ 
@@ -913,7 +916,7 @@ Triggers.push({
 	  key: "",
       comment: "", 
       conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)!=stage"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"console.log('Mouse:', MouseX, MouseY,'Actor:', LT_manipulator.MouseX, LT_manipulator.MouseY); LT_manipulator.initX = LT_manipulator.MouseX"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = LT_manipulator.MouseY"}],
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"LT_manipulator.initX = MouseX-LT_manipulator.GlobalX"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.GlobalY"}],
       fireMode: "onceWhileTrue"
     });
 Triggers.push({ 
@@ -922,7 +925,7 @@ Triggers.push({
 	  key: "",
       comment: "", 
       conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"X","="," Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_manipulator.X = Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_manipulator.Y = Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"X","=","LT_manipulator.X"],"code":"`+item.ID+`.X = LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Y","=","LT_manipulator.Y"],"code":"`+item.ID+`.Y = LT_manipulator.Y"}],
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"X","="," Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"],"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"],"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"X","=","LT_manipulator.X"],"code":"`+item.ID+`.X = LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Y","=","LT_manipulator.Y"],"code":"`+item.ID+`.Y = LT_manipulator.Y"}],
       fireMode: "whiletrue"
     });
 Triggers.push({ 
@@ -940,7 +943,7 @@ Triggers.push({
 	  key: "",
       comment: "", 
       conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"}],"code":"LT_sizeManipulator.MouseIsDown==true"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"X","=","Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.X = Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.Y = Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Width","=","LT_sizeManipulator.X"],"code":"LT_manipulator.Width = LT_sizeManipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Height","=","LT_sizeManipulator.Y"],"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Width","=","LT_manipulator.Width"],"code":"`+item.ID+`.Width = LT_manipulator.Width"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Height","=","LT_manipulator.Height"],"code":"`+item.ID+`.Height = LT_manipulator.Height"}],
+      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"X","=","Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.X = Math.round((MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_sizeManipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"],"code":"LT_sizeManipulator.Y = Math.round((MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Width","=","LT_sizeManipulator.X"],"code":"LT_manipulator.Width = LT_sizeManipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Height","=","LT_sizeManipulator.Y"],"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Width","=","LT_manipulator.Width"],"code":"`+item.ID+`.Width = LT_manipulator.Width"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Height","=","LT_manipulator.Height"],"code":"`+item.ID+`.Height = LT_manipulator.Height"}],
       fireMode: "whiletrue"
     });
 Triggers.push({ 
