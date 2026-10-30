@@ -1,5 +1,6 @@
 const ENGINESTRING=String`
 
+
 if (typeof Triggers === "undefined") {
   Triggers = [];
 }
@@ -16,7 +17,7 @@ Ensemble2 = [];
 
 
 
-var StageWidth=640,StageHeight=360;
+var StageWidth=1920,StageHeight=1080;
 var Scene;
 Elements = new Array();
 var Scaling="FitTop";
@@ -332,7 +333,14 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.ShowOrigin=false;
 	S.InputType=undefined;
 	S.Mask=Mask;
-  S.MouseIsDown=undefined;
+	S.MouseIsDown=undefined;
+	S.ClickThrough=false;
+  S.MouseX=0;
+  S.MouseY=0;
+  S.ParentX=0;
+  S.ParentY=0;
+  S.GlobalX=0;
+  S.GlobalY=0;
     return S;
 	
 }
@@ -342,13 +350,13 @@ var SceneNumber=0;
 var CurrentScene=0;
 var thisScene="stage"
 
-function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale){
+function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale,ClickThrough){
 	
 	var hash = id;
 	var name = window[hash];
 	//var name = eval("Scene"+n);
 	//console.log(""+window[hash]);
-	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1);
+	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1,false);
 	Scenes.push(window[hash]);
 	//console.log(Scenes.length);
 	thisScene=id;
@@ -437,11 +445,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask,MouseX,MouseY){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null,0,0);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	//console.log(thisActor.Text)
@@ -469,8 +477,9 @@ function ReplaceText(e, find, replace){
 
   e.Text = e.Text.split(find).join(replace);
 
-  var x = elementId(e.ID);
-  if (x) x.innerHTML = e.Text;
+  //var x = elementId(e.ID);
+  //if (x) x.innerHTML = e.Text;
+  SetText(e,e.Text)
 }
 
 function Play(video){
@@ -611,7 +620,20 @@ function UpdateElement(e){
 		//CreateOrigin.style=OriginMarker;
 		e._originMarker.style=OriginMarker;
 		
+
 		}
+    if(e.Parent=="stage"){
+      e.MouseX=MouseX;
+      e.MouseY=MouseY;
+      e.GlobalX=e.X;
+      e.GlobalY=e.Y;
+    }else{
+    e.MouseX=MouseX-e.X;
+    e.MouseY=MouseY-e.Y;
+    e.GlobalX=(e.X+GetParent(e).GlobalX)/GetParent(e).Scale;
+    e.GlobalY=(e.Y+GetParent(e).GlobalY)/GetParent(e).Scale;
+    }
+
 	
 	
 }
@@ -870,15 +892,14 @@ function GenerateElement(id){
 		if(id.InputType!=undefined){
 			x.type=id.InputType;
 		}
-			
-			if(id.Draggable==true){
+			//x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
+		if(id.Draggable==true){
 			x.setAttribute("onpointerdown","mouseDown("+id.ID+",event);  "+id.MouseDown+";");
 			x.setAttribute("onpointerup","AllMouseUps(); "+id.MouseUp+";"+id.DropFunction);
 		}
-				if(id.ClickThrough!=false){
+		if(id.ClickThrough!=false){
 			x.style.pointerEvents="none";
 		} else{x.style.pointerEvents="auto";}
-		
   Div1.appendChild(x);
   x.style.position="absolute";
   x.style.transformStyle="preserve-3d";
@@ -896,6 +917,7 @@ function GenerateElement(id){
 		x.appendChild(CreateOrigin);
 		}
 		}
+    
  
   
   UpdateElement(id);
@@ -930,11 +952,6 @@ function AllMouseUps(){
     }
   }
 
-}
-
-
-function mouseUp(e){
-	e.dragging=false;
 }
 
 
@@ -1422,81 +1439,12 @@ function Burst(actorID, options = {}) {
 function SceneStartTrigger() {
   runTriggers("SceneStart");
 }
-/*
-function runTriggers(eventName) {
-	
-  if (!Array.isArray(Triggers)) return;
 
-  for (const trigger of Triggers) {
-    if (trigger.event !== eventName) continue;
-
-    let conditionMet = true;
-    const conditions = trigger.conditions || ["true"];
-
-    // Evaluer alle conditions
-    for (let cond of conditions) {
-      if (!cond) continue;
-      const code = typeof cond === "string" ? cond : cond.code;
-      try {
-        if (!new Function("return (" + code + ")")()) {
-          conditionMet = false;
-          break;
-        }
-      } catch (err) {
-        console.warn("Trigger fejl:", err);
-        conditionMet = false;
-        break;
-      }
-    }
-
-    // ✅ FireMode håndtering
-    trigger._hasFired = trigger._hasFired || false; // init flag
-
-    if (conditionMet) {
-      if (trigger.fireMode === "once") {
-        if (!trigger._hasFired) {
-          trigger.actions?.forEach(act => {
-            const code = typeof act === "string" ? act : act.code;
-            if (!code) return;
-            try { new Function(code)(); } 
-            catch (err) { console.warn("Trigger action fejl:", err); }
-          });
-          trigger._hasFired = true; // sat permanent
-        }
-      } else if (trigger.fireMode === "onceWhileTrue") {
-        if (!trigger._hasFired) {
-          trigger.actions?.forEach(act => {
-            const code = typeof act === "string" ? act : act.code;
-            if (!code) return;
-            try { new Function(code)(); } 
-            catch (err) { console.warn("Trigger action fejl:", err); }
-          });
-          trigger._hasFired = true;
-        }
-      } else { // fx standard / while true
-        trigger.actions?.forEach(act => {
-          const code = typeof act === "string" ? act : act.code;
-          if (!code) return;
-          try { new Function(code)(); } 
-          catch (err) { console.warn("Trigger action fejl:", err); }
-        });
-      }
-    } else {
-      // nulstil kun onceWhileTrue, ikke once
-      if (trigger.fireMode === "onceWhileTrue") {
-        trigger._hasFired = false;
-      }
-    }
-  }
-}
-*/
   // global state
   window._MouseState = {
     isDown: false,
     actor: null
   };
-
-
 
 function KeyboardListener() {
   window._KeyState = window._KeyState || {};
@@ -1537,21 +1485,6 @@ function runKeyTriggers(eventName, keyCode,event) {
 
   window.TriggerTarget = null;
 }
-function runKeyTriggers(eventName, keyCode,event) {
-  if (!Array.isArray(Triggers)) return;
-
-  for (const trigger of Triggers) {
-    if (!trigger || trigger.event !== eventName) continue;
-    if (!trigger.key || trigger.key !== keyCode) continue;
-
-    const actorId = trigger.target || null;
-
-    window.TriggerTarget = actorId;
-    executeTrigger(trigger);
-  }
-
-  window.TriggerTarget = null;
-}
 function getDOMEventType(eventType){
   switch(eventType){
     case "MouseDown":
@@ -1575,7 +1508,7 @@ function attachTriggerListener(containerId, eventType) {
     const actorObj = window[actorId];
     if(eventType=="MouseDown" && actorObj){
       actorObj.MouseIsDown=true;
-      //PointerPosition(event);
+      PointerPosition(event);
     }
     if(eventType=="MouseUp" && actorObj){
       AllMouseUps();
@@ -1729,8 +1662,21 @@ function FilterEnsemble(name, property, compare, value) {
   return result;
 }
 
+
 function GetParent(a){
  return window[a.Parent]; 
+}
+
+function SetGlobalX(a, value){
+	if(a.Parent=="stage"){a.X=value}else{
+  a.X=(value - GetParent(a).GlobalX)/GetParent(a).Scale;
+	}
+}
+
+function SetGlobalY(a, value){
+	if(a.Parent=="stage"){a.Y=value}else{
+  a.Y=(value - GetParent(a).GlobalY)/GetParent(a).Scale;
+	}
 }
 
 

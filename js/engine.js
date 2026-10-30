@@ -1666,9 +1666,13 @@ function GetParent(a){
 }
 
 function SetGlobalX(a, value){
+	if(a.Parent=="stage"){a.X=value}else{
   a.X=(value - GetParent(a).GlobalX)/GetParent(a).Scale;
+	}
 }
 
 function SetGlobalY(a, value){
+	if(a.Parent=="stage"){a.Y=value}else{
   a.Y=(value - GetParent(a).GlobalY)/GetParent(a).Scale;
+	}
 }
