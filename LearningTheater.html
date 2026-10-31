@@ -1629,6 +1629,7 @@ valueInput.addEventListener("input", () => {
 
   const closeBtn = document.createElement("button");
   closeBtn.textContent = "🗙";
+  closeBtn.style ="position:fixed; top:0";
   closeBtn.onclick = () => {
     editor.style.display="none";
     manipulatorCode = "";
@@ -1890,6 +1891,168 @@ function syncEnsemblesFromPreview() {
 
 
 
+function renderPropertyList(savedValue, arg, onChange) {
+
+  const wrapper = document.createElement("div");
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.gap = "6px";
+  wrapper.style.width = "100%";
+
+  const properties = arg.options || [
+    "X", "Y", "Width", "Height",
+    "Scale", "Opacity", "Angle",
+    "SkewX", "SkewY",
+    "RotateX", "RotateY", "RotateZ",
+    "TranslateX", "TranslateY", "TranslateZ"
+  ];
+
+  // Læs gemte værdier
+  let items = [];
+
+  if (Array.isArray(savedValue)) {
+    items = savedValue;
+  } else if (savedValue) {
+    try {
+      items = JSON.parse(savedValue);
+    } catch (e) {}
+  }
+
+  if (!Array.isArray(items)) items = [];
+
+  // Sørg for at alle items har adjustment
+  items.forEach(item => {
+    if (!item.adjustment) item.adjustment = "=";
+  });
+
+  // Gem ændringer
+  function save() {
+    onChange(JSON.stringify(items));
+  }
+
+  function render() {
+
+    wrapper.innerHTML = "";
+
+    items.forEach((item, index) => {
+
+      const row = document.createElement("div");
+      row.style.display = "flex";
+      row.style.gap = "5px";
+      row.style.alignItems = "center";
+      row.style.width = "100%";
+
+      // Property dropdown
+      const select = document.createElement("select");
+      select.style.flex = "1";
+      select.style.minWidth = "0";
+
+      properties.forEach(prop => {
+
+        const alreadyUsed = items.some(
+          (other, i) =>
+            i !== index && other.property === prop
+        );
+
+        if (alreadyUsed) return;
+
+        const option = document.createElement("option");
+        option.value = prop;
+        option.textContent = prop;
+        select.appendChild(option);
+      });
+
+      select.value = item.property;
+
+      select.addEventListener("change", () => {
+        item.property = select.value;
+        save();
+        render();
+      });
+
+      // Adjustment dropdown
+      const adjustment = document.createElement("select");
+      adjustment.style.width = "48px";
+
+      ["=", "+=", "-="].forEach(mode => {
+        const option = document.createElement("option");
+        option.value = mode;
+        option.textContent = mode;
+        adjustment.appendChild(option);
+      });
+
+      adjustment.value = item.adjustment;
+
+      adjustment.addEventListener("change", () => {
+        item.adjustment = adjustment.value;
+        save();
+      });
+
+      // Value input
+      const value = document.createElement("input");
+      value.type = "text";
+      value.value = item.value ?? "0";
+      value.style.flex = "1";
+      value.style.minWidth = "0";
+      value.placeholder = "Value";
+
+      value.addEventListener("input", () => {
+        item.value = value.value;
+        save();
+      });
+
+      // Remove button
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.title = "Remove property";
+
+      remove.addEventListener("click", () => {
+        items.splice(index, 1);
+        save();
+        render();
+      });
+
+      row.append(select, adjustment, value, remove);
+      wrapper.appendChild(row);
+
+    });
+
+    // Add property button
+    const add = document.createElement("button");
+    add.type = "button";
+    add.textContent = "+ Add property";
+    add.style.width = "100%";
+
+    add.disabled = items.length >= properties.length;
+
+    add.addEventListener("click", () => {
+
+      const available = properties.find(
+        prop => !items.some(item => item.property === prop)
+      );
+
+      if (!available) return;
+
+      items.push({
+        property: available,
+        adjustment: "=",
+        value: "0"
+      });
+
+      save();
+      render();
+    });
+
+    wrapper.appendChild(add);
+  }
+
+  render();
+
+  return wrapper;
+}
+
+
 // 🔧 Hjælpefunktion til at bygge argument inputs
 function renderArgsInputs(argsDef, argsValues, onChange) {
   const container = document.createElement("div");
@@ -1923,7 +2086,17 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
 		  enableActorHighlight(input, () => input.value);
 		  break;
 		}
-		
+      case "propertyList": {
+        input = renderPropertyList(
+          argsValues[index],
+          arg,
+          value => {
+            argsValues[index] = value;
+            onChange([...argsValues]);
+          }
+        );
+        break;
+      }
       case "scene":
         input = document.createElement("select");
         AllScenes.forEach(scene => { // Hvis du har AllScenes
@@ -2410,7 +2583,11 @@ function updateDropdown() {
 
     }
 
-	if (arg.type !== "quill" && arg.type !== "target") {
+	if (
+      arg.type !== "quill" &&
+      arg.type !== "target" &&
+      arg.type !== "propertyList"
+    ) {
 	  input.onchange = () => {
 		if (arg.type === "boolean") {
 		  argsValues[index] = input.checked;
