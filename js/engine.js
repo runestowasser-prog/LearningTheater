@@ -294,7 +294,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
     S.Y = Y;
     S.Width = Width;
     S.Height = Height;
-    S.Angle = Angle;
+    S.Angle = 0;
     S.Opacity = 100;
     S.SkewX = SkewX;
     S.SkewY = SkewY;
@@ -328,6 +328,8 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
 	S.Loaded=false;
 	S.Class=undefined;
 	S.Scale=1;
+  S.TransformOriginX=0;
+  S.TransformOriginY=0;
 	S.ShowOrigin=false;
 	S.InputType=undefined;
 	S.Mask=Mask;
@@ -348,13 +350,13 @@ var SceneNumber=0;
 var CurrentScene=0;
 var thisScene="stage"
 
-function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale,ClickThrough){
+function Scene(id,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow, RotateX, RotateY, RotateZ,TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp, BackgroundImage,TextColor,Style,Scale,ClickThrough,TransformOriginX,TransformOriginY){
 	
 	var hash = id;
 	var name = window[hash];
 	//var name = eval("Scene"+n);
 	//console.log(""+window[hash]);
-	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1,false);
+	window[hash] = NewElement(id,"DIV",100,0,0,StageWidth,StageHeight,0,0,0,null,null,null,null,null,null, "stage",false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,1,false,0,0);
 	Scenes.push(window[hash]);
 	//console.log(Scenes.length);
 	thisScene=id;
@@ -447,7 +449,7 @@ function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,S
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,null,null,false,null,null,0,0);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,0,0,false,null,null,0,0);
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	//console.log(thisActor.Text)
