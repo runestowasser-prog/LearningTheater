@@ -2262,6 +2262,134 @@ else {
   
 	
   },
+  
+    "AnimateText": {
+		label: "Animate Text",
+		category:["Animation"],
+
+		args: [
+		  { type: "actor", label: "Actor:", defaultValue:"Actors[0]" },
+		  { type: "dropdown", label:"Split by", options:["lines", "words", "chars"], defaultValue:"chars"},
+		  
+		  { type: "raw", label: "X", defaultValue: "0"},
+		  { type: "raw", label: "Y", defaultValue: "0"},
+		  { type: "raw", label: "Speed", defaultValue: "1"},
+		  
+		{ type: "easing", label: "easing", defaultValue: "power1.out"},
+		  { type: "raw", label: "duration", defaultValue: "1"},
+		  { type: "raw", label: "delay", defaultValue: "0"},
+
+		],
+		build: (args) => {
+		let target = args[0];
+		let splitBY = args[1]
+		let xOrigin = args[2];
+		let yOrigin = args[3];
+		let speed = args[4]
+		let easing = args[5];
+		let duration = args[6];
+		let delay = args[7];
+
+
+
+		// Det nye target-format fra editoren
+		let targetType = "actor";
+
+		try {
+		  const parsed = JSON.parse(target);
+		  if (
+			parsed &&
+			["actor", "ensemble", "raw"].includes(parsed.type)
+		  ) {
+			targetType = parsed.type;
+			target = parsed.value;
+		  }
+		} catch (e) {
+		  // Bagudkompatibilitet med gamle actor-ID'er
+		}
+
+		if (targetType === "ensemble") {
+		  return `${target}.forEach(a => let split = SplitText.create("#"+a.ID, {type: "${splitBY}"}); gsap.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} }, delay: ${delay}  }))`;
+		}
+
+		// Actor og Raw bruger samme kodegenerering
+		return `let split = SplitText.create("#${target}", {type: "${splitBY}"}); gsap.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} }, delay: ${delay}, onComplete: () => split.revert()  })`;
+	  }
+	},
+	
+	    "AnimateTextScene": {
+		label: "Animate Text (Scene)",
+		category:["Animation"],
+
+		args: [
+		  { type: "scene", label: "Scene",},
+		  { type: "actor", label: "Actor:", defaultValue:"Actors[0]" },
+		  { type: "dropdown", label:"Split by", options:["lines", "words", "chars"], defaultValue:"chars"},
+		  
+		  { type: "raw", label: "X", defaultValue: "0"},
+		  { type: "raw", label: "Y", defaultValue: "0"},
+		  { type: "raw", label: "Speed", defaultValue: "1"},
+		  
+		{ type: "easing", label: "easing", defaultValue: "power1.out"},
+		  { type: "raw", label: "duration", defaultValue: "1"},
+		  { type: "raw", label: "delay", defaultValue: "0"},
+
+		],
+		build: (args) => {
+		let scene = args[0];
+		let target = args[1];
+		let splitBY = args[2]
+		let xOrigin = args[3];
+		let yOrigin = args[4];
+		let speed = args[5]
+		let easing = args[6];
+		let duration = args[7];
+		let delay = args[8];
+
+
+
+		// Det nye target-format fra editoren
+		let targetType = "actor";
+
+		try {
+		  const parsed = JSON.parse(target);
+		  if (
+			parsed &&
+			["actor", "ensemble", "raw"].includes(parsed.type)
+		  ) {
+			targetType = parsed.type;
+			target = parsed.value;
+		  }
+		} catch (e) {
+		  // Bagudkompatibilitet med gamle actor-ID'er
+		}
+
+		if (targetType === "ensemble") {
+		  return `${target}.forEach(a => let split = SplitText.create("#"+a.ID, {type: "${splitBY}"}); ${scene}.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} }, delay: ${delay}  }))`;
+		}
+
+		// Actor og Raw bruger samme kodegenerering
+		return `let split = SplitText.create("#${target}", {type: "${splitBY}"});  ${scene}.Timeline.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} },  },${delay})`;
+	  }
+	},
+  
+  "TestProperties": {
+	  label: "Test properties",
+	  category: ["Actor"],
+
+	  args: [
+		{
+		  type: "propertyList",
+		  label: "Properties"
+		}
+	  ],
+
+	  build: (args) => {
+		const properties = JSON.parse(args[0] || "[]");
+		console.log(properties);
+		return "";
+	  }
+	},
 };
 
 
