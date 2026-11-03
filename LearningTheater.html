@@ -88,6 +88,8 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "parent.RepeatDelay.value=parent.AllSceneTweens[\"+i+\"].parent._rDelay;"+
 "parent.direction.value=parent.AllSceneTweens[\"+i+\"].vars.data;"+
 "parent.easing.value=parent.AllSceneTweens[\"+i+\"].vars.ease;"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.TransformOriginX!=undefined){parent.OriginXInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TransformOriginX;  parent.OriginXInput2.disabled=false; parent.OriginXOnT.checked=true;}else{parent.OriginXInput2.disabled=true;parent.OriginXOnT.checked=false;}"+
+"if(parent.AllSceneTweens[\"+i+\"].vars.TransformOriginY!=undefined){parent.OriginYInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TransformOriginY;  parent.OriginYInput2.disabled=false;parent.OriginYOnT.checked=true;}else{parent.OriginYInput2.disabled=true;parent.OriginYOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.Width!=undefined){parent.WidthInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Width;  parent.WidthInput2.disabled=false;parent.WidthOnT.checked=true;}else{parent.WidthInput2.disabled=true;parent.WidthOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.Height!=undefined){parent.HeightInput2.value=parent.AllSceneTweens[\"+i+\"].vars.Height;  parent.HeightInput2.disabled=false;parent.HeightOnT.checked=true;}else{parent.HeightInput2.disabled=true;parent.HeightOnT.checked=false;}"+
 "if(parent.AllSceneTweens[\"+i+\"].vars.X!=undefined){parent.XInput2.value=parent.AllSceneTweens[\"+i+\"].vars.X;  parent.XInput2.disabled=false; parent.XOnT.checked=true;}else{parent.XInput2.disabled=true;parent.XOnT.checked=false;}"+
@@ -1079,7 +1081,7 @@ ActorProps(thisActor, {
   Y: ${item}.Y,
   Width: ${item}.Width,
   Height: ${item}.Height,
-  
+  Z:999999,
   Style: \`box-sizing: border-box;
 border: 3px solid #ff00ff;
 background: rgba(255, 0, 255, 0.0);
@@ -1089,6 +1091,8 @@ cursor:pointer;\`,
   initY: 0,
 });
 GenerateElement(LT_manipulator);
+/*SetGlobalAngle(LT_manipulator,0)*/
+
 
 Actor('LT_sizeManipulator','div');
 ActorProps(thisActor, {
@@ -1110,7 +1114,7 @@ ActorProps(thisActor, {
   Height: 30,
   X: Math.round(${item}.TransformOriginX-20),
   Y: Math.round(${item}.TransformOriginY-20),
-  Draggable: false,
+  Draggable: true,
   Style: "//cursor: all-scroll",
   Color: "#ff00ff",
   Opacity: 70,
@@ -1141,6 +1145,15 @@ function generateManipulatorCodeTweenTriggers(item){
 return `
 
 
+/*Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [], 
+      actions: [{"code":"SetGlobalAngle(LT_manipulator,0)"}],
+      fireMode: "onceWhileTrue"
+    });*/
 Triggers.push({ 
       event: "Update", 
       target: null, 
@@ -1177,18 +1190,18 @@ Triggers.push({
       actions: [{"code":"parent.XInput2.value = LT_manipulator.X;"},{"code":" parent.YInput2.value = LT_manipulator.Y;"},{"code":"parent.updateGeneratedTween();"},],
       fireMode: "onceWhileTrue"
     });
-/*Triggers.push({
+Triggers.push({
   event: "Update",
   target: null,
   key: "",
   comment: "",
   conditions: [{"code":"LT_sizeManipulator.MouseIsDown==true"}],
   actions: [
-    {"code":"LT_manipulator.originRatioX = `+item.ID+`.TransformOriginX / `+item.ID+`.Width"},
-    {"code":"LT_manipulator.originRatioY = `+item.ID+`.TransformOriginY / `+item.ID+`.Height"}
+    {"code":"LT_manipulator.originRatioX = `+item+`.TransformOriginX / `+item+`.Width"},
+    {"code":"LT_manipulator.originRatioY = `+item+`.TransformOriginY / `+item+`.Height"}
   ],
   fireMode: "onceWhileTrue"
-});*/
+});
 Triggers.push({
   event: "Update",
   target: null,
@@ -1202,10 +1215,10 @@ Triggers.push({
     {"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},
     {"code":"parent.WidthInput2.value = LT_manipulator.Width"},
     {"code":"parent.HeightInput2.value = LT_manipulator.Height"},
-    /*{"code":"`+item.ID+`.TransformOriginX = Math.round(LT_manipulator.originRatioX * LT_manipulator.Width)"},
-    {"code":"`+item.ID+`.TransformOriginY = Math.round(LT_manipulator.originRatioY * LT_manipulator.Height)"},
-    {"code":"LT_center.X = `+item.ID+`.TransformOriginX - 22"},
-    {"code":"LT_center.Y = `+item.ID+`.TransformOriginY - 22"}*/
+    /*{"code":"`+item+`.TransformOriginX = Math.round(LT_manipulator.originRatioX * LT_manipulator.Width)"},
+    {"code":"`+item+`.TransformOriginY = Math.round(LT_manipulator.originRatioY * LT_manipulator.Height)"},
+    {"code":"LT_center.X = `+item+`.TransformOriginX - 22"},
+    {"code":"LT_center.Y = `+item+`.TransformOriginY - 22"}*/
   ],
   fireMode: "whiletrue"
 });
@@ -1229,15 +1242,15 @@ Triggers.push({
       actions: [{"code":"LT_angle.X = Math.round(LT_center.X-15)"},{"code":"LT_angle.Y = Math.round(LT_center.Y-35)"},],
       fireMode: "whiletrue"
     });
-/*Triggers.push({ 
+Triggers.push({ 
       event: "MouseUp", 
       target: "LT_center", 
 	  key: "",
       comment: "", 
       conditions: [], 
-      actions: [{"code":"`+item.ID+`.TransformOriginX = Math.round(LT_center.X+22)"},{"code":"`+item.ID+`.TransformOriginY = Math.round(LT_center.Y+22)"},{"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  editorActor.TransformOriginX = `+item.ID+`.TransformOriginX; editorActor.TransformOriginY = `+item.ID+`.TransformOriginY;"},{"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},{"code":"//parent.openPropertyEditor(`+item.ID+`)"},{"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
+      actions: [{"code":"`+item+`.TransformOriginX = Math.round(LT_center.X+22)"},{"code":"`+item+`.TransformOriginY = Math.round(LT_center.Y+22)"},{"code":" parent.OriginXInput2.value = `+item+`.TransformOriginX;"},{"code":" parent.OriginYInput2.value = `+item+`.TransformOriginY;"},{"code":"parent.updateGeneratedTween();"},],
       fireMode: "whiletrue"
-    });*/
+    });
 Triggers.push({ 
       event: "MouseDown", 
       target: "LT_angle", 
@@ -6217,7 +6230,15 @@ function updateGeneratedTween(){
 	   }
 	
 
-	let w = "";
+	let ox = "";
+  if(!OriginXInput2.disabled){
+	   ox = numField("TransformOriginX", OriginXInput2.value);
+	   }
+  let oy = "";
+  if(!OriginYInput2.disabled){
+	   oy = numField("TransformOriginY", OriginYInput2.value);
+	   }
+  let w = "";
 	if(!WidthInput2.disabled){
 	   w = numField("Width", WidthInput2.value);
 	   }
@@ -6280,7 +6301,7 @@ function updateGeneratedTween(){
 	
 	//arraymove(AllTweens, CurrentlyEditingTween, Current);
 	//GeneratingTween=s+".Timeline."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\", "+repeat+"yoyo:"+yoyo+", "+repeatDelay+d+" data:\""+di+"\"},"+st+");";
-	GeneratingTween=s+".Timeline.add(gsap.timeline({ "+repeat+repeatDelay+"})."+di+"("+a+",{"+id+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\",repeat:"+(yoyo ? 1 : 0)+", yoyo:"+yoyo+", "+d+" data:\""+di+"\"}),"+st+")";
+	GeneratingTween=s+".Timeline.add(gsap.timeline({ "+repeat+repeatDelay+"})."+di+"("+a+",{"+id+ox+oy+w+h+x+y+scale+o+ang+sx+sy+rx+ry+rz+tx+ty+tz+"ease:\""+e+"\",repeat:"+(yoyo ? 1 : 0)+", yoyo:"+yoyo+", "+d+" data:\""+di+"\"}),"+st+")";
 	AllTweens[CurrentlyEditingTween]=GeneratingTween;
 	//console.log(Current+AllTweens[Current]);
 	//elementId("PreviewWindow").contentWindow.GeneratingTween
@@ -7061,7 +7082,7 @@ thisActor.Text="Create Movement";
 thisActor.Y=StageHeight-90
 thisActor.Height=30
 thisActor.X=200
-thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length;";
+thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length; if(ActorTween.value!=''){manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()}";
 
 Actor("ActorOptions","DIV");
 ActorOptions.Opacity=0;
@@ -7152,24 +7173,30 @@ thisActor.Width=400
 thisActor.Overflow="auto" 
 thisActor.Generated=""
 
-thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id='ActorTween' oninput=\"manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
+thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\""+EditorGrid+"\" oninput=\"EditorGrid=elementId('TweenGrid').value;"+
+" elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;"+
+"elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id='ActorTween' oninput=\"manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
 "Repeat<input id=\"RepeatInput\" type=\"number\" value=\"0\" min=\"-1\" label=\"Repeat\" oninput=\"updateGeneratedTween()\">"+
 "	Yoyo<input type=\"checkbox\" id=\"YoyoInput\" oninput=\"updateGeneratedTween()\"><br>"+
-"Repeat delay<input id=\"RepeatDelay\" type=\"number\" value=\"0\" min=\"0\" label=\"RepeatDelay\" oninput=\"updateGeneratedTween()\"></p>"
-thisActor.Line5="<input type=\"checkbox\" id=\"WidthOnT\" onclick=\"enableField('WidthInput2'); updateGeneratedTween();\">Width </button>"
-thisActor.Line5_1="<input id=\"WidthInput2\" type=\"number\" value=\"200\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
-thisActor.Line6="<input type=\"checkbox\" id=\"HeightOnT\" onclick=\"enableField('HeightInput2'); updateGeneratedTween(); \">Height </button>"
-thisActor.Line6_1="<input id=\"HeightInput2\" type=\"number\" value=\"200\" step=\"+elementId('grid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
-thisActor.Line7="<input type=\"checkbox\" id=\"XOnT\" onclick=\" enableField('XInput2'); updateGeneratedTween();\">X </button>"
-thisActor.Line7_1="<input id=\"XInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+"Repeat delay<input id=\"RepeatDelay\" type=\"number\" value=\"0\" min=\"0\" label=\"RepeatDelay\" oninput=\"updateGeneratedTween()\"></p>"+
+"<input type=\"checkbox\" id=\"OriginXOnT\" onclick=\"enableField('OriginXInput2'); updateGeneratedTween();\" checked >Origin X </button>"+
+"<input id=\"OriginXInput2\" type=\"number\"  step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\"><br>"+
+"<input type=\"checkbox\" id=\"OriginYOnT\" onclick=\"enableField('OriginYInput2'); updateGeneratedTween();\" checked >Origin Y </button>"+
+"<input id=\"OriginYInput2\" type=\"number\"  step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\">"
+thisActor.Line5="<input type=\"checkbox\" id=\"WidthOnT\" onclick=\"enableField('WidthInput2'); updateGeneratedTween();\" checked >Width </button>"
+thisActor.Line5_1="<input id=\"WidthInput2\" type=\"number\"  step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\">"
+thisActor.Line6="<input type=\"checkbox\" id=\"HeightOnT\" onclick=\"enableField('HeightInput2'); updateGeneratedTween(); \"checked >Height</button>"
+thisActor.Line6_1="<input id=\"HeightInput2\" type=\"number\" step=\"+elementId('grid').value+\" oninput=\"updateGeneratedTween()\">"
+thisActor.Line7="<input type=\"checkbox\" id=\"XOnT\" onclick=\" enableField('XInput2'); updateGeneratedTween();\" checked>X </button>"
+thisActor.Line7_1="<input id=\"XInput2\" type=\"number\"  step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\">"
 thisActor.LineScale="<input type=\"checkbox\" id=\"ScaleOnT\" onclick=\" enableField('ScaleInput2'); updateGeneratedTween();\">Scale </button>"
 thisActor.LineScale_1="<input id=\"ScaleInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
-thisActor.Line8="<input type=\"checkbox\" id=\"YOnT\" onclick=\"enableField('YInput2'); updateGeneratedTween();\">Y </button>"
-thisActor.Line8_1="<input id=\"YInput2\" type=\"number\" value=\"0\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line8="<input type=\"checkbox\" id=\"YOnT\" onclick=\"enableField('YInput2'); updateGeneratedTween();\" checked>Y </button>"
+thisActor.Line8_1="<input id=\"YInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" oninput=\"updateGeneratedTween()\">"
 thisActor.Line9="<input type=\"checkbox\" id=\"OpacityOnT\" onclick=\"enableField('OpacityInput2'); updateGeneratedTween();\">Opacity </button>"
 thisActor.Line9_1="<input id=\"OpacityInput2\" type=\"number\" min=\"0\" max=\"100\" step=\"+elementId('TweenGrid').value+\" value=\"100\" oninput=\"updateGeneratedTween()\" disabled>"
-thisActor.Line10="<input type=\"checkbox\" id=\"AngleOnT\" onclick=\"enableField('AngleInput2'); updateGeneratedTween();\">Angle </button>"
-thisActor.Line10_1="<input id=\"AngleInput2\" type=\"number\" min=\"-360\" max=\"360\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
+thisActor.Line10="<input type=\"checkbox\" id=\"AngleOnT\" onclick=\"enableField('AngleInput2'); updateGeneratedTween();\" checked>Angle </button>"
+thisActor.Line10_1="<input id=\"AngleInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\"  oninput=\"updateGeneratedTween()\" >"
 thisActor.Line11="<input type=\"checkbox\" id=\"SkewXOnT\" onclick=\"enableField('SkewXInput2'); updateGeneratedTween();\">Skew X </button>"
 thisActor.Line11_1="<input id=\"SkewXInput2\" type=\"number\" min=\"-100\" max=\"100\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
 thisActor.Line12="<input type=\"checkbox\" id=\"SkewYOnT\" onclick=\"enableField('SkewYInput2'); updateGeneratedTween();\">Skew Y </button>"
