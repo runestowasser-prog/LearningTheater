@@ -78,7 +78,7 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "thisActor.Style='filter:drop-shadow(0.1em 0.1em 0.1em); cursor:grab; font-family:arial';"+
 "thisActor.Draggable=true;"+
 "thisActor.MouseUp=\" let ax=\"+thisActor.ID+\".X; ax=Math.round(ax/10)*10; \"+thisActor.ID+\".X=ax; parent.elementId('startTime').value=ax/100; parent.elementId('startTime').dispatchEvent(new Event('input')); startX=ax;\";"+
-"thisActor.MouseDown=\"parent.TweenOptions.Opacity=100; parent.CurrentlyEditingTween=parent.AllSceneTweens[\"+i+\"].vars.id;"+
+"thisActor.MouseDown=\"parent.TweenOptions.Opacity=100; parent.CurrentlyEditingTween=parent.AllSceneTweens[\"+i+\"].vars.id; parent.manipulatorCode = parent.generateManipulatorTweenCode(parent.ActorTween.value); parent.manipulatorCodeTriggers = parent.generateManipulatorCodeTweenTriggers(parent.ActorTween.value);"+
 "parent.SceneId.value=parent.elementId(\'PreviewWindow\').contentWindow.GetScene().ID; "+
 "parent.ActorTween.value=parent.AllSceneTweens[\"+i+\"]._targets[0].ID;"+
 "parent.startTime.value=parent.AllSceneTweens[\"+i+\"]._start;"+
@@ -858,7 +858,7 @@ return `
 
 Actor('LT_manipulator','div');
 ActorProps(thisActor, {
-//console.log(${item.Parent});
+
   Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
   X: ${item.X},
   Y: ${item.Y},
@@ -868,6 +868,7 @@ ActorProps(thisActor, {
   Style: \`box-sizing: border-box;
 border: 3px solid #ff00ff;
 background: rgba(255, 0, 255, 0.0);
+z-index:9999999;
 cursor:pointer;\`,
   initX: 0,
   initY: 0,
@@ -920,6 +921,8 @@ ActorProps(thisActor, {
 GenerateElement(LT_angle);
 `;
 }
+
+
 
 function generateManipulatorCodeTriggers(item){
 return `
@@ -1064,7 +1067,206 @@ Triggers.push({
 `
 }
 
+function generateManipulatorTweenCode(item) {
+return `
 
+Actor('LT_manipulator','div');
+ActorProps(thisActor, {
+
+  Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
+  Parent:${item}.Parent,
+  X: ${item}.X,
+  Y: ${item}.Y,
+  Width: ${item}.Width,
+  Height: ${item}.Height,
+  
+  Style: \`box-sizing: border-box;
+border: 3px solid #ff00ff;
+background: rgba(255, 0, 255, 0.0);
+z-index:9999999;
+cursor:pointer;\`,
+  initX: 0,
+  initY: 0,
+});
+GenerateElement(LT_manipulator);
+
+Actor('LT_sizeManipulator','div');
+ActorProps(thisActor, {
+  Parent: "LT_manipulator",
+  X: ${item}.Width,
+  Y: ${item}.Height,
+  Width: 20,
+  Height: 20,
+  Style: \`cursor:pointer;\`,
+  Color: "#ff00ff",
+  Shape: "Circle",
+});
+GenerateElement(LT_sizeManipulator);
+
+Actor('LT_center','div');
+ActorProps(thisActor, {
+  Parent: "LT_manipulator",
+  Width: 30,
+  Height: 30,
+  X: Math.round(${item}.TransformOriginX-20),
+  Y: Math.round(${item}.TransformOriginY-20),
+  Draggable: false,
+  Style: "//cursor: all-scroll",
+  Color: "#ff00ff",
+  Opacity: 70,
+  Shape: "Circle",
+});
+//if(${item.TansformOriginX}==undefined){thisActor.X=LT_manipulatoe.Width/2}
+//if(${item.TansformOriginY}==undefined){thisActor.Y=LT_manipulatoe.Height/2}
+GenerateElement(LT_center);
+
+Actor('LT_angle','div');
+ActorProps(thisActor, {
+  Parent: "LT_manipulator",
+  Width: 64,
+  Height: 48,
+  X: 0,
+  Y: 0,
+  Style: \`color:#ff00ff; cursor:e-resize;\`,
+  Text: \`&lt; &gt;\`,
+  FontSize: 41,
+  initX: 0,
+  initAngle: 0,
+});
+GenerateElement(LT_angle);
+`;
+}
+
+function generateManipulatorCodeTweenTriggers(item){
+return `
+
+
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"GetParent(LT_manipulator)==stage"}], 
+      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.X"},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      fireMode: "onceWhileTrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"GetParent(LT_manipulator)!=stage"}], 
+      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.GlobalX"},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.GlobalY"}],
+      fireMode: "onceWhileTrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"}], 
+      actions: [{"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},{"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},{"code":"parent.XInput2.value = LT_manipulator.X"},{"code":"parent.YInput2.value = LT_manipulator.Y"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==false"}], 
+      actions: [{"code":"parent.XInput2.value = LT_manipulator.X;"},{"code":" parent.YInput2.value = LT_manipulator.Y;"},{"code":"parent.updateGeneratedTween();"},],
+      fireMode: "onceWhileTrue"
+    });
+/*Triggers.push({
+  event: "Update",
+  target: null,
+  key: "",
+  comment: "",
+  conditions: [{"code":"LT_sizeManipulator.MouseIsDown==true"}],
+  actions: [
+    {"code":"LT_manipulator.originRatioX = `+item.ID+`.TransformOriginX / `+item.ID+`.Width"},
+    {"code":"LT_manipulator.originRatioY = `+item.ID+`.TransformOriginY / `+item.ID+`.Height"}
+  ],
+  fireMode: "onceWhileTrue"
+});*/
+Triggers.push({
+  event: "Update",
+  target: null,
+  key: "",
+  comment: "",
+  conditions: [{"code":"LT_sizeManipulator.MouseIsDown==true"}],
+  actions: [
+    {"code":"LT_sizeManipulator.X = Math.round((MouseX-LT_manipulator.GlobalX)/parent.EditorGrid)*parent.EditorGrid"},
+    {"code":"LT_sizeManipulator.Y = Math.round((MouseY-LT_manipulator.GlobalY)/parent.EditorGrid)*parent.EditorGrid"},
+    {"code":"LT_manipulator.Width = LT_sizeManipulator.X"},
+    {"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},
+    {"code":"parent.WidthInput2.value = LT_manipulator.Width"},
+    {"code":"parent.HeightInput2.value = LT_manipulator.Height"},
+    /*{"code":"`+item.ID+`.TransformOriginX = Math.round(LT_manipulator.originRatioX * LT_manipulator.Width)"},
+    {"code":"`+item.ID+`.TransformOriginY = Math.round(LT_manipulator.originRatioY * LT_manipulator.Height)"},
+    {"code":"LT_center.X = `+item.ID+`.TransformOriginX - 22"},
+    {"code":"LT_center.Y = `+item.ID+`.TransformOriginY - 22"}*/
+  ],
+  fireMode: "whiletrue"
+});
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_sizeManipulator.MouseIsDown==false"}], 
+      actions: [
+      {"code":" parent.WidthInput2.value = LT_manipulator.Width; parent.HeightInput2.value = LT_manipulator.Height;"},
+      {"code":"parent.updateGeneratedTween();"},],
+      fireMode: "onceWhileTrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [], 
+      actions: [{"code":"LT_angle.X = Math.round(LT_center.X-15)"},{"code":"LT_angle.Y = Math.round(LT_center.Y-35)"},],
+      fireMode: "whiletrue"
+    });
+/*Triggers.push({ 
+      event: "MouseUp", 
+      target: "LT_center", 
+	  key: "",
+      comment: "", 
+      conditions: [], 
+      actions: [{"code":"`+item.ID+`.TransformOriginX = Math.round(LT_center.X+22)"},{"code":"`+item.ID+`.TransformOriginY = Math.round(LT_center.Y+22)"},{"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  editorActor.TransformOriginX = `+item.ID+`.TransformOriginX; editorActor.TransformOriginY = `+item.ID+`.TransformOriginY;"},{"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},{"code":"//parent.openPropertyEditor(`+item.ID+`)"},{"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
+      fireMode: "whiletrue"
+    });*/
+Triggers.push({ 
+      event: "MouseDown", 
+      target: "LT_angle", 
+	  key: "",
+      comment: "", 
+      conditions: [], 
+      actions: [{"code":"LT_angle.initX = LT_angle.MouseX"},{"code":"LT_angle.initAngle = Number(parent.AngleInput2.value)"}],
+      fireMode: "onceWhileTrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_angle.MouseIsDown==true"}], 
+      actions: [{"code":"`+item+`.Angle = Math.round(LT_angle.initAngle+(LT_angle.MouseX-LT_angle.initX))"},{"code":"parent.AngleInput2.value =`+item+`.Angle"}],
+      fireMode: "whiletrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_angle.MouseIsDown==false"}], 
+      actions: [{"code":" parent.AngleInput2.value = `+item+`.Angle;"},{"code":"parent.updateGeneratedTween();"},],
+      fireMode: "onceWhileTrue"
+    });
+`
+}
 
 function openPropertyEditor(item) {
 
@@ -6859,7 +7061,7 @@ thisActor.Text="Create Movement";
 thisActor.Y=StageHeight-90
 thisActor.Height=30
 thisActor.X=200
-thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length";
+thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length;";
 
 Actor("ActorOptions","DIV");
 ActorOptions.Opacity=0;
@@ -6950,7 +7152,7 @@ thisActor.Width=400
 thisActor.Overflow="auto" 
 thisActor.Generated=""
 
-thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id=\"ActorTween\" oninput=\"updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
+thisActor.Line1="Grid: <input id=\"TweenGrid\" type=\"number\" value=\"1\" oninput=\"EditorGrid=elementId('TweenGrid').value; elementId('WidthInput2').step=EditorGrid;elementId('HeightInput2').step=EditorGrid;elementId('XInput2').step=EditorGrid; elementId('YInput2').step=EditorGrid;elementId('OpacityInput2').step=EditorGrid; elementId('AngleInput2').step=EditorGrid; elementId('SkewXInput2').step=EditorGrid; elementId('SkewYInput2').step=EditorGrid; elementId('RotateXInput2').step=EditorGrid;elementId('RotateYInput2').step=EditorGrid; elementId('RotateZInput2').step=EditorGrid; elementId('TranslateXInput2').step=EditorGrid; elementId('TranslateYInput2').step=EditorGrid; elementId('TranslateZInput2').step=EditorGrid;\"><br><p>Scene<select id=\"SceneId\" value=\"Scene1\" /*oninput=\"updateGeneratedTween();*/\"></select> <p>Actor<select id='ActorTween' oninput=\"manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()\"></select><br>StartTime<input id=\"startTime\" label=\"Actor\" type=\"number\" value=\""+SceneTimePosition+"\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Duration<input id=\"duration\" type=\"number\" value=\"1\" step=\".1\" oninput=\"updateGeneratedTween()\"><br>Direction<select id=\"direction\" oninput=\"updateGeneratedTween()\"><option>to</option><option>from</option><option>set</option></select><br>Easing <select id=\"easing\" value=\"linear\" oninput=\"updateGeneratedTween()\"><option>linear</option><option>power1.in</option><option>power1.inOut</option><option>power1.out</option><option>power2.in</option><option>power2.inOut</option><option>power2.out</option><option>power3.in</option><option>power3.inOut</option><option>power3.out</option><option>power4.in</option><option>power4.inOut</option><option>power4.out</option><option>elastic.in</option><option>elastic.inOut</option><option>elastic.out</option><option>back.in</option><option>back.inOut</option><option>back.out</option><option>bounce.in</option><option>bounce.inOut</option><option>bounce.out</option><option>circ.in</option><option>circ.inOut</option><option>circ.out</option><option>expo.in</option><option>expo.inOut</option><option>expo.out</option><option>sine.in</option><option>sine.inOut</option><option>sine.out</option></select><br>"+
 "Repeat<input id=\"RepeatInput\" type=\"number\" value=\"0\" min=\"-1\" label=\"Repeat\" oninput=\"updateGeneratedTween()\">"+
 "	Yoyo<input type=\"checkbox\" id=\"YoyoInput\" oninput=\"updateGeneratedTween()\"><br>"+
 "Repeat delay<input id=\"RepeatDelay\" type=\"number\" value=\"0\" min=\"0\" label=\"RepeatDelay\" oninput=\"updateGeneratedTween()\"></p>"
@@ -6984,7 +7186,7 @@ thisActor.Line17="<input type=\"checkbox\" id=\"TranslateYOnT\" onclick=\"enable
 thisActor.Line17_1="<input id=\"TranslateYInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" value=\"0\" oninput=\"updateGeneratedTween()\" disabled>"
 thisActor.Line18="<input type=\"checkbox\" id=\"TranslateZOnT\" onclick=\"enableField('TranslateZInput2'); updateGeneratedTween();\">Translate Z </button>"
 thisActor.Line18_1="<input id=\"TranslateZInput2\" type=\"number\" step=\"+elementId('TweenGrid').value+\" value=\"0\" step=\"10\" oninput=\"updateGeneratedTween()\" disabled></fieldset>"
-thisActor.Text=''+TweenOptions.Line1+'<br>'+TweenOptions.Line5+TweenOptions.Line5_1+'<br>'+TweenOptions.Line6+TweenOptions.Line6_1+'<br>'+TweenOptions.Line7+TweenOptions.Line7_1+'<br>'+TweenOptions.Line8+TweenOptions.Line8_1+'<br>'+TweenOptions.LineScale+TweenOptions.LineScale_1+'<br>'+TweenOptions.Line9+TweenOptions.Line9_1+'<br>'+TweenOptions.Line10+TweenOptions.Line10_1+'<br>'+TweenOptions.Line11+TweenOptions.Line11_1+'<br>'+TweenOptions.Line12+TweenOptions.Line12_1+'<br><br>'+TweenOptions.Line13+TweenOptions.Line13_1+'<br>'+TweenOptions.Line14+TweenOptions.Line14_1+'<br>'+TweenOptions.Line15+TweenOptions.Line15_1+'<br>'+TweenOptions.Line16+TweenOptions.Line16_1+'<br>'+TweenOptions.Line17+TweenOptions.Line17_1+'<br>'+TweenOptions.Line18+TweenOptions.Line18_1+'<br><br><button onclick="//AllTweens[CurrentlyEditingTween]=GeneratingTween;\n  TweenOptions.Opacity=0;">OK</button><button onclick="TweenOptions.Opacity=0; AllTweens[CurrentlyEditingTween]=\' \'; AllSceneTweens[CurrentlyEditingTween]=\'\'; showPreview()">Delete</button>'
+thisActor.Text=''+TweenOptions.Line1+'<br>'+TweenOptions.Line5+TweenOptions.Line5_1+'<br>'+TweenOptions.Line6+TweenOptions.Line6_1+'<br>'+TweenOptions.Line7+TweenOptions.Line7_1+'<br>'+TweenOptions.Line8+TweenOptions.Line8_1+'<br>'+TweenOptions.LineScale+TweenOptions.LineScale_1+'<br>'+TweenOptions.Line9+TweenOptions.Line9_1+'<br>'+TweenOptions.Line10+TweenOptions.Line10_1+'<br>'+TweenOptions.Line11+TweenOptions.Line11_1+'<br>'+TweenOptions.Line12+TweenOptions.Line12_1+'<br><br>'+TweenOptions.Line13+TweenOptions.Line13_1+'<br>'+TweenOptions.Line14+TweenOptions.Line14_1+'<br>'+TweenOptions.Line15+TweenOptions.Line15_1+'<br>'+TweenOptions.Line16+TweenOptions.Line16_1+'<br>'+TweenOptions.Line17+TweenOptions.Line17_1+'<br>'+TweenOptions.Line18+TweenOptions.Line18_1+'<br><br><button onclick="manipulatorCode=\'\'; manipulatorCodeTriggers=\'\';//AllTweens[CurrentlyEditingTween]=GeneratingTween;\n  TweenOptions.Opacity=0; showPreview()">OK</button><button onclick="manipulatorCode=\'\'; manipulatorCodeTriggers=\'\'; TweenOptions.Opacity=0; AllTweens[CurrentlyEditingTween]=\' \'; AllSceneTweens[CurrentlyEditingTween]=\'\'; showPreview()">Delete</button>'
 
 
 Actor("SeekBar","DIV");SeekBar.Opacity=50;SeekBar.Y=StageHeight-50;SeekBar.X=500;SeekBar.Width=StageWidth-500;
