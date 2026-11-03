@@ -341,6 +341,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
   S.ParentY=0;
   S.GlobalX=0;
   S.GlobalY=0;
+  S.GlobalAngle=0;
     return S;
 	
 }
@@ -627,11 +628,13 @@ function UpdateElement(e){
       e.MouseY=MouseY;
       e.GlobalX=e.X;
       e.GlobalY=e.Y;
+      e.GlobalAngle=e.Angle
     }else{
     e.MouseX=MouseX-e.X;
     e.MouseY=MouseY-e.Y;
     e.GlobalX=(e.X+GetParent(e).GlobalX)/GetParent(e).Scale;
     e.GlobalY=(e.Y+GetParent(e).GlobalY)/GetParent(e).Scale;
+    e.GlobalAngle=(e.Angle+GetParent(e).GlobalAngle);
     }
 
 	
@@ -1679,5 +1682,10 @@ function SetGlobalY(a, value){
 	}
 }
 
+function SetGlobalAngle(a, value){
+	if(a.Parent=="stage"){a.Angle=value}else{
+  a.Angle=(value - GetParent(a).GlobalAngle);
+	}
+}
 
 `
