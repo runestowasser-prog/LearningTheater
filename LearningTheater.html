@@ -861,9 +861,10 @@ return `
 Actor('LT_manipulator','div');
 ActorProps(thisActor, {
 
-  Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
-  X: ${item.X},
-  Y: ${item.Y},
+  //Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
+  Parent:"stage",
+  X: ${item.GlobalX},
+  Y: ${item.GlobalY},
   Width: ${item.Width},
   Height: ${item.Height},
   
@@ -930,31 +931,13 @@ function generateManipulatorCodeTriggers(item){
 return `
 
 
-/*Triggers.push({ 
+Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
       comment: "", 
       conditions: [], 
-      actions: [{"fn":"","args":[],"code":"stage.MouseX=MouseX"},{"fn":"","args":[],"code":"stage.MouseY=MouseY"}],
-      fireMode: "whiletrue"
-    });*/
-Triggers.push({ 
-      event: "Update", 
-      target: null, 
-	  key: "",
-      comment: "", 
-      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)==stage"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"LT_manipulator.initX = MouseX-LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
-      fireMode: "onceWhileTrue"
-    });
-    Triggers.push({ 
-      event: "Update", 
-      target: null, 
-	  key: "",
-      comment: "", 
-      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"},{code:"GetParent(LT_manipulator)!=stage"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initX","=","LT_manipulator.MouseX"],"code":"LT_manipulator.initX = MouseX-LT_manipulator.GlobalX"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"initY","=","LT_manipulator.MouseY"],"code":" LT_manipulator.initY = MouseY-LT_manipulator.GlobalY"}],
+      actions: [{"code":"LT_manipulator.X=`+item.ID+`.GlobalX; LT_manipulator.Y=`+item.ID+`.GlobalY;"}],
       fireMode: "onceWhileTrue"
     });
 Triggers.push({ 
@@ -962,8 +945,20 @@ Triggers.push({
       target: null, 
 	  key: "",
       comment: "", 
-      conditions: [{"fn":"MouseDown","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==true"}], 
-      actions: [{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"X","="," Math.round((GetParent(LT_manipulator).MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"],"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"},"Y","=","Math.round((GetParent(LT_manipulator).MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"],"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"X","=","LT_manipulator.X"],"code":"`+item.ID+`.X = LT_manipulator.X"},{"fn":"SetProperty","args":[{\"type\":\"actor\",\"value\":\"`+item.ID+`\"},"Y","=","LT_manipulator.Y"],"code":"`+item.ID+`.Y = LT_manipulator.Y"}],
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"}], 
+      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.X"},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      fireMode: "onceWhileTrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"}], 
+      actions: [{"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},
+      {"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},
+      {"code":"SetGlobalX(`+item.ID+`, LT_manipulator.X)"},
+      {"code":"SetGlobalY(`+item.ID+`, LT_manipulator.Y)"}],
       fireMode: "whiletrue"
     });
 Triggers.push({ 
@@ -971,8 +966,13 @@ Triggers.push({
       target: null, 
 	  key: "",
       comment: "", 
-      conditions: [{"fn":"MouseUp","args":[{\"type\":\"actor\",\"value\":\"LT_manipulator\"}],"code":"LT_manipulator.MouseIsDown==false"}], 
-      actions: [{"fn":"","args":[],"code":"parent.AllActors.find(a => a.ID === '`+item.ID+`').X = LT_manipulator.X;"},{"fn":"","args":[],"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  editorActor.X = LT_manipulator.X; editorActor.Y = LT_manipulator.Y;"},{"fn":"","args":[],"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},{"fn":"","args":[],"code":"//parent.openPropertyEditor(`+item.ID+`)"},{"fn":"","args":[],"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
+      conditions: [{"code":"LT_manipulator.MouseIsDown==false"}], 
+      actions: [{
+      "code":"parent.AllActors.find(a => a.ID === '`+item.ID+`').X = LT_manipulator.X;"},
+      {"code":" const editorActor = parent.AllActors.find(a => a.ID === '`+item.ID+`');  SetGlobalX(editorActor, LT_manipulator.X); SetGlobalY(editorActor, LT_manipulator.Y);"},
+      {"code":"parent.BuildCode.setValue(parent.exportToCode(parent.AllActors));"},
+      {"code":"//parent.openPropertyEditor(`+item.ID+`)"},
+      {"code":"parent.callShowPreviewFromPreview=true; parent.currentlyEditingActor=`+item.ID+`;"}],
       fireMode: "onceWhileTrue"
     });
 Triggers.push({
@@ -1075,8 +1075,8 @@ return `
 Actor('LT_manipulator','div');
 ActorProps(thisActor, {
 
-  Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
-  Parent:${item}.Parent,
+  //Parent: ${JSON.stringify(item.Parent === "stage" ? "stage" : item.Parent)},
+  Parent:"stage",
   X: ${item}.X,
   Y: ${item}.Y,
   Width: ${item}.Width,
@@ -1145,40 +1145,55 @@ function generateManipulatorCodeTweenTriggers(item){
 return `
 
 
-/*Triggers.push({ 
-      event: "Update", 
-      target: null, 
-	  key: "",
-      comment: "", 
-      conditions: [], 
-      actions: [{"code":"SetGlobalAngle(LT_manipulator,0)"}],
-      fireMode: "onceWhileTrue"
-    });*/
 Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
       comment: "", 
-      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"GetParent(LT_manipulator)==stage"}], 
-      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.X"},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      conditions: [{"code":"`+item+`.Parent!='stage'"}], 
+      actions: [{"code":"LT_manipulator.X=Number(parent.XInput2.value)+GetParent(`+item+`).GlobalX "},{"code":"LT_manipulator.Y=Number(parent.YInput2.value)+GetParent(`+item+`).GlobalY "}],
       fireMode: "onceWhileTrue"
     });
-    Triggers.push({ 
+  Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
       comment: "", 
-      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"GetParent(LT_manipulator)!=stage"}], 
-      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.GlobalX"},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.GlobalY"}],
+      conditions: [{"code":"`+item+`.Parent=='stage'"}], 
+      actions: [{"code":"LT_manipulator.X=Number(parent.XInput2.value);console.log(parent.XInput2); console.log(parent.XInput2?.value); console.log(Number(parent.XInput2?.value));"},{"code":"LT_manipulator.Y=Number(parent.YInput2.value)"}],
       fireMode: "onceWhileTrue"
     });
-    Triggers.push({ 
+Triggers.push({ 
       event: "Update", 
       target: null, 
 	  key: "",
       comment: "", 
       conditions: [{"code":"LT_manipulator.MouseIsDown==true"}], 
-      actions: [{"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},{"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},{"code":"parent.XInput2.value = LT_manipulator.X"},{"code":"parent.YInput2.value = LT_manipulator.Y"}],
+      actions: [{"code":"LT_manipulator.initX = MouseX-LT_manipulator.X; "},{"code":" LT_manipulator.initY = MouseY-LT_manipulator.Y"}],
+      fireMode: "onceWhileTrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"`+item+`.Parent!='stage'"}], 
+      actions: [{"code":"SetGlobalX(LT_manipulator, Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid)"},
+      {"code":"SetGlobalY(LT_manipulator, Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid)"},
+      {"code":"SetGlobalX(`+item+`,LT_manipulator.X); SetGlobalY(`+item+`,LT_manipulator.Y);"},
+      ],
+      fireMode: "whiletrue"
+    });
+    Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==true"},{"code":"`+item+`.Parent=='stage'"}], 
+      actions: [{"code":"LT_manipulator.X=Math.round((MouseX-LT_manipulator.initX)/parent.EditorGrid)*parent.EditorGrid"},
+      {"code":"LT_manipulator.Y= Math.round((MouseY-LT_manipulator.initY)/parent.EditorGrid)*parent.EditorGrid"},
+      {"code":"`+item+`.X=LT_manipulator.X; `+item+`.Y=LT_manipulator.Y;"},
+      ],
       fireMode: "whiletrue"
     });
 Triggers.push({ 
@@ -1186,10 +1201,24 @@ Triggers.push({
       target: null, 
 	  key: "",
       comment: "", 
-      conditions: [{"code":"LT_manipulator.MouseIsDown==false"}], 
-      actions: [{"code":"parent.XInput2.value = LT_manipulator.X;"},{"code":" parent.YInput2.value = LT_manipulator.Y;"},{"code":"parent.updateGeneratedTween();"},],
+      conditions: [{"code":"LT_manipulator.MouseIsDown==false"},{"code":"`+item+`.Parent=='stage'"}], 
+      actions: [
+      {"code":"parent.XInput2.value = LT_manipulator.X"},{"code":" parent.YInput2.value =LT_manipulator.Y"},
+      {"code":"parent.updateGeneratedTween();"},],
       fireMode: "onceWhileTrue"
     });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "", 
+      conditions: [{"code":"LT_manipulator.MouseIsDown==false"},{"code":"`+item+`.Parent!='stage'"}], 
+      actions: [
+      {"code":"parent.XInput2.value = LT_manipulator.X-GetParent(`+item+`).GlobalX"},{"code":" parent.YInput2.value =LT_manipulator.Y-GetParent(`+item+`).GlobalY"},
+      {"code":"parent.updateGeneratedTween();"},],
+      fireMode: "onceWhileTrue"
+    });
+
 Triggers.push({
   event: "Update",
   target: null,
@@ -1215,10 +1244,11 @@ Triggers.push({
     {"code":"LT_manipulator.Height = LT_sizeManipulator.Y"},
     {"code":"parent.WidthInput2.value = LT_manipulator.Width"},
     {"code":"parent.HeightInput2.value = LT_manipulator.Height"},
-    /*{"code":"`+item+`.TransformOriginX = Math.round(LT_manipulator.originRatioX * LT_manipulator.Width)"},
+    {"code":"`+item+`.Width=LT_manipulator.Width; `+item+`.Height=LT_manipulator.Height;"},
+    {"code":"`+item+`.TransformOriginX = Math.round(LT_manipulator.originRatioX * LT_manipulator.Width)"},
     {"code":"`+item+`.TransformOriginY = Math.round(LT_manipulator.originRatioY * LT_manipulator.Height)"},
     {"code":"LT_center.X = `+item+`.TransformOriginX - 22"},
-    {"code":"LT_center.Y = `+item+`.TransformOriginY - 22"}*/
+    {"code":"LT_center.Y = `+item+`.TransformOriginY - 22"}
   ],
   fireMode: "whiletrue"
 });
@@ -1230,6 +1260,7 @@ Triggers.push({
       conditions: [{"code":"LT_sizeManipulator.MouseIsDown==false"}], 
       actions: [
       {"code":" parent.WidthInput2.value = LT_manipulator.Width; parent.HeightInput2.value = LT_manipulator.Height;"},
+      {"code":" parent.OriginXInput2.value = LT_center.X-22; parent.OriginYInput2.value = LT_center.Y-22;"},
       {"code":"parent.updateGeneratedTween();"},],
       fireMode: "onceWhileTrue"
     });
