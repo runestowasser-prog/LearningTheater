@@ -53,6 +53,8 @@ var Yposition=StageHeightInput.value-80;
     Style: 'cursor:pointer;',
     Color: "${readyMadeArgs[1]}",
     Shape: "Triangle",
+    TransformOriginX:25,
+    TransformOriginY:25,
   });
   
   Actor('${readyMadeArgs[0]}ForwardButton','div');
@@ -66,6 +68,8 @@ var Yposition=StageHeightInput.value-80;
     Style: 'cursor:pointer;',
     Color: "${readyMadeArgs[1]}",
     Shape: "Triangle",
+    TransformOriginX:25,
+    TransformOriginY:25,
   });  
   `
   )
@@ -241,7 +245,7 @@ function CreateSeekBar(readyMadeArgs) {
   Parent: "${readyMadeArgs[0]}",
   Width: ${WidthAdjusted},
   Height: 30,
-  Style: "border-radius:10em",
+  Style: "cursor:pointer",
   Color: "${readyMadeArgs[2]}",
   Shape: "Square",
   CustomProps: [
@@ -255,22 +259,11 @@ function CreateSeekBar(readyMadeArgs) {
   Parent: "${readyMadeArgs[0]}Bar",
   Width: 0,
   Height: 30,
-  Style: "border-radius:10em",
+  Style: "",
   Color: "${readyMadeArgs[1]}",
+  ClickThrough:true,
   });
-
-  Actor('${readyMadeArgs[0]}Interaction','div');
-  ActorProps(thisActor, {
-  Parent: "${readyMadeArgs[0]}",
-  Width: ${WidthAdjusted},
-  Height: 30,
-  Style: "cursor:pointer",
-  Shape: "Square",
-  CustomProps: [
-    { name: "seeking", value: "false", type:"boolean" },
-  ],
-  seeking: false,
-  });`
+  `
   );
 
    GeneratedTriggers.push(
@@ -293,56 +286,18 @@ function CreateSeekBar(readyMadeArgs) {
     "fireMode": "whiletrue"
   },
   {
-    "event": "MouseDown",
-    "target": readyMadeArgs[0]+"Interaction",
-    "comment": "Push the Seekbar",
-    "conditions": [],
-    "actions": [
-      {
-        "fn": "SetProperty",
-        "args": [
-          readyMadeArgs[0]+"Interaction",
-          "seeking",
-          "=",
-          "true"
-        ],
-        "code": readyMadeArgs[0]+"Interaction.seeking = true"
-      }
-    ],
-    "key": ""
-  },
-  {
-    "event": "MouseUp",
-    "target": readyMadeArgs[0]+"Interaction",
-    "comment": "Release the Seekbar",
-    "conditions": [],
-    "actions": [
-      {
-        "fn": "SetProperty",
-        "args": [
-          readyMadeArgs[0]+"Interaction",
-          "seeking",
-          "=",
-          "false"
-        ],
-        "code": readyMadeArgs[0]+"Interaction.seeking = false"
-      }
-    ],
-    "key": ""
-  },
-  {
     "event": "Update",
     "comment": "Update the seekbar on interaction",
     "conditions": [
       {
         "fn": "GetProperty",
         "args": [
-          readyMadeArgs[0]+"Interaction",
-          "seeking",
+          readyMadeArgs[0]+"Bar",
+          "MouseIsDown",
           "==",
           "true"
         ],
-        "code": readyMadeArgs[0]+"Interaction.seeking==true"
+        "code": readyMadeArgs[0]+"Bar.MouseIsDown==true"
       }
     ],
     "actions": [
@@ -835,3 +790,214 @@ for (let i = 0; i < ScenesBackwards.length; i++) {
 
 }
 
+ReadyMades.push({
+    id: "Cube",
+    name: "Cube",
+
+    args: [
+     
+      {
+        type: "text",
+        label: "ID: ",
+        defaultValue: "Cube"
+      },
+      {
+        type: "color",
+        label: "Color",
+        defaultValue: "gray"
+      },
+       {
+        type: "number",
+        label: "Size",
+        defaultValue: "1000"
+      }
+    ],
+
+    create: CreateCube
+  }
+)
+
+
+function CreateCube(readyMadeArgs) {
+
+
+
+  BuildCode.setValue(BuildCode.getValue()+
+  `
+  Actor('${readyMadeArgs[0]}','div');
+ActorProps(thisActor, {
+  Parent: "Scene1",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  X: 384,
+  Y: 80,
+  Z: 0,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  RotateX:-25,
+  RotateY:50,
+  
+  Scale: 1,
+});
+
+Actor('${readyMadeArgs[0]}side1','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  Color: "${readyMadeArgs[1]}",
+  Style: "backface-visibility:hidden;",
+  Text: "<h1>Side 1</h1>",
+  Opacity: 100,
+  TranslateZ: ${readyMadeArgs[2]}/2,
+});
+
+Actor('${readyMadeArgs[0]}side1Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side1",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+  Opacity: 10,
+});
+
+Actor('${readyMadeArgs[0]}side2','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  X: ${readyMadeArgs[2]}/2,
+ 
+  RotateY: 90,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+ 
+  Style: "backface-visibility:hidden;",
+  Color: "${readyMadeArgs[1]}",
+  Text: "<h1>Side 2</h1>",
+});
+
+Actor('${readyMadeArgs[0]}side2Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side2",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+ 
+  Opacity: 20,
+});
+
+Actor('${readyMadeArgs[0]}side3','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  Angle: 180,
+  RotateX: 180,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  Style: "backface-visibility:hidden;",
+  Color: "${readyMadeArgs[1]}",
+  Text: "<h1>Side 3</h1>",
+  TranslateZ: -(${readyMadeArgs[2]}/2),
+});
+
+Actor('${readyMadeArgs[0]}side3Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side3",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+  Opacity: 10,
+});
+
+Actor('${readyMadeArgs[0]}side4','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  X: -(${readyMadeArgs[2]}/2),
+  RotateY: -90,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  Style: "backface-visibility:hidden;",
+  Color: "${readyMadeArgs[1]}",
+  Text: "<h1>Side 4</h1>",
+});
+
+Actor('${readyMadeArgs[0]}side4Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side4",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+  Opacity: 20,
+});
+
+Actor('${readyMadeArgs[0]}side5','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  Y: ${readyMadeArgs[2]}/2,
+  RotateX: -90,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  Style: "backface-visibility:hidden;",
+  Color: "${readyMadeArgs[1]}",
+  Text: "<h1>side 5</h1>",
+});
+
+Actor('${readyMadeArgs[0]}side5Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side5",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+  Opacity: 30,
+});
+
+Actor('${readyMadeArgs[0]}side6','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  Y: -(${readyMadeArgs[2]}/2),
+  RotateX: 90,
+  TransformOriginX: ${readyMadeArgs[2]}/2,
+  TransformOriginY: ${readyMadeArgs[2]}/2,
+  Style: "backface-visibility:hidden;",
+ Color: "${readyMadeArgs[1]}",
+  Text: "<h1>Side 6</h1>",
+});
+
+Actor('${readyMadeArgs[0]}side6Shadow','div');
+ActorProps(thisActor, {
+  Parent: "${readyMadeArgs[0]}side6",
+  Width: ${readyMadeArgs[2]},
+  Height: ${readyMadeArgs[2]},
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Color: "#000000",
+  Opacity: 30,
+});
+  ` 
+  )
+   
+
+  showPreview();
+  ReadyMadeEditor.Opacity=0;
+}
