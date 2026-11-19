@@ -1033,7 +1033,7 @@ AnimationTypes.push({
 	timeline: {
 		time: 11,
 		duration: 10,
-		color: "#7b68ee",
+		color: "#b88b8b",
 		actorid: 1
 	},
 
@@ -1120,7 +1120,8 @@ AnimationTypes.push({
 	timeline: {
 		time: 13,
 		duration: 12,
-		color: "#7b68ee"
+		color: "#b0aad4",
+    actorid: 1
 	},
 
     args: [
@@ -1128,7 +1129,7 @@ AnimationTypes.push({
         { type: "actor", label: "Actor:" },
         { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
 
-        { type: "number", label: "Blur", defaultValue: "null" },
+        { type: "range", label: "Blur", defaultValue: "null", min:0, max:100, step:0.1 },
         { type: "range",label: "Brightness",min: 0,max: 2,step: 0.05,defaultValue: "null"},
         { type: "number", label: "Contrast", defaultValue: "null" },
         {type: "range",label: "Grayscale",min: 0,max: 1,step: 0.01,defaultValue: "null"},
@@ -1195,6 +1196,137 @@ AnimationTypes.push({
         return {
             event: "Update",
             comment: "Filter Animation",
+            conditions: [],
+            actions: [
+                {
+                    fn: "",
+                    args: [],
+                    code: code
+                }
+            ],
+            fireMode: "once",
+            animation: {
+                type: "Filter",
+                args: [...args]
+            }
+        };
+    }
+});
+
+
+AnimationTypes.push({
+    id: "Property",
+    name: "Property Animation",
+	timeline: {
+		time: 3,
+		duration: 4,
+		color: "#b0aad4",
+    actorid: 1
+	},
+
+    args: [
+        { type: "scene", label: "Scene" },
+        { type: "actor", label: "Actor:" },
+        { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
+        { type: "number", label: "Start Time"},
+         { type: "number", label: "duration", defaultValue:1},
+        { type: "easing", label: "Easing", defaultValue: "power1.out" },
+        { type: "number", label: "Repeat"},
+        { type: "boolean", label: "Yoyo"},
+        { type: "number", label:"Repeat Delay"},
+
+        { type: "number", label: "Origin X"},
+        { type: "number",label: "Origin Y"},
+        { type: "number", label: "Width", defaultValue: "null" },
+        { type: "number", label: "Height", defaultValue: "null" },
+        { type: "number", label: "X", defaultValue: "null" },
+        { type: "number", label: "Y", defaultValue: "null" },
+        { type: "number", label: "Scale", defaultValue: "null" },
+        { type: "range", label: "Opacity", defaultValue: "null", min:0, max:100 },
+        { type: "range", label: "Angle", defaultValue: "null", min:-360,max:360 },
+        { type: "number", label:"Skew X", defaultValue: "null"},
+        { type: "number", label:"Skew Y", defaultValue: "null"},
+        { type: "number", label:"Skew X", defaultValue: "null"},
+        { type: "range", label: "Rotate X", defaultValue: "null", min:-360,max:360 },
+        { type: "range", label: "Rotate Y", defaultValue: "null", min:-360,max:360 },
+        { type: "range", label: "Rotate Z", defaultValue: "null", min:-360,max:360 },
+        { type: "number", label:"Translate Z", defaultValue: "null"},
+
+
+
+        
+        
+    ],
+
+    create: (args) => {
+
+        let scene = args[0];
+        let target = args[1];
+        let direction = args[2];
+        let starttime = args[3];
+        let duration = args[4];
+        let easing = args[5];
+        let repeat = args[6];
+        let yoyo = args[7];
+        let repeatdelay=args[8];
+
+        let originx = args[9];
+        let originy = args[10];
+        let width = args[11];
+        let height = args[12];
+        let x = args[13];
+        let y = args[14];
+        let scale = args[15];
+        let opacity = args[16];
+        let angle = args[17];
+        let skewx = args[18];
+        let skewy = args[19];
+        let rotatex = args[20];
+        let rotatey = args[21];
+        let rotatez = args[22];
+        let translatez = args[23];
+        let innerRepeat=0;
+
+        // Build filter string dynamically
+        let filters = [];
+
+        if (originx !== "null" && originx !=="") filters.push(`TransformOriginX:${originx}, `);
+        if (originy !== "null" && originy !=="") filters.push(`TransformOriginY:${originy}, `);
+        if (width !== "null" && width !=="") filters.push(`Width:${width}, `);
+        if (height !== "null" && height !=="") filters.push(`Height:${height}, `);
+        if (x !== "null" && x !=="") filters.push(`X:${x}, `);
+        if (y !== "null" && y !=="") filters.push(`Y:${y}, `);
+        if (scale !== "null" && scale !=="") filters.push(`Scale:${scale}, `);
+        if (opacity !== "null" && opacity !=="") filters.push(`Opacity:${opacity}, `);
+        if (angle !== "null" && angle !=="") filters.push(`Angle:${angle}, `);
+        if (skewx !== "null" && skewx !=="") filters.push(`SkewX:${skewx}, `);
+        if (skewy !== "null" && skewy !=="") filters.push(`SkewY:${skewy}, `);
+        if (rotatex !== "null" && rotatex !=="") filters.push(`RotateX:${rotatex}, `);
+        if (rotatey !== "null" && rotatey !=="") filters.push(`RotateY:${rotatey}, `);
+        if (rotatez !== "null" && rotatez !=="") filters.push(`RotateZ:${rotatez}, `);
+        if (translatez !== "null" && translatez !=="") filters.push(`TranslateZ:${translatez}, `);
+
+
+        let properties = [];
+
+        if (filters.length > 0) {
+            properties.push(`${filters.join(" ")}`);
+        }
+
+        ;
+        properties.push(`ease: "${easing}",`);
+        //properties.push(`repeat: ${repeat},`);
+        properties.push(`yoyo: ${yoyo},`);
+        properties.push(`duration: ${duration},`)
+        if(yoyo===true){innerRepeat=1}
+
+
+        let code = `
+            ${scene}.Timeline.add(gsap.timeline({repeat:${repeat}, repeatDelay:${repeatdelay}}).${direction}(${target}, {${properties.join(" ")} repeat:${innerRepeat}}),${starttime})`;
+//"         \nScene1.Timeline.add(gsap.timeline({ repeat:1,        repeatDelay:1,})            .to(fdg,     {id: 1,ease:\"linear\",repeat:1, yoyo:true, duration:1, data:\"to\"}),0)"
+        return {
+            event: "Update",
+            comment: "Property Animation",
             conditions: [],
             actions: [
                 {
