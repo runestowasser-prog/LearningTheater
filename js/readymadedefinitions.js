@@ -1001,3 +1001,213 @@ ActorProps(thisActor, {
   showPreview();
   ReadyMadeEditor.Opacity=0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const AnimationTypes=[];
+
+
+AnimationTypes.push({
+    id: "Text",
+    name: "Text Animation",
+	timeline: {
+		time: 11,
+		duration: 10,
+		color: "#7b68ee",
+		actorid: 1
+	},
+
+    args: [
+        { type: "scene", label: "Scene" },
+        { type: "actor", label: "Actor:" },
+        { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "from" },
+        { type: "dropdown", label: "Split by", options: ["lines", "words", "chars"], defaultValue: "chars" },
+        { type: "number", label: "X", defaultValue: "null" },
+        { type: "number", label: "Y", defaultValue: "null" },
+		{ type: "number", label: "Scale", defaultValue: "null" },
+		{ type: "number", label: "Angle", defaultValue: "null" },
+        { type: "number", label: "Speed", defaultValue: "1" },
+        { type: "easing", label: "easing", defaultValue: "power1.out" },
+        { type: "number", label: "duration", defaultValue: "1" },
+        { type: "number", label: "time", defaultValue: "0" }
+    ],
+
+    create: (args) => {
+
+        let scene = args[0];
+        let target = args[1];
+        let direction = args[2];
+        let splitBy = args[3];
+        let x = args[4];
+        let y = args[5];
+		let scale = args[6];
+		let angle = args[7];
+        let speed = args[8];
+        let easing = args[9];
+        let duration = args[10];
+        let time = args[11];
+
+        // Build properties dynamically
+        let properties = [];
+
+        if (x !== "null" && x !=="") properties.push(`x: ${x}*StageScale`);
+        if (y !== "null" && y !=="") properties.push(`y: ${y}*StageScale`);
+		if (scale !== "null" && scale !=="") properties.push(`scale: ${scale}`);
+		if (angle !== "null" && angle !=="") properties.push(`rotate: "${angle}deg"`);
+
+        properties.push(`duration: ${speed}`);
+        properties.push(`ease: "${easing}"`);
+        properties.push(`autoAlpha: 0`);
+        properties.push(`stagger: { amount: ${duration}}`);
+
+        let code = `
+            let split = SplitText.create("#${target}", {
+                type: "${splitBy}"
+            });
+
+            ${scene}.Timeline.add(
+                gsap.timeline().${direction}(split.${splitBy}, {
+                    ${properties.join(",\n                    ")}
+                }),
+                ${time}
+            );
+        `;
+
+        return {
+            event: "Update",
+            comment: "Text Animation",
+            conditions: [],
+            actions: [
+                {
+                    fn: "",
+                    args: [],
+                    code: code
+                }
+            ],
+            fireMode: "once",
+            animation: {
+                type: "Text",
+                args: [...args]
+            }
+        };
+    }
+});
+
+
+AnimationTypes.push({
+    id: "Filter",
+    name: "Filter Animation",
+	timeline: {
+		time: 13,
+		duration: 12,
+		color: "#7b68ee"
+	},
+
+    args: [
+        { type: "scene", label: "Scene" },
+        { type: "actor", label: "Actor:" },
+        { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
+
+        { type: "number", label: "Blur", defaultValue: "null" },
+        { type: "range",label: "Brightness",min: 0,max: 2,step: 0.05,defaultValue: "null"},
+        { type: "number", label: "Contrast", defaultValue: "null" },
+        {type: "range",label: "Grayscale",min: 0,max: 1,step: 0.01,defaultValue: "null"},
+        { type: "number", label: "Saturate", defaultValue: "null" },
+        { type: "number", label: "Sepia", defaultValue: "null" },
+        {type: "range",label: "Hue Rotate",min: 0,max: 360,step: 1,defaultValue: "null"},
+        { type: "number", label: "Invert", defaultValue: "null" },
+        
+
+        { type: "easing", label: "Easing", defaultValue: "power1.out" },
+        { type: "number", label: "Duration", defaultValue: "1" },
+        { type: "number", label: "Time", defaultValue: "0" }
+    ],
+
+    create: (args) => {
+
+        let scene = args[0];
+        let target = args[1];
+        let direction = args[2];
+
+        let blur = args[3];
+        let brightness = args[4];
+        let contrast = args[5];
+        let grayscale = args[6];
+        let saturate = args[7];
+        let sepia = args[8];
+        let hueRotate = args[9];
+        let invert = args[10];
+
+        let easing = args[11];
+        let duration = args[12];
+        let time = args[13];
+
+        // Build filter string dynamically
+        let filters = [];
+
+        if (blur !== "null" && blur !=="") filters.push(`blur(${blur}px)`);
+        if (brightness !== "null" && brightness !=="") filters.push(`brightness(${brightness})`);
+        if (contrast !== "null" && contrast !== "") filters.push(`contrast(${contrast})`);
+        if (grayscale !== "null"&& grayscale !== "") filters.push(`grayscale(${grayscale})`);
+        if (saturate !== "null" && saturate !== "") filters.push(`saturate(${saturate})`);
+        if (sepia !== "null" &&  sepia !== "") filters.push(`sepia(${sepia})`);
+        if (hueRotate !== "null" && hueRotate !== "") filters.push(`hue-rotate(${hueRotate}deg)`);
+        if (invert !== "null" && invert !== "") filters.push(`invert(${invert})`);
+
+        let properties = [];
+
+        if (filters.length > 0) {
+            properties.push(`filter: "${filters.join(" ")}"`);
+        }
+
+        properties.push(`duration: ${duration}`);
+        properties.push(`ease: "${easing}"`);
+
+        let code = `
+            ${scene}.Timeline.add(
+                gsap.timeline().${direction}("#${target}", {
+                    ${properties.join(",\n                    ")}
+                }),
+                ${time}
+            );
+        `;
+
+        return {
+            event: "Update",
+            comment: "Filter Animation",
+            conditions: [],
+            actions: [
+                {
+                    fn: "",
+                    args: [],
+                    code: code
+                }
+            ],
+            fireMode: "once",
+            animation: {
+                type: "Filter",
+                args: [...args]
+            }
+        };
+    }
+});

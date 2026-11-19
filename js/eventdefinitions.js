@@ -2323,53 +2323,50 @@ else {
 
 		args: [
 		  { type: "scene", label: "Scene",},
-		  { type: "actor", label: "Actor:", defaultValue:"Actors[0]" },
+		  { type: "actor", label: "Actor:"},
+		  { type: "dropdown", label:"Direction", options:["to", "from", "set"], defaultValue:"from"},
 		  { type: "dropdown", label:"Split by", options:["lines", "words", "chars"], defaultValue:"chars"},
 		  
-		  { type: "raw", label: "X", defaultValue: "0"},
-		  { type: "raw", label: "Y", defaultValue: "0"},
-		  { type: "raw", label: "Speed", defaultValue: "1"},
+		  { type: "number", label: "X", defaultValue: "0"},
+		  { type: "number", label: "Y", defaultValue: "0"},
+		  { type: "number", label: "Speed", defaultValue: "1"},
 		  
 		{ type: "easing", label: "easing", defaultValue: "power1.out"},
-		  { type: "raw", label: "duration", defaultValue: "1"},
-		  { type: "raw", label: "delay", defaultValue: "0"},
+		  { type: "number", label: "duration", defaultValue: "1"},
+		  { type: "number", label: "time", defaultValue: "0"},
 
 		],
 		build: (args) => {
 		let scene = args[0];
 		let target = args[1];
-		let splitBY = args[2]
-		let xOrigin = args[3];
-		let yOrigin = args[4];
-		let speed = args[5]
-		let easing = args[6];
-		let duration = args[7];
-		let delay = args[8];
+		let direction = args[2];
+		let splitBY = args[3]
+		let xOrigin = args[4];
+		let yOrigin = args[5];
+		let speed = args[6]
+		let easing = args[7];
+		let duration = args[8];
+		let time = args[9];
 
 
 
-		// Det nye target-format fra editoren
-		let targetType = "actor";
-
-		try {
-		  const parsed = JSON.parse(target);
-		  if (
-			parsed &&
-			["actor", "ensemble", "raw"].includes(parsed.type)
-		  ) {
-			targetType = parsed.type;
-			target = parsed.value;
-		  }
-		} catch (e) {
-		  // Bagudkompatibilitet med gamle actor-ID'er
-		}
-
-		if (targetType === "ensemble") {
-		  return `${target}.forEach(a => let split = SplitText.create("#"+a.ID, {type: "${splitBY}"}); ${scene}.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} }, delay: ${delay}  }))`;
-		}
-
-		// Actor og Raw bruger samme kodegenerering
-		return `let split = SplitText.create("#${target}", {type: "${splitBY}"});  ${scene}.Timeline.from(split.${splitBY}, {   x: ${xOrigin}*StageScale,   y: ${yOrigin}*StageScale, duration: ${speed}, ease:"${easing}", autoAlpha: 0, stagger: { amount: ${duration} },  },${delay})`;
+		
+		return `let split = SplitText.create("#${target}", {type: "${splitBY}"});  
+		${scene}.Timeline.add(
+			gsap.timeline({
+				repeat: 0,
+				repeatDelay: 0
+				}).${direction}(split.${splitBY}, {
+					x: ${xOrigin}*StageScale,
+					y: ${yOrigin}*StageScale,
+					duration: ${speed}, 
+					ease:"${easing}", 
+					autoAlpha: 0,
+					stagger: { amount: ${duration} },  
+				},
+			${time}))`;
+		
+		
 	  }
 	},
   
@@ -2392,7 +2389,13 @@ else {
 	},
 };
 
-
+/*const AnimationTypes = [
+    {
+        id: "Text",
+        name: "Text Animation",
+        action: "AnimateTextScene"
+    }
+];*/
 
 
 
