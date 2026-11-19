@@ -31,6 +31,7 @@ var htmlNode="<input type='number'>"
 
 var PlayOrPause="Timeline.play();";
 var TimeLength=0;
+var TimeCurrent=0;
 var SceneTimePosition=0;
 var ScrollPosition=0;
 var EventScrollPosition=0
@@ -51,6 +52,7 @@ var GeneratedTriggers=[];
 var manipulatorCode = "";
 var manipulatorCodeTriggers="";
 var currentlyEditingActor;
+let AllAnimations = [];
 
 
 const editorOverlay = document.getElementById("propertyEditor");
@@ -68,6 +70,110 @@ const editableProps = [
 function setCheckboxValue(checkbox,value) {
     if (checkbox.checked!=value)
         checkbox.click();
+}
+
+function GetAnimationTimelineData(animation) {
+    const type = AnimationTypes.find(
+        t => t.id === animation.type
+    );
+
+    if (!type?.timeline) return null;
+
+    const args = animation.args;
+    const config = type.timeline;
+
+    const time = Number(args[config.time]) || 0;
+
+    const duration = typeof config.duration === "function"
+        ? config.duration(args)
+        : Number(args[config.duration]) || 0;
+
+    return {
+        time,
+        duration,
+        color: config.color || "#7b68ee"
+    };
+}
+
+function getTimelineAnimations() {
+    return AllAnimations.map((animation, index) => {
+        const type = AnimationTypes.find(t => t.id === animation.type);
+        const data = GetAnimationTimelineData(animation);
+
+        if (!data || !type) return null;
+
+        return {
+            index,
+            type: animation.type,
+            actor: animation.args[type.timeline.actorid],
+            time: data.time,
+            duration: data.duration,
+            color: data.color
+        };
+    }).filter(Boolean);
+}
+
+function setAnimationTimelineTime(index, time) {
+
+    const animation = AllAnimations[index];
+    if (!animation) return;
+
+    const type = AnimationTypes.find(
+        t => t.id === animation.type
+    );
+
+    if (!type?.timeline) return;
+
+    // Snap to 0.1 second
+    time = Math.round(time * 10) / 10;
+
+    // Update the Time argument
+    animation.args[type.timeline.time] = String(time);
+
+    // Regenerate trigger
+    const newTrigger = type.create(animation.args);
+    if (!newTrigger) return;
+
+    newTrigger.animationId = animation.id;
+
+    const triggerIndex = GeneratedTriggers.findIndex(
+        t => t.animationId === animation.id
+    );
+
+    if (triggerIndex !== -1) {
+        GeneratedTriggers[triggerIndex] = newTrigger;
+    } else {
+        GeneratedTriggers.push(newTrigger);
+    }
+
+    showPreview();
+}
+
+function setAnimationTimelineDuration(index, duration) {
+    const animation = AllAnimations[index];
+    if (!animation) return;
+
+    const type = AnimationTypes.find(t => t.id === animation.type);
+    if (!type?.timeline || typeof type.timeline.duration !== "number") return;
+
+    duration = Math.round(duration * 10) / 10;
+
+    animation.args[type.timeline.duration] = String(duration);
+
+    const newTrigger = type.create(animation.args);
+    if (!newTrigger) return;
+
+    newTrigger.animationId = animation.id;
+
+    const triggerIndex = GeneratedTriggers.findIndex(t => t.animationId === animation.id);
+
+    if (triggerIndex !== -1) {
+        GeneratedTriggers[triggerIndex] = newTrigger;
+    } else {
+        GeneratedTriggers.push(newTrigger);
+    }
+
+    showPreview();
 }
 
 var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length; i++){"+
@@ -107,13 +213,52 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "if(parent.AllSceneTweens[\"+i+\"].vars.TranslateZ!=undefined){parent.TranslateZInput2.value=parent.AllSceneTweens[\"+i+\"].vars.TranslateZ;  parent.TranslateZInput2.disabled=false;parent.TranslateZOnT.checked=true;}else{parent.TranslateZInput2.disabled=true;parent.TranslateZOnT.checked=false;} \";"+
 "thisActor.Y=30;thisActor.Height=15;thisActor.Width=(AllTweens[i].parent.duration()*100)+0;thisActor.X=AllTweens[i].parent.startTime()*100;thisActor.FontSize=10;"+
 "if(parent.AllSceneTweens[i].vars.data==\"from\" || parent.AllSceneTweens[i].vars.data==\"to\"){"+
-"thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".Draggable=false;\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft; \"+thisActor.ID+\".Width=Math.round(w/10)*10; }});' onmouseup='\"+thisActor.ID+\".Draggable=true; clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
+"thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".dragging=false;\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft; \"+thisActor.ID+\".Width=Math.round(w/10)*10; }}); \"+thisActor.ID+\".Draggable=false;' onmouseup='\"+thisActor.ID+\".Draggable=true; clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
 "if(parent.AllSceneTweens[i].vars.data==\"set\"){thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"\"}"+
-"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){thisActor.Y=AllTweensY[i-1]+15;} AllTweensY.push(thisActor.Y);"+
+"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){/*thisActor.Y=AllTweensY[i-1]+15;*/} AllTweensY.push(thisActor.Y);"+
 "Actor('TweenGhost'+i,'div');thisActor.Parent=\"TimelineBox\";thisActor.Color='#555555';thisActor.Opacity=100;thisActor.Y=AllTweensY[i]; thisActor.Height=13;thisActor.Z=-1;thisActor.X=AllTweensX[i];let d=AllTweens[i].parent.duration()*100;let r=AllTweens[i].parent._repeat;let rd=AllTweens[i].parent._rDelay*100;thisActor.Width=d+(r*(d+rd));"+
-"thisActor.Text = (function(){    let html = \"\";    let offset = d+rd;    for(let k = 1; k <= r; k++){        html += \"<div style='position:absolute; top:0; left:\" + offset + \"px; height:100%; width:\" + d + \"px; background:rgba(255,255,255,0.8); border-left:1px solid #aaa;'></div>\";        offset += d + rd;    }    return html;})();"
-+
-"}}";
+"thisActor.Text = (function(){    let html = \"\";    let offset = d+rd;    for(let k = 1; k <= r; k++){        html += \"<div style='position:absolute; top:0; left:\" + offset + \"px; height:100%; width:\" + d + \"px; background:rgba(255,255,255,0.8); border-left:1px solid #aaa;'></div>\";        offset += d + rd;    }    return html;})(); AllBlocks.push(thisActor);"
++"}"+
+"const animations = parent.getTimelineAnimations();"+
+"for (let i = 0; i < animations.length; i++) {"+
+"    const animation = animations[i];"+
+"    Actor('NewAnimationTween'+i,'div');"+
+"    thisActor.Parent='TimelineBox';"+
+"    thisActor.Color=animation.color;"+
+"    thisActor.X=animation.time*100;"+
+"    thisActor.Y=30;"+
+"    thisActor.Width=animation.duration*100;"+
+"    thisActor.Height=15;"+
+"    thisActor.FontSize=10;"+
+"thisActor.Text=\"\"+animation.actor+\";"+
+"<div style='float:right;height:100%;width:12px;padding:0;cursor:ew-resize;' "+
+"onmousedown='event.stopPropagation();"+
+"\"+thisActor.ID+\".dragging=false;"+
+"\"+thisActor.ID+\".Resizing=true;"+
+"startX=\"+thisActor.ID+\".X;"+
+"timer=setInterval(function(){"+
+"if(\"+thisActor.ID+\".Resizing==true){"+
+"\"+thisActor.ID+\".X=startX;"+
+"let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft;"+
+"\"+thisActor.ID+\".Width=Math.max(10,Math.round(w/10)*10);"+
+"}"+
+"},16);"+
+"' onmouseup='event.stopPropagation();"+
+"clearInterval(timer);"+
+"\"+thisActor.ID+\".Resizing=false;"+
+"\"+thisActor.ID+\".X=startX;"+
+"parent.setAnimationTimelineDuration(\"+animation.index+\", \"+thisActor.ID+\".Width / 100);  parent.openAnimationEditor(\"+animation.index+\");"+
+"'>⋮</div>\";"+
+"    thisActor.Style='filter:drop-shadow(0.1em 0.1em 0.1em); cursor:pointer; font-family:arial';"+
+"    thisActor.MouseDown='parent.openAnimationEditor('+animation.index+');';"+
+"    thisActor.Draggable=true;"+
+"    thisActor.MouseUp=\""+
+"        let x=Math.round(\"+thisActor.ID+\".X/10)*10;"+
+"        \"+thisActor.ID+\".X=x;"+
+"        parent.setAnimationTimelineTime(\"+animation.index+\",x/100); parent.openAnimationEditor(\"+animation.index+\");"+
+"    \"; PlaceTimelineActor(thisActor); AllBlocks.push(thisActor)"+
+"}"+
+"}";
 
 	
 
@@ -123,7 +268,16 @@ function showTimelines(){
 	
 	HTMLTweenCode=' <!DOCTYPE html>\n<html style="height:100%; overflow:hidden; touch-action:none; font-family:arial"><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge" /><meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><sc'+'ript>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames(); </sc'+'ript><style>::-moz-selection { background: none;}::selection {background: none;}html {} button{text-align:left;} button:focus{background-color:white;}</style><script src="js/SCORM_API_wrapper.js"></sc'+'ript>		<sc'+'ript src="js/engine.js"></sc'+'ript><sc'+'ript src="js/gsap.min.js"></sc'+'ript></head><body onload="init();" ondragstart="return false;" style="overflow:scroll; display:contents;"><div id="stage" style="perspective:200vw;" onmousedown="this.focus()" onmousemove="MousePosition(event)" ontouchstart="TouchPosition(event)" ontouchmove="TouchPosition(event)" style="width:640px; height:360px; overflow:scroll !important;"></div>';
 
-	jsTweenCode = "<sc"+"ript>var startX; var timer;           function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"#bbbbbb\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\n thisActor.Overflow=\"auto\"; thisActor.Style=\"overflow:auto\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=300;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2);\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==false;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){Scene1.Opacity=100;\n} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
+	jsTweenCode = "<sc"+"ript>var AllBlocks=new Array; function PlaceTimelineActor(actor) {"+
+"    actor.Y = 30;"+
+"    for (let other of AllBlocks) {"+
+"        if (other === actor) continue;"+
+"        if (actor.X < other.X + other.Width &&"+
+"            actor.X + actor.Width > other.X) {"+
+"            actor.Y = Math.max(actor.Y, other.Y + 15);"+
+"        }"+
+"    }"+
+"}"+"var startX; var timer; var MovingAnimationActor = null;var MovingAnimationIndex = -1;var AnimationMoveOffset = 0;          function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"#bbbbbb\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\n thisActor.Overflow=\"auto\"; thisActor.Style=\"overflow:auto\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=parent.SceneTimePosition*100;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){if (MovingAnimationActor) {    MovingAnimationActor.X =        MouseX + elementId(\"TimelineBox\").scrollLeft        - AnimationMoveOffset;} elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); parent.TimeCurrent=TimelineMarker.X;\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==true;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){TimelineMarker.X=parent.SceneTimePosition; elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); Scene1.Opacity=100;\n } \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
 	
 	frame=elementId("TimelineVisual").contentWindow.document;
 	frame.open();
@@ -627,6 +781,222 @@ function openReadyMadeEditor() {
 	editor.style.display = "block";
 	
 }
+
+function createAnimationId() {
+    return "Animation_" + Date.now() + "_" +
+        Math.random().toString(36).slice(2, 9);
+}
+
+
+
+let animationArgs = [];
+let editingAnimationIndex = null;
+
+function openAnimationEditor(animationIndex = null) {
+
+    const editor = document.getElementById("AnimationEditor");
+    editor.innerHTML = "";
+
+    editingAnimationIndex = animationIndex;
+	
+	let animation;
+	
+
+	if (animationIndex !== null) {
+
+		animation = AllAnimations[animationIndex];
+
+		// Support existing animations without IDs
+		if (!animation.id) {
+			animation.id = createAnimationId();
+		}
+
+	} else {
+
+		animation = {
+			id: createAnimationId(),
+			type: "",
+			args: []
+		};
+
+		AllAnimations.push(animation);
+
+		// Create placeholder trigger
+		GeneratedTriggers.push({
+			event: "update",
+			comment: "Animation",
+			conditions: [],
+			actions: [],
+			fireMode: "once",
+			animationId: animation.id
+		});
+
+		animationIndex = AllAnimations.length - 1;
+	}
+
+	editingAnimationIndex = animationIndex;
+	if (!GeneratedTriggers.some(
+		t => t.animationId === animation.id
+	)) {
+		updateAnimation(animation);
+	}
+
+
+
+    // Title
+    const title = document.createElement("h3");
+    title.textContent = animation ? "Edit Animation" : "Animation";
+    editor.appendChild(title);
+
+    // Animation type
+    const typeLabel = document.createElement("label");
+    typeLabel.textContent = "Animation:";
+    editor.appendChild(typeLabel);
+
+    const typeSelect = document.createElement("select");
+
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = "-- Select --";
+    typeSelect.appendChild(emptyOption);
+
+    AnimationTypes.forEach(type => {
+        const option = document.createElement("option");
+        option.value = type.id;
+        option.textContent = type.name;
+        typeSelect.appendChild(option);
+    });
+
+    editor.appendChild(typeSelect);
+
+    // Arguments
+    const argsContainer = document.createElement("div");
+    editor.appendChild(argsContainer);
+
+    function renderAnimationArgs(typeId, args = null) {
+
+		argsContainer.innerHTML = "";
+
+		const type = AnimationTypes.find(t => t.id === typeId);
+
+		if (!type || !type.args) return;
+
+		animationArgs = args
+			? [...args]
+			: type.args.map(arg => arg.defaultValue ?? "");
+
+		const inputs = renderArgsInputs(
+			type.args,
+			animationArgs,
+			updatedArgs => {
+
+				animationArgs = updatedArgs;
+				animation.args = [...updatedArgs];
+
+				updateAnimation(animation);
+				showPreview();
+			}
+		);
+
+		argsContainer.appendChild(inputs);
+	}
+	
+	 typeSelect.onchange = () => {
+
+		animation.type = typeSelect.value;
+
+		renderAnimationArgs(typeSelect.value);
+
+		updateAnimation(animation);
+	};
+	
+	if (animation.type) {
+		typeSelect.value = animation.type;
+		renderAnimationArgs(animation.type, animation.args);
+	}
+
+	
+	
+
+		function updateAnimation(animation) {
+
+			const type = AnimationTypes.find(
+				t => t.id === animation.type
+			);
+
+			if (!type) return;
+
+			const newTrigger = type.create(animation.args);
+
+			if (!newTrigger) return;
+
+			newTrigger.animationId = animation.id;
+
+			const triggerIndex = GeneratedTriggers.findIndex(
+				t => t.animationId === animation.id
+			);
+
+			if (triggerIndex !== -1) {
+				GeneratedTriggers[triggerIndex] = newTrigger;
+			} else {
+				GeneratedTriggers.push(newTrigger);
+			}
+
+			showPreview();
+		}
+    const closeButton = document.createElement("button");
+	closeButton.textContent = "Close";
+
+	closeButton.addEventListener("click", () => {
+
+		// Remove an unfinished animation
+		if (!animation.type) {
+
+			AllAnimations.splice(
+				AllAnimations.findIndex(a => a.id === animation.id), 1
+			);
+
+			GeneratedTriggers = GeneratedTriggers.filter(
+				t => t.animationId !== animation.id
+			);
+
+			showPreview();
+		}
+
+		AnimationEditor.Opacity = 0;
+	});
+
+	editor.appendChild(closeButton);
+
+    // Delete
+    if (animation) {
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+
+        deleteButton.addEventListener("click", () => {
+
+			AllAnimations = AllAnimations.filter(
+				a => a.id !== animation.id
+			);
+
+			GeneratedTriggers = GeneratedTriggers.filter(
+				t => t.animationId !== animation.id
+			);
+
+			AnimationEditor.Opacity = 0;
+
+			showTimelines();
+			showPreview();
+		});
+
+        editor.appendChild(deleteButton);
+    }
+
+
+    AnimationEditor.Opacity = 100;
+}
+
+
 
 function cloneActor(actor) {
   const clone = {};
@@ -2413,9 +2783,19 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
 	
 
   argsDef.forEach((arg, index) => {
+
+    const row = document.createElement("div");
+    row.style.display = "flex";
+    row.style.alignItems = "center";
+    row.style.gap = "10px";
+    row.style.marginBottom = "6px";
+    row.style.width = "100%";
+
     const label = document.createElement("label");
     label.textContent = arg.label + ": ";
-    container.appendChild(label);
+    label.style.flex = "0 0 110px";
+
+    row.appendChild(label);
 
     let input;
 
@@ -2552,6 +2932,74 @@ function renderArgsInputs(argsDef, argsValues, onChange) {
         input.type = "number";
         input.value = argsValues[index] || 0;
         break;
+		
+	  case "range": {
+		const wrapper = document.createElement("div");
+		wrapper.style.display = "flex";
+		wrapper.style.alignItems = "center";
+		wrapper.style.gap = "8px";
+		wrapper.style.width = "100%";
+
+		// Range slider
+		const range = document.createElement("input");
+		range.type = "range";
+		range.min = arg.min ?? 0;
+		range.max = arg.max ?? 100;
+		range.step = arg.step ?? 1;
+		//range.style.flex = "1";
+		range.style.minWidth = "50px";
+
+		// Numeric input
+		const number = document.createElement("input");
+		number.type = "number";
+		number.min = arg.min ?? 0;
+		number.max = arg.max ?? 100;
+		number.step = arg.step ?? 1;
+		number.style.width = "65px";
+
+		// Initial value
+		const value = argsValues[index];
+
+		const isEmpty =
+			value === "" ||
+			value === "null" ||
+			value == null;
+
+		if (isEmpty) {
+			range.value = range.min;
+			number.value = "";
+		} else {
+			range.value = value;
+			number.value = value;
+		}
+
+		// Update from slider
+		range.addEventListener("input", () => {
+			number.value = range.value;
+			argsValues[index] = range.value;
+			onChange([...argsValues]);
+		});
+
+		// Update from number input
+		number.addEventListener("input", () => {
+
+			if (number.value === "") {
+				argsValues[index] = "";
+				range.value = range.min;
+			} else {
+				argsValues[index] = number.value;
+				range.value = number.value;
+			}
+
+			onChange([...argsValues]);
+		});
+
+		wrapper.appendChild(range);
+		wrapper.appendChild(number);
+
+		input = wrapper;
+		break;
+	}
 
       case "string":
       default:
@@ -2939,7 +3387,8 @@ function updateDropdown() {
 	if (
       arg.type !== "quill" &&
       arg.type !== "target" &&
-      arg.type !== "propertyList"
+      arg.type !== "propertyList" &&
+	  arg.type !== "range"
     ) {
 	  input.onchange = () => {
 		if (arg.type === "boolean") {
@@ -2952,7 +3401,13 @@ function updateDropdown() {
 	  };
 	}
 
-    container.appendChild(input);
+    if (input) {
+		input.style.flex = "1";
+		input.style.minWidth = "0";
+		row.appendChild(input);
+	}
+
+	container.appendChild(row);
   });
 
   return container;
@@ -3123,7 +3578,7 @@ function renderTriggerEditor(containerId) {
 }
 
   const searchTerm = searchInput.value?.trim().toLowerCase() || "";
-
+	
 	GeneratedTriggers.forEach((trigger, index) => {
 	  if (!triggerMatchesSearch(trigger, searchTerm)) return;
     // 💡 NYT: Lav et details-tag til collapsing
@@ -4101,7 +4556,7 @@ function loadFullString(fullText) {
 		
 
 	parent.GeneratedTriggers = extractTriggersFromHTML(fullText);
-	//console.log("Loaded triggers:", parent.GeneratedTriggers);
+	AllAnimations = extractAnimationsFromHTML(fullText);
 //parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); }, 1000);
 	showPreview();
@@ -4207,6 +4662,14 @@ const triggerBlock =
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+	const animationJSON = JSON.stringify(AllAnimations);
+
+	const animationBlock =
+	`<!-- LT_ANIMATIONS_START
+	${animationJSON}
+	LT_ANIMATIONS_END -->
+	`;
+
 const fonts=getProjectFontCSS(mode = "preview");
   
   HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="PointerPosition(event); AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "preview")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>		\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event); AllMouseUps();" onpointerup="PointerPosition(event); AllMouseUps();" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
@@ -4221,20 +4684,21 @@ const fonts=getProjectFontCSS(mode = "preview");
 "/*window.onerror = function(message, src, line, col, err) { console.warn('Preview fejl fanget:', err); return true; };*/\n" +
 "var Move=gsap;\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();});"+
 exportTriggersToCode() +
-GeneralCode.getValue() +"\n \n\n"+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/"+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+ "\n requestAnimationFrame(() => {document.documentElement.scrollTop = parent.ScrollPosition;} ); \n function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\nparent.TimeLength=GetScene().Timeline.totalDuration()*100;  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines(); "+manipulatorCode+manipulatorCodeTriggers+"} \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
+GeneralCode.getValue() +"\n \n\n"+SettingsGenerated+"\n window.TriggerFlags = {}; /*parent.GeneratedTriggers=Triggers;*/"+"\n\nfunction Build(){"+BuildCode.getValue()+GeneratingActor+ "\n requestAnimationFrame(() => {document.documentElement.scrollTop = parent.ScrollPosition;} ); \n function deepCloneWithoutRuntime(obj) { const cache = new WeakMap();function cloneRecursive(o) {if (o === null || typeof o !== 'object') return o;if (cache.has(o)) return cache.get(o);const result = Array.isArray(o) ? [] : {};cache.set(o, result);for (const key in o) {if ([\"Timeline\", \"_next\", \"_prev\", \"__runtimeOnly\"].includes(key)) continue;result[key] = cloneRecursive(o[key]);}return result;}return cloneRecursive(obj);} parent.AllActors = Actors.map(deepCloneWithoutRuntime); parent.AllScenes=Scenes;"+"  \n\n"+AllTweens.join("\n//Tween\n")+"\n parent.AllSceneTweens=GetScene().Timeline.getChildren();\n } function Update(){parent.SceneTimePosition=Math.round(GetScene().Timeline.time()*10)/10;"+UpdateCode.getValue()+"\n\n parent.TimeLength=GetScene().Timeline.totalDuration()*100;}\n\n function SceneStart(){  initialScene=true;if(initialScene==true){Scenes[CurrentScene].Opacity=0;"+document.getElementById("Scenes").value+".Opacity=100; CurrentScene=Scenes.indexOf("+document.getElementById("Scenes").value+"); initialScene=false;} "+document.getElementById("Scenes").value+"."+PlayOrPause+"GetScene().Timeline.seek(parent.SceneTimePosition); "+ScenestartCode.getValue()+"\n \n parent.AllSceneTweens=GetScene().Timeline.getChildren(true,true,false);\n/*parent.TimeLength=GetScene().Timeline.totalDuration()*100;*/  window.dispatchEvent(new Event(\"scene-ready\")); if(parent.playBtn.Opacity==0){GetScene().Timeline.play();}if(parent.playBtn.Opacity==100){GetScene().Timeline.pause();}parent.AllSceneTweens="+document.getElementById("Scenes").value+".Timeline.getChildren(true,true,false);\n parent.showTimelines(); "+manipulatorCode+manipulatorCodeTriggers+" } \n function Resize(){"+ResizeCode.getValue()+"\n"+/*exportTriggersToCode()+*/" parent.renderTriggerEditor(\"triggerEditor\");}</scri"+"pt>";
   
 
   
   frame.open();
   frame.innerHTML="";
   
-  frame.write(HTMLCode+triggerBlock+jsCode);
+  frame.write(HTMLCode + triggerBlock + animationBlock + jsCode);
   frame.close();
   let previewFrame = elementId("PreviewWindow").contentWindow;
 
 previewFrame.addEventListener("scene-ready", () => {
     // Nu ER Triggers garanteret loaded og udfyldt
     //parent.GeneratedTriggers = previewFrame.Triggers;
+	GeneratedTriggers.filter(trigger => !trigger.animationId)
     parent.renderTriggerEditor("triggerEditor");
     
 });
@@ -4453,17 +4917,25 @@ const triggerBlock =
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+const animationJSON = JSON.stringify(AllAnimations);
+
+const animationBlock =
+`<!-- LT_ANIMATIONS_START
+${animationJSON}
+LT_ANIMATIONS_END -->
+`;
+
 const fonts=getProjectFontCSS(mode = "preview");
 
     var JsCode = "<scri"+"pt>\n var Move=gsap;\n window.addEventListener('contextmenu', function(e) {  e.preventDefault();}); //✂✂✂\n"+GeneralCode.getValue()+"\n//✂✂✂ \n"+"\n \n\n "+SettingsGenerated+"\n"+exportTriggersToCode()+"\nfunction Build(){\n//✂✂✂\n"+BuildCode.getValue()+"\n//✂✂✂"+AllTweens.join("\n//Tween\n")+"//✂✂✂\n} \n\nfunction Update(){\n//✂✂✂\n"+StoryLinePlayer+UpdateCode.getValue()+"//✂✂✂\n}\n\nfunction SceneStart(){\n//✂✂✂\n"+ScenestartCode.getValue()+"\n//✂✂✂\n} \n\nfunction Resize(){\n//✂✂✂\n"+ResizeCode.getValue()+"\n//✂✂✂\n}</scri"+"pt>";
 	
     try {
-        const previewString = HTMLCode + triggerBlock + JsCode;
+        const previewString = HTMLCode + triggerBlock + animationBlock + JsCode;
         localStorage.setItem("LT_autosave", previewString);
         localStorage.setItem("LT_autosave_time", Date.now());
 		localStorage.setItem(
 		"LT_autosave_triggers",
-		JSON.stringify(parent.GeneratedTriggers)
+		JSON.stringify(parent.GeneratedTriggers),
 		);
 		
     } catch(e) {
@@ -4528,6 +5000,21 @@ function tryRestoreAutosave() {
 	*/
 }
 
+function extractAnimationsFromHTML(fullText) {
+
+    const match = fullText.match(
+        /<!-- LT_ANIMATIONS_START\s*([\s\S]*?)\s*LT_ANIMATIONS_END -->/
+    );
+
+    if (!match) return [];
+
+    try {
+        return JSON.parse(match[1]);
+    } catch (error) {
+        console.error("Could not load animations:", error);
+        return [];
+    }
+}
 
 function saveTextAsFile(){
 
@@ -4544,9 +5031,18 @@ const triggerBlock =
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+
+const animationJSON = JSON.stringify(AllAnimations);
+
+const animationBlock =
+`<!-- LT_ANIMATIONS_START
+${animationJSON}
+LT_ANIMATIONS_END -->
+`;
+
 const fonts=getProjectFontCSS(mode = "export");
   
-	var blob = new Blob([HTMLCode+triggerBlock+JsCode], {type: "text/plain;charset=utf-8"});
+	var blob = new Blob([HTMLCode+triggerBlock+animationBlock+JsCode], {type: "text/plain;charset=utf-8"});
     //saveAs(blob, "show.html");
 	async function handleSaveImg(event){
   const image = blob;
@@ -4707,6 +5203,13 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+
+	const animationBlock =
+	`<!-- LT_ANIMATIONS_START
+	${animationJSON}
+	LT_ANIMATIONS_END -->
+	`;
+
     HTMLCode='<!DOCTYPE html>\n<html style="height:100%; touch-action:none;" onpointerup="AllMouseUps();" >\n<head>\n<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta http-equiv="X-UA-Compatible" content="IE=edge" />\n<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height" /><script>function cancelAllAnimationFrames(){var id = window.requestAnimationFrame(function(){});while(id--){window.cancelAnimationFrame(id);}}cancelAllAnimationFrames();</scr'+'ipt>\n<!'+'--- ✂✂✂ ---'+'>\n'+HEADCode.getValue()+'\n<!--- ✂✂✂ ---'+'>\n<style>::selection {background: none;} .ql-align-center { text-align: center; } .ql-align-right { text-align: right; } .ql-align-justify { text-align: justify; } '+getProjectFontCSS(mode = "export")+'</style>\n<scr'+'ipt src="js/SCORM_API_wrapper.js"></sc'+'ript>\n<scr'+'ipt src="js/engine.js">\n</scr'+'ipt>\n<scr'+'ipt src="js/gsap.min.js"></scr'+'ipt>\n</head>\n<body onload="init();" ondragstart="return false;" style="overflow:hidden; display:contents; ">\n<div id="stage" onpointerdown="this.focus()" onpointermove="PointerPosition(event)" onpointerstart="PointerPosition(event)" onpointercancel="PointerPosition(event)" style="width:640px; height:360px; overflow:hidden; position:relative; margin:auto;"></div>\n <!--- ✂✂✂ ---'+'>';
 
     const JsCode =
@@ -4728,7 +5231,7 @@ LT_TRIGGERS_END -->\n`;
       ResizeCode.getValue() +
       "\n//✂✂✂\n}</scri" + "pt>";
 
-    const finalHTML = HTMLCode + triggerBlock + JsCode;
+    const finalHTML = HTMLCode + triggerBlock + animationBlock + JsCode;
 
     const projectJSON = {
       actors: cloneWithoutRuntime(AllActors),
@@ -4913,6 +5416,15 @@ async function saveProjectAsSingleHTML() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
+
+	const animationJSON = JSON.stringify(AllAnimations);
+
+	const animationBlock =
+	`<!-- LT_ANIMATIONS_START
+	${animationJSON}
+	LT_ANIMATIONS_END -->
+	`;
+
     const projectJSON = {
       actors: cloneWithoutRuntime(AllActors),
       scenes: cloneWithoutRuntime(AllScenes),
@@ -4992,7 +5504,7 @@ LT_TRIGGERS_END -->\n`;
       ResizeCode.getValue() +
       "\n//✂✂✂\n}\n</scri" + "pt>";
 
-    let finalHTML = HTMLCode + embeddedProjectBlock + triggerBlock + JsCode;
+    let finalHTML = HTMLCode + embeddedProjectBlock + triggerBlock + animationBlock + JsCode;
 
     SetText(SavingOverlay, "Converting assets to data URLs... <br><br>DO NOT CLOSE THE BROWSER BEFORE THIS MESSAGE DISAPPEARS!!!");
     await new Promise(requestAnimationFrame);
@@ -5147,6 +5659,7 @@ function loadFileAsText(){
 		select.add(option);
 		
 	parent.GeneratedTriggers = extractTriggersFromHTML(textFromFileLoaded);
+	AllAnimations = extractAnimationsFromHTML(textFromFileLoaded);
 	//console.log("Loaded triggers:", parent.GeneratedTriggers);
 //parent.renderTriggerEditor("triggerEditor");	
 	setTimeout(function(){ showPreview(); document.documentElement.scrollTop = ScrollPosition;}, 1000);
@@ -5968,6 +6481,8 @@ function loadProjectFromHtmlString(content, merge=false) {
 
 		parent.GeneratedTriggers =
 			extractTriggersFromHTML(content);
+			
+		AllAnimations = extractAnimationsFromHTML(content);
 	}
 
 	document.getElementById("generalCode").style.display="none";
@@ -6753,6 +7268,17 @@ thisActor.Text=`ReadyMadeEditor`;
 thisActor.Color="lightgray"
 thisActor.Opacity=0;
 
+Actor("AnimationEditor","div")
+thisActor.Y=30
+thisActor.Height=StageHeight
+thisActor.Width=400
+thisActor.Overflow="auto"
+thisActor.Click="ContextMenu.Opacity=0;";
+thisActor.FontSize=12;
+thisActor.Text=`ReadyMadeEditor`;
+thisActor.Color="lightgray"
+thisActor.Opacity=0;
+
 
 Actor("SelectScript","button")
 SelectScript.Height=30
@@ -7115,6 +7641,20 @@ thisActor.Height=30
 thisActor.X=200
 thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length; if(ActorTween.value!=''){manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()}";
 
+//thisActor.Click="openAnimationEditor()";
+
+Actor("AnimationBtn","button");
+//thisActor.Parent="buildCode"
+thisActor.Text="Animations(experimental)";
+thisActor.Y=StageHeight-90
+thisActor.Height=30
+thisActor.X=0
+/*thisActor.Click="TweenOptions.Opacity=100; elementId(\"startTime\").value=SceneTimePosition; CurrentlyEditingTween=AllTweens.length; if(ActorTween.value!=''){manipulatorCode = generateManipulatorTweenCode(elementId('ActorTween').value); manipulatorCodeTriggers = generateManipulatorCodeTweenTriggers(elementId('ActorTween').value); updateGeneratedTween()}";
+*/
+thisActor.Click="openAnimationEditor()";
+
+
+
 Actor("ActorOptions","DIV");
 ActorOptions.Opacity=0;
 //ActorOptions.FontSize=10
@@ -7402,6 +7942,7 @@ SeekBar.Width=StageWidth-600;
 SeekBar.Y=StageHeight-50;
 //NewActorBtn2.Y=StageHeight-80;
 NewTweenBtn.Y=StageHeight-30;
+AnimationBtn.Y=StageHeight-30;
 //thisActor.Width=StageWidth-400;
 TimelineVisual.Y=StageHeight-TimelineVisual.Height-50;
 TimelineVisual.Width=StageWidth-400;
