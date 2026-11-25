@@ -1228,12 +1228,12 @@ AnimationTypes.push({
         { type: "scene", label: "Scene" },
         { type: "actor", label: "Actor:" },
         { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
-        { type: "number", label: "Start Time"},
+        { type: "number", label: "Start Time", defaultValue:0},
          { type: "number", label: "duration", defaultValue:1},
         { type: "easing", label: "Easing", defaultValue: "power1.out" },
-        { type: "number", label: "Repeat"},
-        { type: "boolean", label: "Yoyo"},
-        { type: "number", label:"Repeat Delay"},
+        { type: "number", label: "Repeat", defaultValue:0},
+        { type: "boolean", label: "Yoyo", defaultValue:false},
+        { type: "number", label:"Repeat Delay", defaultValue:0},
 
         { type: "number", label: "Origin X"},
         { type: "number",label: "Origin Y"},
@@ -1325,7 +1325,7 @@ AnimationTypes.push({
             ${scene}.Timeline.add(gsap.timeline({repeat:${repeat}, repeatDelay:${repeatdelay}}).${direction}(${target}, {${properties.join(" ")} repeat:${innerRepeat}}),${starttime})`;
 //"         \nScene1.Timeline.add(gsap.timeline({ repeat:1,        repeatDelay:1,})            .to(fdg,     {id: 1,ease:\"linear\",repeat:1, yoyo:true, duration:1, data:\"to\"}),0)"
         return {
-            event: "Update",
+            event: "SceneStart",
             comment: "Property Animation",
             conditions: [],
             actions: [
@@ -1338,6 +1338,80 @@ AnimationTypes.push({
             fireMode: "once",
             animation: {
                 type: "Filter",
+                args: [...args]
+            }
+        };
+    }
+});
+
+
+AnimationTypes.push({
+    id: "Media",
+    name: "Media Animation",
+
+    timeline: {
+        time: 5,
+        duration: 4,
+        color: "#b0aad4",
+        actorid: 1
+    },
+
+    args: [
+        { type: "scene", label: "Scene" },
+        { type: "actor", label: "Media Actor", actorTypes: ["audio", "video"] },
+        { type: "number", label: "Time Offset", defaultValue: 0 },
+        { type: "number", label: "Tolerance", defaultValue: 0.1 },
+        { type: "number", label: "Duration", defaultValue: 10 },
+        { type: "number", label: "Time", defaultValue: "0" }
+    ],
+
+    create: (args) => {
+
+        let scene = args[0];
+        let actor = args[1];
+        let offset = args[2];
+        let tolerance = args[3];
+        let duration = args[4];
+        let time = args[5];
+
+        let code = `
+            const mediaActor = ${actor};
+			const scene = ${scene};
+			const tolerance = ${tolerance};
+            const mediaDuration = ${duration};
+            const mediaStart = ${time};
+            const mediaOffset = ${offset};
+
+            const mediaEnd = mediaStart + mediaDuration;
+
+            if (${scene}.Timeline.time() >= mediaStart &&
+                ${scene}.Timeline.time() <= mediaEnd) {
+
+                SyncMediaToTimeline(
+					mediaActor,
+					scene,
+					tolerance,
+					scene.Timeline.time() - mediaStart + mediaOffset
+				);
+
+            } else {
+                const media = elementId(mediaActor.ID);
+                if (media && !media.paused) media.pause();
+            }
+        `;
+
+        return {
+            event: "Update",
+            comment: "Media Animation",
+            conditions: [],
+            actions: [{
+                fn: "",
+                args: [],
+                code: code
+            }],
+            fireMode: "whileTrue",
+            animation: {
+                type: "Media",
                 args: [...args]
             }
         };
