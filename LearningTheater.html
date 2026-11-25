@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="height:100%; touch-action:none;" >
+<html style="height:100%; touch-action:none; " >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -29,6 +29,21 @@ var StopUpdates="function cancelAllAnimationFrames(){var id =window.requestAnima
 
 var htmlNode="<input type='number'>"
 
+if (typeof Triggers === "undefined") {
+  Triggers = [];
+}
+Triggers = [];
+if (typeof Ensemble === "undefined") {
+  Ensemble = [];
+}
+Ensemble = [];
+if (typeof Ensemble2 === "undefined") {
+  Ensemble2 = [];
+}
+Ensemble2 = [];
+
+var Triggers=[];
+
 var PlayOrPause="Timeline.play();";
 var TimeLength=0;
 var TimeCurrent=0;
@@ -53,6 +68,7 @@ var manipulatorCode = "";
 var manipulatorCodeTriggers="";
 var currentlyEditingActor;
 let AllAnimations = [];
+
 
 
 const editorOverlay = document.getElementById("propertyEditor");
@@ -215,9 +231,9 @@ var GenerateTweenCode="function GenerateTween(){for (i = 0; i < AllTweens.length
 "if(parent.AllSceneTweens[i].vars.data==\"from\" || parent.AllSceneTweens[i].vars.data==\"to\"){"+
 "thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"<button style='float:right;height:100%;' onmousedown='\"+thisActor.ID+\".dragging=false;\"+thisActor.ID+\".Resizing=true;startX=\"+thisActor.ID+\".X;timer=setInterval(function(){if(\"+thisActor.ID+\".Resizing==true){ \"+thisActor.ID+\".X=startX; let w=(MouseX+10)-\"+thisActor.ID+\".X+elementId(`TimelineBox`).scrollLeft; \"+thisActor.ID+\".Width=Math.round(w/10)*10; }}); \"+thisActor.ID+\".Draggable=false;' onmouseup='\"+thisActor.ID+\".Draggable=true; clearInterval(timer); \"+thisActor.ID+\".Resizing=false; parent.elementId(`duration`).value=\"+thisActor.ID+\".Width/100; \"+thisActor.ID+\".X=startX; startX=\"+thisActor.ID+\".X; parent.elementId(`duration`).dispatchEvent(new Event(`input`)); '>></button>\";}"+
 "if(parent.AllSceneTweens[i].vars.data==\"set\"){thisActor.Text=\"\"+parent.AllSceneTweens[i]._targets[0].ID+\"\"}"+
-"AllTweensWidth.push(thisActor.Width); PlaceTimelineActor(thisActor); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){/*thisActor.Y=AllTweensY[i-1]+15;*/} AllTweensY.push(thisActor.Y);"+
+"AllTweensWidth.push(thisActor.Width); AllTweensX.push(thisActor.X); if(thisActor.X<(AllTweensWidth[i-1]+1)+AllTweensX[i-1]){/*thisActor.Y=AllTweensY[i-1]+15;*/} AllTweensY.push(thisActor.Y);"+
 "Actor('TweenGhost'+i,'div');thisActor.Parent=\"TimelineBox\";thisActor.Color='#555555';thisActor.Opacity=100;thisActor.Y=AllTweensY[i]; thisActor.Height=13;thisActor.Z=-1;thisActor.X=AllTweensX[i];let d=AllTweens[i].parent.duration()*100;let r=AllTweens[i].parent._repeat;let rd=AllTweens[i].parent._rDelay*100;thisActor.Width=d+(r*(d+rd));"+
-"thisActor.Text = (function(){    let html = \"\";    let offset = d+rd;    for(let k = 1; k <= r; k++){        html += \"<div style='position:absolute; top:0; left:\" + offset + \"px; height:100%; width:\" + d + \"px; background:rgba(255,255,255,0.8); border-left:1px solid #aaa;'></div>\";        offset += d + rd;    }    return html;})();  AllBlocks.push(thisActor);"
+"thisActor.Text = (function(){    let html = \"\";    let offset = d+rd;    for(let k = 1; k <= r; k++){        html += \"<div style='position:absolute; top:0; left:\" + offset + \"px; height:100%; width:\" + d + \"px; background:rgba(255,255,255,0.8); border-left:1px solid #aaa;'></div>\";        offset += d + rd;    }    return html;})(); AllBlocks.push(thisActor);"
 +"}"+
 "const animations = parent.getTimelineAnimations();"+
 "for (let i = 0; i < animations.length; i++) {"+
@@ -277,7 +293,7 @@ function showTimelines(){
 "            actor.Y = Math.max(actor.Y, other.Y + 15);"+
 "        }"+
 "    }"+
-"}"+"  var startX; var timer; var MovingAnimationActor = null;var MovingAnimationIndex = -1;var AnimationMoveOffset = 0;          function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"#bbbbbb\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\n thisActor.Overflow=\"auto\"; thisActor.Style=\"overflow:auto\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\"; \nthisActor.X=parent.TimeCurrent; parent.TimeCurrent=TimelineMarker.X; \nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){  if (MovingAnimationActor) {    MovingAnimationActor.X =        MouseX + elementId(\"TimelineBox\").scrollLeft        - AnimationMoveOffset;} elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); \nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==true;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; parent.TimeCurrent=TimelineMarker.X;}\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){ parent.TimeCurrent=TimelineMarker.X;  elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); Scene1.Opacity=100;\n console.log('Marker position: '+TimelineMarker.X);} \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
+"}"+"var startX; var timer; var MovingAnimationActor = null;var MovingAnimationIndex = -1;var AnimationMoveOffset = 0;          function AudioSelect(){SetSource(\"RefSound\",elementId(\"selSound\").value);}var AllTweensWidth=new Array; var AllTweensX=new Array; var AllTweensY=new Array; var AllTweens=parent.AllSceneTweens; var MarkerDragging=false;\nvar TweenNumber=0;function SeekTween(){parent.elementId(\"PreviewWindow\").contentWindow.GetScene().Timeline.seek(TimelineMarker.X/100);parent.SetCurrentTime(\"RefSound\", TimelineMarker.X/100);}\nfunction GenerateTween(){   \nActor(\"TimelineTween\"+TweenNumber,\"div\");\n   thisActor.Parent=\"TimelineBox\";\n   thisActor.Y=30;\n    thisActor.Height=1000;\n    thisActor.Width=100;\n     thisActor.X=TimelineMarker.X;\n    thisActor.Text=\"\";\n    thisActor.MouseDown=\"'+thisActor+'.X=MouseX;\";\n    thisActor.MouseUp=\"TimelineTween\"+TweenNumber+\".X=Math.round(TimelineTween\"+TweenNumber+\".X*10)/10\";\n       thisActor.Draggable=true;\n       GenerateElement(thisActor);\n       TweenNumber++;\n}\n            function Build(){\nSCORMTracking=false;\nStageWidth=window.innerWidth, StageHeight=window.innerHeight;\nScaling=\"None\";\nOverflow=\"hidden\";\nActor(\"TimelineBox\",\"div\");\nthisActor.Color=\"#bbbbbb\";\nthisActor.X=0;\nthisActor.Y=0;\nthisActor.Width=StageWidth;\nthisActor.Height=window.innerHeight-thisActor.Y;\n thisActor.Overflow=\"auto\"; thisActor.Style=\"overflow:auto\";\nvar CountRulerSeconds=0;\nfunction GenerateRuler(){\nActor(\"TimelineRuler\"+CountRulerSeconds,\"div\");\nthisActor.TranslateZ=-1;\nthisActor.Parent=\"TimelineBox\";\nthisActor.Height=30;\nthisActor.Width=100;\nthisActor.X=(CountRulerSeconds*100);\nthisActor.Text=\"\"+CountRulerSeconds;\nthisActor.MouseUp=\"TimelineMarker.X=Math.round(((MouseX-5)+elementId('TimelineBox').scrollLeft)/10)*10;\";\nif(CountRulerSeconds<500){\nCountRulerSeconds++;\nGenerateRuler();\n}}\n\nGenerateRuler();\nActor(\"TimelineMarker\",\"div\");thisActor.Z=1;\nthisActor.Color=\"black\";\nthisActor.Parent=\"TimelineBox\";\nthisActor.X=parent.SceneTimePosition*100;\nthisActor.Height=1000;\nthisActor.Width=10;\nthisActor.Opacity=50;\nthisActor.MouseDown=\"MarkerDragging=false;\";\nthisActor.MouseUp=\"MarkerDragging=false;\";\n"+GenerateTweenCode+"GenerateTween();}\n Scene(\"Scene1\"); Scene1.Opacity=100;\n function Update(){if (MovingAnimationActor) {    MovingAnimationActor.X =        MouseX + elementId(\"TimelineBox\").scrollLeft        - AnimationMoveOffset;} elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); parent.TimeCurrent=TimelineMarker.X;\nif(MarkerDragging==true && TimelineMarker.X>-1){\nTimelineMarker.X=Math.round(((MouseX-5)+elementId(\"TimelineBox\").scrollLeft)/10)*10;\n\nSeekTween();}\nif(TimelineMarker.X<0){\nTimelineMarker.X=0;\nMarkerDragging==true;\n}\nif(MarkerDragging!=true){TimelineMarker.X=parent.SceneTimePosition*100; }\n   TimelineMarker.Y=elementId('TimelineBox').scrollTop;\nStageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}\nfunction SceneStart(){TimelineMarker.X=parent.SceneTimePosition; elementId('TimelineBox').scrollLeft=TimelineMarker.X-(StageWidth/2); Scene1.Opacity=100;\n } \nfunction Resize(){StageWidth=window.innerWidth;TimelineBox.Width=StageWidth\n}</sc"+"ript>";
 	
 	frame=elementId("TimelineVisual").contentWindow.document;
 	frame.open();
@@ -5203,7 +5219,7 @@ async function saveProjectAsZip() {
 ${triggerJSON}
 LT_TRIGGERS_END -->\n`;
 
-const animationJSON = JSON.stringify(AllAnimations);
+	const animationJSON = JSON.stringify(AllAnimations);
 	const animationBlock =
 	`<!-- LT_ANIMATIONS_START
 	${animationJSON}
@@ -7155,6 +7171,8 @@ html, body {
 `;
 }
 
+
+
 function Build(){SCORMTracking=false;
 StageWidth=window.innerWidth, StageHeight=window.innerHeight;
 Scaling="FitTop";
@@ -7906,6 +7924,180 @@ thisActor.FontSize=16;
 
 callShowPreviewFromPreview=false;
 
+//timelineVisual new version
+
+Actor('TimelineVisual2','div');
+ActorProps(thisActor, {
+  Parent: "stage",
+  Width: StageWidth-400,
+  Height: 200,
+  X: 400,
+  Y: StageHeight-250,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 920,
+  TransformOriginY: 264,
+  Draggable: false,
+  ClickThrough: false,
+  Style: `overflow-y:auto;
+overflow-x:auto`,
+  Color: "#bbbbbb",
+  Text: "<p><br></p>",
+  FontSize: 16,
+  Opacity: 0,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "auto",
+  Controls: false,
+});
+
+Actor('number','div');
+ActorProps(thisActor, {
+  Parent: "TimelineVisual2",
+  Width: 16,
+  Height: 32,
+  X: 0,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 8,
+  TransformOriginY: 16,
+  Draggable: false,
+  ClickThrough: true,
+  Text: "0",
+  FontSize: 12,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: -1,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "count", value: "1", type:"number" },
+    { name: "group", value: "numbers", type:"string" },
+  ],
+  count: 1,
+  group: "numbers",
+});
+
+Actor('tween','div');
+ActorProps(thisActor, {
+  Parent: "TimelineVisual2",
+  Width: 200,
+  Height: 15,
+  X: 48,
+  Y: 32,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 0,
+  TransformOriginY: 0,
+  Draggable: true,
+  ClickThrough: false,
+  Style: "cursor:pointer",
+  Color: "#d1d1d1",
+  Text: "TestActor</p>",
+  FontSize: 12,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "group", value: "tweens", type:"string" },
+    { name: "animationId", value: "0", type:"string" },
+  ],
+  group: "tweens",
+  animationId: "0",
+});
+
+Actor('tweenresize','div');
+ActorProps(thisActor, {
+  Parent: "tween",
+  Width: 15,
+  Height: 15,
+  X: 185,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 100,
+  TransformOriginY: 100,
+  Draggable: true,
+  ClickThrough: false,
+  Text: ">",
+  FontSize: 16,
+  Opacity: 100,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+  CustomProps: [
+    { name: "group", value: "resizers", type:"string" },
+  ],
+  group: "resizers",
+});
+
+Actor('TimelineMarker','div');
+ActorProps(thisActor, {
+  Parent: "TimelineVisual2",
+  Width: 10,
+  Height: 200,
+  X: 0,
+  Y: 0,
+  Z: 0,
+  Angle: 0,
+  RotateX: 0,
+  RotateY: 0,
+  RotateZ: 0,
+  ShowOrigin: false,
+  TransformOriginX: 48,
+  TransformOriginY: 96,
+  Draggable: false,
+  ClickThrough: false,
+  Color: "#000000",
+  Text: "",
+  FontSize: 16,
+  Opacity: 50,
+  TranslateX: 0,
+  TranslateY: 0,
+  TranslateZ: 0,
+  Scale: 1,
+  SkewX: 0,
+  SkewY: 0,
+  Overflow: "visible",
+  Controls: false,
+});
+
 }
 
 function Update(){
@@ -7945,7 +8137,9 @@ NewTweenBtn.Y=StageHeight-30;
 AnimationBtn.Y=StageHeight-30;
 //thisActor.Width=StageWidth-400;
 TimelineVisual.Y=StageHeight-TimelineVisual.Height-50;
+TimelineVisual2.Y=StageHeight-TimelineVisual2.Height-50;
 TimelineVisual.Width=StageWidth-400;
+TimelineVisual2.Width=StageWidth-400;
 ActorOptions.Height=StageHeight-60;
 TweenOptions.Height=StageHeight;
 
@@ -8004,6 +8198,44 @@ elementId("myRange").value=SceneTimePosition*100;
 function SceneStart(){
 
 //tryRestoreAutosave();
+//Triggers for new timelineVisual
+
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "the resize function", 
+      conditions: [{"fn":"GatherEnsemble","args":["resizers","group","resizers"],"code":"GatherEnsemble(\"resizers\", \"group\", \"resizers\")"},{"fn":"MouseDown","args":["{\"type\":\"ensemble\",\"value\":\"resizers\"}"],"code":"resizers = resizers.filter(a => a.MouseIsDown==true)"},{"fn":"EnsembleNotEmpty","args":["resizers"],"code":"resizers.length>0"}], 
+      actions: [{"fn":"","args":[],"code":"resizers.forEach(a => GetParent(a).dragging = false)"},{"fn":"","args":[],"code":"resizers.forEach(a => GetParent(a).Width = a.X+15)"},{"fn":"SetProperty","args":["{\"type\":\"ensemble\",\"value\":\"resizers\"}","Y","=","0"],"code":"resizers.forEach(a => a[\"Y\"] = 0)"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "lock resize", 
+      conditions: [{"fn":"GatherEnsemble","args":["resizers","group","resizers"],"code":"GatherEnsemble(\"resizers\", \"group\", \"resizers\")"}], 
+      actions: [{"fn":"SetProperty","args":["{\"type\":\"ensemble\",\"value\":\"resizers\"}","Y","=","0"],"code":"resizers.forEach(a => a[\"Y\"] = 0)"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "drag around", 
+      conditions: [{"fn":"GatherEnsemble","args":["tweens","group","tweens"],"code":"GatherEnsemble(\"tweens\", \"group\", \"tweens\")"},{"fn":"MouseDown","args":["{\"type\":\"ensemble\",\"value\":\"tweens\"}"],"code":"tweens = tweens.filter(a => a.MouseIsDown==true)"},{"fn":"EnsembleNotEmpty","args":["tweens"],"code":"tweens.length>0"},{"fn":"GatherEnsemble","args":["resizers","group","resizers"],"code":"GatherEnsemble(\"resizers\", \"group\", \"resizers\")"}], 
+      actions: [{"fn":"SetProperty","args":["{\"type\":\"ensemble\",\"value\":\"tweens\"}","X","=","Math.round(a.X/10)*10"],"code":"tweens.forEach(a => a[\"X\"] = Math.round(a.X/10)*10)"},{"fn":"SetProperty","args":["{\"type\":\"ensemble\",\"value\":\"tweens\"}","Y","=","Math.round(a.Y/15)*15"],"code":"tweens.forEach(a => a[\"Y\"] = Math.round(a.Y/15)*15)"}],
+      fireMode: "whiletrue"
+    });
+Triggers.push({ 
+      event: "Update", 
+      target: null, 
+	  key: "",
+      comment: "create numbers", 
+      conditions: [], 
+      actions: [{"fn":"Duplicate","args":["{\"type\":\"actor\",\"value\":\"number\"}","1000","X: \"+100\", count:\"+1\", Text:\"+duplicateCount\""],"code":"DuplicateActor(\"number\",1000,{X: \"+100\", count:\"+1\", Text:\"+duplicateCount\"})"}],
+      fireMode: "once"
+    });
 
 const previewWindow = document.getElementById("PreviewWindow").contentWindow;
 
