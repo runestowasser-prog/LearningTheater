@@ -1359,7 +1359,7 @@ AnimationTypes.push({
     args: [
         { type: "scene", label: "Scene" },
         { type: "actor", label: "Media Actor", actorTypes: ["audio", "video"] },
-        { type: "number", label: "Time Offset", defaultValue: 0 },
+        { type: "number", label: "Time Offset", defaultValue: "0" },
         { type: "number", label: "Tolerance", defaultValue: 0.1 },
         { type: "number", label: "Duration", defaultValue: 10 },
         { type: "number", label: "Time", defaultValue: "0" }
@@ -1412,6 +1412,81 @@ AnimationTypes.push({
             fireMode: "whileTrue",
             animation: {
                 type: "Media",
+                args: [...args]
+            }
+        };
+    }
+});
+
+
+AnimationTypes.push({
+    id: "Volume",
+    name: "Volume Animation",
+	timeline: {
+		time: 6,
+		duration: 5,
+		color: "#b0aad4",
+    actorid: 1
+	},
+
+    args: [
+        { type: "scene", label: "Scene" },
+        { type: "actor", label: "Media Actor", actorTypes: ["audio", "video"] },
+        { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
+
+       { type: "range", label: "Volume", defaultValue: "0", min:0, max:100, step:0.1 },
+        
+
+        { type: "easing", label: "Easing", defaultValue: "power1.out" },
+        { type: "number", label: "Duration", defaultValue: "1" },
+        { type: "number", label: "Time", defaultValue: "0" }
+    ],
+
+    create: (args) => {
+
+        let scene = args[0];
+        let target = args[1];
+        let direction = args[2];
+
+        let volume = args[3]/100;
+
+        let easing = args[4];
+        let duration = args[5];
+        let time = args[6];
+
+        // Build filter string dynamically
+        let filters = [];
+
+        let properties = [];
+
+        properties.push(`volume: ${volume}`);
+
+        properties.push(`duration: ${duration}`);
+        properties.push(`ease: "${easing}"`);
+
+        let code = `
+            ${scene}.Timeline.add(
+                gsap.timeline().${direction}("#${target}", {
+                    ${properties.join(",\n                    ")}
+                }),
+                ${time}
+            );
+        `;
+
+        return {
+            event: "Update",
+            comment: "Volume Animation",
+            conditions: [],
+            actions: [
+                {
+                    fn: "",
+                    args: [],
+                    code: code
+                }
+            ],
+            fireMode: "once",
+            animation: {
+                type: "Filter",
                 args: [...args]
             }
         };

@@ -1688,4 +1688,103 @@ function SetGlobalAngle(a, value){
 	}
 }
 
+function SyncMediaToTimeline(MediaActor,MediaScene,Tolerance,Offset){
+
+  const mediaActor = MediaActor;
+  const media = elementId(MediaActor.ID);
+  if (!media) return;
+
+  const scene = MediaScene;
+  if (!scene || !scene.Timeline) return;
+
+  const tl = scene.Timeline;
+
+  const tolerance = Tolerance;
+  //const offset = Offset;
+
+  // --- Install visibility sync only once per media/scene pair ---
+  const visibilitySyncKey = "__ltVisibilitySync_" + MediaActor.ID;
+
+  if (!media[visibilitySyncKey]) {
+    media[visibilitySyncKey] = true;
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        media.pause();
+      }
+    });
+  }
+
+  const timelineTime = tl.time();
+  const desiredMediaTime = Offset;
+
+  const hasDuration = Number.isFinite(media.duration) && media.duration > 0;
+
+  // --- If media metadata is not ready yet, only handle pause/play safely ---
+  if (!hasDuration) {
+    if (tl.paused() || document.hidden) {
+      if (!media.paused) media.pause();
+      return;
+    }
+
+    if (!tl.paused() && !document.hidden && media.paused && timelineTime >= offset) {
+      media.play().catch(() => {});
+    }
+
+    return;
+  }
+
+  // --- Before media start: park at 0 and pause ---
+  if (desiredMediaTime <= 0) {
+    if (Math.abs(media.currentTime) > tolerance) {
+      media.currentTime = 0;
+    }
+
+    if (!media.paused) {
+      media.pause();
+    }
+
+    return;
+  }
+
+  // --- After media end: park at end and pause ---
+  if (desiredMediaTime >= media.duration) {
+    if (Math.abs(media.currentTime - media.duration) > tolerance) {
+      media.currentTime = media.duration;
+    }
+
+    if (!media.paused) {
+      media.pause();
+    }
+
+    return;
+  }
+
+  // --- Clamp target time into legal media range ---
+  let targetTime = desiredMediaTime;
+
+  if (targetTime < 0) targetTime = 0;
+  if (targetTime > media.duration) targetTime = media.duration;
+
+  const drift = Math.abs(media.currentTime - targetTime);
+
+  // --- Drift correction ---
+  if (drift > tolerance) {
+    media.currentTime = targetTime;
+  }
+
+  // --- Pause if timeline is paused or tab is hidden ---
+  if ((tl.paused() || document.hidden) && !media.paused) {
+    media.pause();
+    return;
+  }
+
+  // --- Play only when timeline is active and offset has been reached ---
+  if (!tl.paused() && !document.hidden && media.paused) {
+    if (timelineTime >= 0) {
+      media.play().catch(() => {});
+    }
+  }
+
+}
 `
