@@ -342,6 +342,7 @@ function NewElement(ID,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Font
   S.GlobalX=0;
   S.GlobalY=0;
   S.GlobalAngle=0;
+  S.ImageMode="Stretch";
     return S;
 	
 }
@@ -446,11 +447,11 @@ function GetScene(){
 
 var thisActor=undefined;
 
-function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask,MouseX,MouseY){
+function Actor(e,Type,Opacity,X,Y,Width,Height,Angle,SkewX,SkewY,Text,Fontsize,Source,Click,Shape,Color, Parent,Draggable,DropFunction, Z, Overflow,RotateX, RotateY, RotateZ, TranslateX,TranslateY,TranslateZ,MouseDown,MouseUp,BackgroundImage,TextColor,Style,Loaded, Class,Scale,TransformOriginX,TransformOriginY,ShowOrigin,InputType, Mask,MouseX,MouseY,ImageMode){
 	var hash = e;
 	var name = window[hash];
 	//alert(thisScene);
-	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,0,0,false,null,null,0,0);
+	window[hash] = NewElement(e,Type,100,0,0,200,200,0,0,0,"",16,null,null,null,null, thisScene,false,0, 0, "visible",0,0,0,0,0,0,null,null,null,null,null,false,null,1,0,0,false,null,null,0,0,"Stretch");
 	Elements.push(window[hash]);
 	thisActor=window[hash]
 	//console.log(thisActor.Text)
@@ -550,9 +551,20 @@ function SetSource(e, newSrc) {
         pre.onerror = () => { e.Loaded = true; };
         pre.src = newSrc;
 
+        const imageModes={
+          Stretch:{repeat: "no-repeat", size:"100% 100%", position:"center"},
+          Repeat:{repeat:"repeat", size:"auto",position:"top-left"},
+          "Repeat X":{repeat:"repeat-x", size:"auto 100%", position:"top left"},
+          "Repeat Y":{repeat:"repeat-y", size:"100%", position:"top left"},
+          Cover:{repeat:"no-repeat", size:"cover", position:"center"},
+          Contain:{repeat:"no-repeat", size:"contain", position:"center"},
+        }
+        const mode = imageModes[id.ImageMode]||imageModes.Stretch;
+
         x.style.backgroundImage = `url(${newSrc})`;
-        x.style.backgroundRepeat = "no-repeat";
-        x.style.backgroundSize = "100% 100%";
+        x.style.backgroundRepeat = mode.repeat;
+        x.style.backgroundSize = mode.size;
+        x.style.backgroundPosition = mode.position;
     }
 
     // ---- VIDEO ---- //
@@ -770,10 +782,21 @@ function GenerateElement(id){
 				pre.onload = () => { id.Loaded = true; };
 				pre.onerror = () => { id.Loaded = true; };
 				pre.src = resolvedSource;
+        
+        const imageModes={
+          Stretch:{repeat: "no-repeat", size:"100% 100%", position:"center"},
+          Repeat:{repeat:"repeat", size:"auto",position:"top-left"},
+          "Repeat X":{repeat:"repeat-x", size:"auto 100%", position:"top left"},
+          "Repeat Y":{repeat:"repeat-y", size:"100%", position:"top left"},
+          Cover:{repeat:"no-repeat", size:"cover", position:"center"},
+          Contain:{repeat:"no-repeat", size:"contain", position:"center"},
+        }
+        const mode = imageModes[id.ImageMode]||imageModes.Stretch;
 
-				x.style.backgroundImage = `url(${resolvedSource})`;
-				x.style.backgroundRepeat = "no-repeat";
-				x.style.backgroundSize = "100% 100%";
+        x.style.backgroundImage = `url(${resolvedSource})`;
+        x.style.backgroundRepeat = mode.repeat;
+        x.style.backgroundSize = mode.size;
+        x.style.backgroundPosition = mode.position;
 			}
 
 			// ---- VIDEO ---- //

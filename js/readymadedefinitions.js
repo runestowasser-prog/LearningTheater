@@ -1081,12 +1081,13 @@ AnimationTypes.push({
         properties.push(`stagger: { amount: ${duration}}`);
 
         let code = `
-            let split = SplitText.create("#${target}", {
-                type: "${splitBy}"
-            });
+        if(${target}.TextSplit==undefined){
+            ${target}.TextSplit = SplitText.create("#${target}", {
+                type: "lines,words,chars"
+            });}
 
             ${scene}.Timeline.add(
-                gsap.timeline().${direction}(split.${splitBy}, {
+                gsap.timeline().${direction}(${target}.TextSplit.${splitBy}, {
                     ${properties.join(",\n                    ")}
                 }),
                 ${time}
@@ -1118,16 +1119,22 @@ AnimationTypes.push({
     id: "Filter",
     name: "Filter Animation",
 	timeline: {
-		time: 13,
-		duration: 12,
+		time: 3,
+		duration: 4,
 		color: "#b0aad4",
     actorid: 1
 	},
 
     args: [
-        { type: "scene", label: "Scene" },
+          { type: "scene", label: "Scene" },
         { type: "actor", label: "Actor:" },
         { type: "dropdown", label: "Direction", options: ["to", "from", "set"], defaultValue: "to" },
+        { type: "number", label: "Start Time", defaultValue:0},
+         { type: "number", label: "duration", defaultValue:1},
+        { type: "easing", label: "Easing", defaultValue: "power1.out" },
+        { type: "number", label: "Repeat", defaultValue:0},
+        { type: "boolean", label: "Yoyo", defaultValue:false},
+        { type: "number", label:"Repeat Delay", defaultValue:0},
 
         { type: "range", label: "Blur", defaultValue: "null", min:0, max:100, step:0.1 },
         { type: "range",label: "Brightness",min: 0,max: 2,step: 0.05,defaultValue: "null"},
@@ -1140,28 +1147,32 @@ AnimationTypes.push({
         
 
         { type: "easing", label: "Easing", defaultValue: "power1.out" },
-        { type: "number", label: "Duration", defaultValue: "1" },
-        { type: "number", label: "Time", defaultValue: "0" }
+
     ],
 
     create: (args) => {
 
-        let scene = args[0];
+           let scene = args[0];
         let target = args[1];
         let direction = args[2];
+        let starttime = args[3];
+        let duration = args[4];
+        let easing = args[5];
+        let repeat = args[6];
+        let yoyo = args[7];
+        let repeatdelay=args[8];
 
-        let blur = args[3];
-        let brightness = args[4];
-        let contrast = args[5];
-        let grayscale = args[6];
-        let saturate = args[7];
-        let sepia = args[8];
-        let hueRotate = args[9];
-        let invert = args[10];
+        let blur = args[9];
+        let brightness = args[10];
+        let contrast = args[11];
+        let grayscale = args[12];
+        let saturate = args[13];
+        let sepia = args[14];
+        let hueRotate = args[15];
+        let invert = args[16];
+        let innerRepeat=0;
 
-        let easing = args[11];
-        let duration = args[12];
-        let time = args[13];
+        
 
         // Build filter string dynamically
         let filters = [];
@@ -1181,17 +1192,13 @@ AnimationTypes.push({
             properties.push(`filter: "${filters.join(" ")}"`);
         }
 
-        properties.push(`duration: ${duration}`);
-        properties.push(`ease: "${easing}"`);
+        //properties.push(`ease: "${easing}" `);
+        //properties.push(`repeat: ${repeat},`);
+        //properties.push(`yoyo: ${yoyo},`);
+        //properties.push(`duration: ${duration},`)
+        if(yoyo===true){innerRepeat=1}
 
-        let code = `
-            ${scene}.Timeline.add(
-                gsap.timeline().${direction}("#${target}", {
-                    ${properties.join(",\n                    ")}
-                }),
-                ${time}
-            );
-        `;
+        let code = `${scene}.Timeline.add(gsap.timeline({repeat:${repeat}, repeatDelay:${repeatdelay}}).${direction}("#${target}", {${properties.join(" ")}, repeat:${innerRepeat}, ease: "${easing}", yoyo: ${yoyo}, duration: ${duration},}),${starttime})`;
 
         return {
             event: "Update",
@@ -1322,7 +1329,7 @@ AnimationTypes.push({
 
 
         let code = `
-            ${scene}.Timeline.add(gsap.timeline({repeat:${repeat}, repeatDelay:${repeatdelay}}).${direction}(${target}, {${properties.join(" ")} repeat:${innerRepeat}}),${starttime})`;
+            ${scene}.Timeline.add(gsap.timeline({repeat:${repeat}, repeatDelay:${repeatdelay}}).${direction}(${target}, {${properties.join(" ")} repeat:${innerRepeat}}),${starttime});`;
 //"         \nScene1.Timeline.add(gsap.timeline({ repeat:1,        repeatDelay:1,})            .to(fdg,     {id: 1,ease:\"linear\",repeat:1, yoyo:true, duration:1, data:\"to\"}),0)"
         return {
             event: "SceneStart",

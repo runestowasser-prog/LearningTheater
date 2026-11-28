@@ -770,10 +770,21 @@ function GenerateElement(id){
 				pre.onload = () => { id.Loaded = true; };
 				pre.onerror = () => { id.Loaded = true; };
 				pre.src = resolvedSource;
+        
+        const imageModes={
+          Stretch:{repeat: "no-repeat", size:"100% 100%", position:"center"},
+          Repeat:{repeat:"repeat", size:"auto",position:"top-left"},
+          "Repeat X":{repeat:"repeat-x", size:"auto 100%", position:"top left"},
+          "Repeat Y":{repeat:"repeat-y", size:"100%", position:"top left"},
+          Cover:{repeat:"no-repeat", size:"cover", position:"center"},
+          Contain:{repeat:"no-repeat", size:"contain", position:"center"},
+        }
+        const mode = imageModes[id.ImageMode]||imageModes.Stretch;
 
-				x.style.backgroundImage = \`url(\${resolvedSource})\`;
-				x.style.backgroundRepeat = "no-repeat";
-				x.style.backgroundSize = "100% 100%";
+        x.style.backgroundImage = \`url(\${resolvedSource})\`;
+        x.style.backgroundRepeat = mode.repeat;
+        x.style.backgroundSize = mode.size;
+        x.style.backgroundPosition = mode.position;
 			}
 
 			// ---- VIDEO ---- //
